@@ -1,0 +1,18 @@
+---
+const navLinks = [
+    { label: "Направления", href: "#destinations" },
+    { label: "Яхты", href: "#catalog" },
+    { label: "О нас", href: "#about-us" },
+    { label: "Отзывы", href: "#reviews" },
+    { label: "FAQ", href: "#faq" },
+    { label: "Контакты", href: "#contacts" },
+  ];
+---
+
+<ul class={`nav-list`} role="list">
+  {navLinks.map(link => (
+    <li>
+      <a href={link.href} class="nav-list__link">{link.label}</a>
+    </li>
+  ))}
+</ul>

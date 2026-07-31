@@ -1,0 +1,351 @@
+---
+import Navigation from './Navigation.astro';
+import logo from '../assets/logo-b.svg?url';
+---
+
+<header class="header">
+  <div class="container header__inner">
+    <a href="/" class="header__logo" aria-label="Абсолют-тур — на главную">
+      <img src={logo} alt="Абсолют-тур" class="header__logo-icon" />
+    </a>
+
+    <Navigation class="header__nav" />
+
+    <div class="header__actions">
+      <div class="header__phone">
+        <a href="tel:+78005559922" class="header__phone-number">8 800 555 99 22</a>
+        <span class="header__phone-hours">Ежедневно 10:00 – 20:00</span>
+      </div>
+
+      <a href="#booking" class="btn btn-primary">Подобрать отдых</a>
+    </div>
+
+    <button
+      type="button"
+      class="header__burger"
+      aria-label="Открыть меню"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      data-menu-toggle
+    >
+      <span class="header__burger-line"></span>
+      <span class="header__burger-line"></span>
+      <span class="header__burger-line"></span>
+    </button>
+  </div>
+
+  <!-- Мобильное меню: скрыто на десктопе, показывается по клику на бургер ниже 960px -->
+  <div class="mobile-menu" data-mobile-menu aria-hidden="true">
+    <div class="mobile-menu__backdrop" data-menu-close></div>
+
+    <div class="mobile-menu__panel">
+      <div class="mobile-menu__top">
+        <img src={logo} alt="Абсолют-тур" class="header__logo-icon" />
+        <button type="button" class="mobile-menu__close" aria-label="Закрыть меню" data-menu-close>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <Navigation class="mobile-menu__nav"/>
+
+      <div class="mobile-menu__phone">
+        <a href="tel:+78005559922" class="header__phone-number">8 800 555 99 22</a>
+        <span class="header__phone-hours">Ежедневно 10:00 – 20:00</span>
+      </div>
+
+      <a href="#booking" class="btn btn-primary mobile-menu__cta" data-menu-close>Подобрать отдых</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--color-bg-card);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding-block: 16px;
+  }
+
+  .header__logo-icon {
+    width: 150px;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .header :global(.nav-list) {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .header :global(.nav-list__link) {
+    text-decoration: none;
+    color: var(--color-text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+  }
+
+  .header :global(.nav-list__link:hover) {
+    color: var(--color-orange);
+  }
+
+  /* Actions: phone + CTA (десктоп) */
+  .header__actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  .header__phone {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.3;
+  }
+
+  .header__phone-number {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-text-main);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .header__phone-hours {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+
+
+  /* Burger — скрыт на десктопе, появляется на мобильных вместо nav+phone */
+  .header__burger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .header__burger-line {
+    width: 22px;
+    height: 2px;
+    background-color: var(--color-text-main);
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+
+  /* Когда меню открыто — превращаем три полоски в крестик */
+  .header__burger[aria-expanded='true'] .header__burger-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .header__burger[aria-expanded='true'] .header__burger-line:nth-child(2) {
+    opacity: 0;
+  }
+  .header__burger[aria-expanded='true'] .header__burger-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  @media (max-width: 960px) {
+    .header :global(.nav-list),
+    .header__phone,
+    .header__actions .btn-primary {
+      display: none;
+    }
+
+    .header__burger {
+      display: flex;
+    }
+  }
+
+  /* ===== Мобильное меню ===== */
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    visibility: hidden;
+    pointer-events: none;
+    transition: visibility .3s, pointer-events .3s;
+  }
+
+  .mobile-menu[data-open='true'] {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .mobile-menu__backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(4, 32, 27, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+  }
+
+  .mobile-menu[data-open='true'] .mobile-menu__backdrop {
+    opacity: 1;
+  }
+
+  .mobile-menu__panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: min(320px, 85vw);
+    background-color: var(--color-bg-card);
+    box-shadow: var(--shadow-luxury);
+    padding: 20px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .mobile-menu[data-open='true'] .mobile-menu__panel {
+    transform: translateX(0);
+  }
+
+  .mobile-menu__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mobile-menu__top .header__logo-icon {
+    width: 120px;
+  }
+
+  .mobile-menu__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--color-border-light);
+    border-radius: 50%;
+    color: var(--color-text-main);
+    transition: border-color 0.3s ease, color 0.3s ease;
+  }
+
+  .mobile-menu__close svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .mobile-menu__close:hover {
+    border-color: var(--color-orange);
+    color: var(--color-orange);
+  }
+
+  .mobile-menu :global(.nav-list) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 4px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .mobile-menu :global(.nav-list__link) {
+    display: block;
+    padding: 12px 4px;
+    text-decoration: none;
+    color: var(--color-text-main);
+    font-size: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .mobile-menu :global(.nav-list__link:hover) {
+    color: var(--color-orange);
+  }
+
+  .mobile-menu__phone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .mobile-menu__cta {
+    width: 100%;
+  }
+</style>
+
+<script>
+  function initMobileMenu(): void {
+    const menu = document.querySelector<HTMLElement>('[data-mobile-menu]');
+    const toggleBtn = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+
+    // Если элементов нет на странице — выходим
+    if (!menu || !toggleBtn) return;
+
+    // Фиксируем переменные для TypeScript (убирает ошибку "possibly null")
+    const activeMenu = menu;
+    const activeBtn = toggleBtn;
+    const closeTriggers = activeMenu.querySelectorAll<HTMLElement>('[data-menu-close]');
+
+    function openMenu(): void {
+      activeMenu.setAttribute('data-open', 'true');
+      activeMenu.setAttribute('aria-hidden', 'false');
+      activeBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu(): void {
+      activeMenu.setAttribute('data-open', 'false');
+      activeMenu.setAttribute('aria-hidden', 'true');
+      activeBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    activeBtn.addEventListener('click', () => {
+      const isOpen = activeBtn.getAttribute('aria-expanded') === 'true';
+      isOpen ? closeMenu() : openMenu();
+    });
+
+    closeTriggers.forEach((el) => el.addEventListener('click', closeMenu));
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMenu();
+    });
+  }
+
+  // Безопасный запуск в Astro:
+  // Если DOM уже загружен — запускаем сразу, иначе ждём DOMContentLoaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileMenu);
+  } else {
+    initMobileMenu();
+  }
+
+  // Поддержка Astro View Transitions (если используете навигацию без перезагрузки)
+  document.addEventListener('astro:page-load', initMobileMenu);
+</script>
