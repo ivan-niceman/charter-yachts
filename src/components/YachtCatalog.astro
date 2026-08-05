@@ -1,0 +1,785 @@
+---
+import type { Yacht, Country } from '../lib/sheets';
+import YachtCard from './YachtCard.astro';
+import YachtModal from './YachtModal.astro';
+
+interface Props {
+  yachts: Yacht[];
+  countries: Country[];
+}
+
+const { yachts, countries } = Astro.props;
+---
+
+<section id="yachts" class="section yachts-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="title">Наш флот</h2>
+      <h3 class="subtitle">Каталог премиальных яхт</h3>
+    </div>
+
+    <!-- Filter Bar: Custom Dropdown & Quick Chips -->
+    <div class="filter-bar">
+      <div class="filter-group-wrapper">
+        <span class="filter-label">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="label-icon">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          Выберите направление:
+        </span>
+
+        <!-- Custom Dropdown -->
+        <div class="custom-dropdown" id="destinations-dropdown">
+          <button
+            type="button"
+            class="dropdown-trigger"
+            id="dropdown-trigger"
+            aria-expanded="false"
+          >
+            <div class="trigger-left">
+              <span class="trigger-title" id="trigger-title">Все направления</span>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="trigger-arrow" id="trigger-arrow">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <div class="dropdown-menu" id="dropdown-menu">
+            <div class="dropdown-item item-selected" data-country-id="all">
+              <div class="item-content">
+                <span class="item-name">Все направления</span>
+              </div>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            {countries.map((c: Country) => {
+              return (
+                <div class="dropdown-item" data-country-id={c.id}>
+                  <div class="item-content">
+                    <span class="item-name">{c.name}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yacht Cards Grid -->
+    <div class="yachts-grid" id="yachts-grid">
+      {yachts.map((yacht: Yacht) => {
+        const country = countries.find((c: Country) => c.id === yacht.countryId);
+        return <YachtCard yacht={yacht} country={country} />;
+      })}
+    </div>
+
+    <!-- Show More Button -->
+    <div class="show-more-container" id="show-more-container" style="display: none;">
+      <button type="button" class="show-more-btn" id="show-more-btn">
+        <span>Показать ещё</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Yacht Modals -->
+    {yachts.map((yacht: Yacht) => {
+      const country = countries.find((c: Country) => c.id === yacht.countryId);
+      return <YachtModal yacht={yacht} country={country} />;
+    })}
+
+    <!-- Empty State -->
+    <div class="empty-state" id="yachts-empty-state" style="display: none;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <h3>Яхты не найдены</h3>
+      <p>Попробуйте выбрать другое направление из списка.</p>
+      <button type="button" class="btn btn-primary" id="reset-filter-btn">
+        Сбросить фильтр
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const dropdown = document.getElementById('destinations-dropdown');
+    const trigger = document.getElementById('dropdown-trigger');
+    const menu = document.getElementById('dropdown-menu');
+    const triggerFlag = document.getElementById('trigger-flag');
+    const triggerTitle = document.getElementById('trigger-title');
+    const triggerCount = document.getElementById('trigger-count');
+    const arrow = document.getElementById('trigger-arrow');
+
+    const chips = document.querySelectorAll('.chip');
+    const dropdownItems = document.querySelectorAll('.dropdown-item');
+    const yachtCards = document.querySelectorAll('.yacht-card');
+    const emptyState = document.getElementById('yachts-empty-state');
+    const resetBtn = document.getElementById('reset-filter-btn');
+
+    let currentCountry = 'all';
+
+    function toggleDropdown(show?: boolean) {
+      if (!menu || !trigger || !arrow) return;
+      const isOpen = show !== undefined ? show : !menu.classList.contains('is-open');
+      
+      if (isOpen) {
+        menu.classList.add('is-open');
+        trigger.setAttribute('aria-expanded', 'true');
+        arrow.classList.add('rotated');
+      } else {
+        menu.classList.remove('is-open');
+        trigger.setAttribute('aria-expanded', 'false');
+        arrow.classList.remove('rotated');
+      }
+    }
+
+    if (trigger) {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (dropdown && !dropdown.contains(e.target as Node)) {
+        toggleDropdown(false);
+      }
+    });
+
+    let isExpanded = false;
+
+    function updateYachtVisibility() {
+      const grid = document.getElementById('yachts-grid');
+      const showMoreBtnContainer = document.getElementById('show-more-container');
+      if (!grid) return;
+
+      // Calculate how many columns currently fit in the grid
+      const gridStyle = window.getComputedStyle(grid);
+      const gridColumnsStr = gridStyle.getPropertyValue('grid-template-columns');
+      let columnsCount = 1;
+      if (gridColumnsStr && gridColumnsStr !== 'none') {
+        const cols = gridColumnsStr.trim().split(/\s+/);
+        columnsCount = cols.length;
+      }
+      
+      const maxVisible = columnsCount * 2; // Two rows of yachts
+
+      // Find all yacht cards that match the selected filter
+      const matchingCards: HTMLElement[] = [];
+      yachtCards.forEach((card) => {
+        const cardCountry = card.getAttribute('data-country-id');
+        if (currentCountry === 'all' || cardCountry === currentCountry) {
+          matchingCards.push(card as HTMLElement);
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+
+      // Update visibility of matching cards based on isExpanded
+      matchingCards.forEach((card, index) => {
+        if (isExpanded || index < maxVisible) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      // Show or hide the "Show more" button container
+      if (showMoreBtnContainer) {
+        if (matchingCards.length > maxVisible && !isExpanded) {
+          showMoreBtnContainer.style.display = 'flex';
+        } else {
+          showMoreBtnContainer.style.display = 'none';
+        }
+      }
+
+      // Update empty state
+      if (emptyState) {
+        emptyState.style.display = matchingCards.length === 0 ? 'flex' : 'none';
+      }
+    }
+
+    function setFilter(countryId: string) {
+      currentCountry = countryId;
+      isExpanded = false; // Reset expansion on filter change
+
+      updateYachtVisibility();
+
+      // Count total matching for stats count in dropdown
+      let visibleCount = 0;
+      yachtCards.forEach((card) => {
+        const cardCountry = card.getAttribute('data-country-id');
+        if (countryId === 'all' || cardCountry === countryId) {
+          visibleCount++;
+        }
+      });
+
+      // Update Dropdown trigger state
+      dropdownItems.forEach((item) => {
+        const itemId = item.getAttribute('data-country-id');
+        if (itemId === countryId) {
+          item.classList.add('item-selected');
+          if (triggerFlag) triggerFlag.textContent = item.querySelector('.item-flag')?.textContent || '🌍';
+          if (triggerTitle) triggerTitle.textContent = item.querySelector('.item-name')?.textContent || 'Все направления';
+          if (triggerCount) triggerCount.textContent = `${visibleCount} яхт`;
+        } else {
+          item.classList.remove('item-selected');
+        }
+      });
+
+      // Update Chips
+      chips.forEach((chip) => {
+        const chipId = chip.getAttribute('data-chip-id');
+        if (chipId === countryId) {
+          chip.classList.add('chip-active');
+        } else {
+          chip.classList.remove('chip-active');
+        }
+      });
+    }
+
+    const showMoreBtn = document.getElementById('show-more-btn');
+    if (showMoreBtn) {
+      showMoreBtn.addEventListener('click', () => {
+        isExpanded = true;
+        updateYachtVisibility();
+      });
+    }
+
+    let resizeTimeout: any;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        updateYachtVisibility();
+      }, 100);
+    });
+
+    // Initial load check
+    updateYachtVisibility();
+
+    dropdownItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        const countryId = item.getAttribute('data-country-id') || 'all';
+        setFilter(countryId);
+        toggleDropdown(false);
+      });
+    });
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const countryId = chip.getAttribute('data-chip-id') || 'all';
+        setFilter(countryId);
+      });
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        setFilter('all');
+      });
+    }
+
+    // Listen to custom country select event from Destinations section
+    window.addEventListener('selectCountryFilter', (e: any) => {
+      if (e.detail && e.detail.countryId) {
+        setFilter(e.detail.countryId);
+      }
+    });
+
+    // Use event delegation for Details & Booking buttons to ensure 100% robustness
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      
+      const detailsBtn = target.closest('.action-details');
+      if (detailsBtn) {
+        e.preventDefault();
+        const yachtId = detailsBtn.getAttribute('data-details-id');
+        if (yachtId) {
+          window.dispatchEvent(new CustomEvent('openYachtDetails', {
+            detail: { yachtId }
+          }));
+        }
+        return;
+      }
+
+      const bookBtn = target.closest('.action-book');
+      if (bookBtn) {
+        e.preventDefault();
+        const yachtName = bookBtn.getAttribute('data-book-yacht');
+        if (yachtName) {
+          window.dispatchEvent(new CustomEvent('openBooking', {
+            detail: { yachtName }
+          }));
+        }
+        return;
+      }
+    });
+  });
+</script>
+
+<style>
+  .yachts-section {
+    background-color: #ffffff;
+    padding-block: 60px;
+  }
+
+  /* .section-header {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto 36px;
+  } */
+
+  /* .section-eyebrow {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--color-orange);
+    margin-bottom: 6px;
+  } */
+
+  /* .section-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-navy);
+    margin-bottom: 12px;
+  } */
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 40px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #f8fbfb 0%, #f0f7f6 100%);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(10, 82, 70, 0.12);
+    box-shadow: 0 4px 16px rgba(5, 51, 43, 0.04);
+  }
+
+  .filter-group-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--color-navy);
+    white-space: nowrap;
+  }
+
+  .label-icon {
+    color: var(--color-orange);
+  }
+
+  .custom-dropdown {
+    position: relative;
+    min-width: 280px;
+  }
+
+  .dropdown-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background-color: #ffffff;
+    border: 1px solid rgba(10, 82, 70, 0.2);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .dropdown-trigger:hover {
+    border-color: var(--color-navy);
+    box-shadow: 0 4px 12px rgba(10, 82, 70, 0.12);
+  }
+
+  .trigger-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .trigger-flag {
+    font-size: 20px;
+  }
+
+  .trigger-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-navy);
+  }
+
+  .trigger-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-orange);
+    background-color: rgba(255, 105, 0, 0.1);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  .trigger-arrow {
+    color: var(--color-navy);
+    transition: transform 0.3s ease;
+  }
+
+  .trigger-arrow:global(.rotated) {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid rgba(10, 82, 70, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 16px 36px rgba(5, 51, 43, 0.15);
+    padding: 8px;
+    z-index: 50;
+    max-height: 340px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transform-origin: top center;
+    transition: opacity 0.3s,
+                transform 0.3s,
+                visibility 0.3s ;
+    pointer-events: none;
+  }
+
+  /* Открытое состояние выпадающего меню */
+  .dropdown-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .dropdown-item:hover {
+    background-color: rgba(10, 82, 70, 0.06);
+  }
+
+  .dropdown-item:global(.item-selected) {
+    background-color: var(--color-navy);
+    color: #ffffff;
+  }
+
+  .dropdown-item:global(.item-selected) .item-name {
+    color: #ffffff;
+  }
+
+  .item-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .item-flag {
+    font-size: 18px;
+  }
+
+  .item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-navy);
+  }
+
+  .item-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: var(--color-bg-light);
+    color: var(--color-navy);
+  }
+
+  .dropdown-item:global(.item-selected) .item-badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background-color: var(--color-border);
+    margin: 6px 0;
+  }
+
+  /* Quick Chips */
+  .quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    background-color: #ffffff;
+    border: 1px solid var(--color-border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-navy-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .chip:hover {
+    color: var(--color-navy);
+    border-color: var(--color-navy);
+  }
+
+  .chip:global(.chip-active) {
+    background-color: var(--color-navy);
+    color: #ffffff;
+    border-color: var(--color-navy);
+  }
+
+  /* Grid */
+  .yachts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 28px;
+  }
+
+  .yacht-card {
+    background-color: #ffffff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+  }
+
+  .yacht-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(255, 105, 0, 0.3);
+  }
+
+  .yacht-image-wrap {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+  }
+
+  .yacht-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .yacht-card:hover .yacht-image {
+    transform: scale(1.06);
+  }
+
+  .yacht-badges {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .country-badge {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--color-navy);
+  }
+
+  .type-badge {
+    background: rgba(5, 51, 43, 0.85);
+    color: #ffffff;
+    backdrop-filter: blur(4px);
+  }
+
+  .yacht-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .yacht-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .yacht-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-navy);
+    margin: 0;
+  }
+
+  .yacht-price {
+    text-align: right;
+  }
+
+  .price-val {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-orange);
+  }
+
+  .price-period {
+    font-size: 12px;
+    color: var(--color-navy-light);
+  }
+
+  .yacht-specs {
+    display: flex;
+    gap: 14px;
+    padding-block: 10px;
+    border-block: 1px solid var(--color-border);
+    margin-bottom: 14px;
+  }
+
+  .spec-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--color-navy-light);
+  }
+
+  .yacht-desc {
+    font-size: 14px;
+    color: var(--color-navy-light);
+    line-height: 1.5;
+    margin-bottom: 20px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex-grow: 1;
+  }
+
+  .yacht-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .action-details, .action-book {
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px;
+    text-align: center;
+    background-color: var(--color-bg-light);
+    border-radius: 20px;
+    margin-top: 20px;
+  }
+
+  .empty-icon {
+    color: var(--color-navy-light);
+    margin-bottom: 16px;
+  }
+
+  /* Show More Button */
+  .show-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 20px;
+  }
+
+  .show-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background-color: #ffffff;
+    color: #0a5246; /* var(--color-navy) */
+    border: 2px solid rgba(10, 82, 70, 0.2);
+    border-radius: 100px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(5, 51, 43, 0.03);
+  }
+
+  .show-more-btn:hover {
+    background-color: #0a5246;
+    color: #ffffff;
+    border-color: #0a5246;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(10, 82, 70, 0.15);
+  }
+
+  .show-more-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(10, 82, 70, 0.1);
+  }
+
+  .show-more-btn .btn-arrow {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .show-more-btn:hover .btn-arrow {
+    transform: translateY(2px);
+  }
+
+  @media (max-width: 640px) {
+    .custom-dropdown {
+      width: 100%;
+    }
+    .yachts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

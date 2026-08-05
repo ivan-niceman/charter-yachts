@@ -62,12 +62,12 @@ const features = [
 
   <div class="container hero__inner">
     <div class="hero__content">
-      <span class="hero__label">Премиальный отдых на яхтах</span>
+      <h1 class="hero__label">Премиальный отдых на яхтах</h1>
 
       <div class="hero__text-stack">
         {slides.map((slide, index) => (
           <div class="hero__text-slide" class:list={{ 'is-active': index === 0 }} data-hero-text-slide>
-            <h1 class="hero__title">{slide.title}</h1>
+            <h2 class="hero__title">{slide.title}</h2>
             <p class="hero__description">{slide.text}</p>
           </div>
         ))}
@@ -254,7 +254,7 @@ const features = [
   }
 
   .hero__title {
-    font-size: clamp(2.2rem, 3.6vw, 3.25rem);
+    font-size: clamp(32px, 2.8vw, 42px);
     font-weight: 800;
     line-height: 1.15;
     color: var(--color-text-main);
@@ -263,7 +263,7 @@ const features = [
   }
 
   .hero__description {
-    font-size: clamp(1.05rem, 1.25vw, 1.25rem);
+    font-size: 18px;
     line-height: 1.6;
     color: var(--color-text-main);
     font-weight: 500;

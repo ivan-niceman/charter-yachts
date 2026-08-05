@@ -1,0 +1,657 @@
+---
+import type { Country } from '../lib/sheets';
+import ImagePreloader from './ImagePreloader.astro';
+
+interface Props {
+  countries: Country[];
+}
+
+const { countries } = Astro.props;
+---
+
+<section id="destinations" class="section destinations-section">
+  <div class="container">
+    <!-- Header -->
+    <div class="destinations-header section-header">
+      <div>
+        <span class="title">НАПРАВЛЕНИЯ</span>
+        <h2 class="section-title">Популярные направления</h2>
+      </div>
+
+      <a href="#yachts" class="view-all-link" title="Смотреть все направления">
+        Смотреть все направления
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+    </div>
+
+    <!-- Slider Track -->
+    <div class="slider-wrapper">
+      <div class="slider-track" id="destinations-slider-track">
+        {countries.map((country: Country) => (
+          <div
+            class="compact-card"
+            data-country-id={country.id}
+            data-country-name={country.name}
+            data-country-flag={country.flag}
+            data-country-desc={country.description}
+          >
+            <ImagePreloader
+              src={country.image}
+              alt={country.name}
+              class="card-bg-img"
+            />
+            <div class="card-gradient-overlay"></div>
+
+            <!-- Top Row: Flag + Info button -->
+            <div class="card-top-row">
+              {country.description && (
+                <button
+                  type="button"
+                  class="compact-info-btn"
+                  title="Информация о направлении"
+                  aria-label={`Информация о направлении ${country.name}`}
+                  data-info-btn
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            <!-- Bottom Content -->
+            <div class="card-bottom-content">
+              <h3 class="compact-country-name">{country.name}</h3>
+              <div class="compact-action-hint">
+                Смотреть яхты
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Bottom Controls: Dots + Navigation Arrows -->
+    <div class="slider-controls-footer">
+      <div class="pagination-dots" id="destinations-dots">
+        <!-- Generated via JS -->
+      </div>
+
+      <div class="nav-arrows">
+        <button type="button" class="nav-arrow-btn" id="destinations-prev" aria-label="Предыдущие направления">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <button type="button" class="nav-arrow-btn" id="destinations-next" aria-label="Следующие направления">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Modal Popover -->
+  <div class="info-modal-backdrop" id="destinations-modal" style="display: none;">
+    <div class="info-modal-card">
+      <button type="button" class="info-modal-close" id="destinations-modal-close" aria-label="Закрыть">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="info-modal-header">
+        <h3 class="info-modal-title" id="destinations-modal-title">Мальдивы</h3>
+      </div>
+      <p class="info-modal-text" id="destinations-modal-text"></p>
+      <a href="#yachts" class="btn btn-primary info-modal-action" id="destinations-modal-action">
+        Смотреть яхты в направлении
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const track = document.getElementById('destinations-slider-track') as HTMLDivElement | null;
+    const dotsContainer = document.getElementById('destinations-dots') as HTMLDivElement | null;
+    const prevBtn = document.getElementById('destinations-prev') as HTMLButtonElement | null;
+    const nextBtn = document.getElementById('destinations-next') as HTMLButtonElement | null;
+
+    const modal = document.getElementById('destinations-modal') as HTMLDivElement | null;
+    const modalClose = document.getElementById('destinations-modal-close') as HTMLButtonElement | null;
+    const modalTitle = document.getElementById('destinations-modal-title') as HTMLHeadingElement | null;
+    const modalText = document.getElementById('destinations-modal-text') as HTMLParagraphElement | null;
+    const modalAction = document.getElementById('destinations-modal-action') as HTMLAnchorElement | null;
+
+    if (!track) return;
+
+    let totalPages = 1;
+    let activeIndex = 0;
+
+    function calculatePages() {
+      if (!track) return;
+      const { scrollWidth, clientWidth } = track;
+      const maxScroll = scrollWidth - clientWidth;
+      if (maxScroll <= 5) {
+        totalPages = 1;
+      } else {
+        totalPages = Math.max(1, Math.ceil(scrollWidth / clientWidth));
+      }
+      renderDots();
+      updateActiveIndex();
+    }
+
+    function renderDots() {
+      if (!dotsContainer) return;
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < totalPages; i++) {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = `dot ${i === activeIndex ? 'active' : ''}`;
+        dot.setAttribute('aria-label', `Страница ${i + 1}`);
+        dot.addEventListener('click', () => scrollToPage(i));
+        dotsContainer.appendChild(dot);
+      }
+    }
+
+    function updateActiveIndex() {
+      if (!track) return;
+      const { scrollLeft, scrollWidth, clientWidth } = track;
+      const maxScroll = scrollWidth - clientWidth;
+      if (maxScroll <= 5) {
+        activeIndex = 0;
+      } else {
+        const ratio = Math.max(0, Math.min(1, scrollLeft / maxScroll));
+        activeIndex = Math.min(Math.round(ratio * (totalPages - 1)), totalPages - 1);
+      }
+      if (dotsContainer) {
+        const dots = dotsContainer.querySelectorAll('.dot');
+        dots.forEach((d, idx) => {
+          if (idx === activeIndex) {
+            d.classList.add('active');
+          } else {
+            d.classList.remove('active');
+          }
+        });
+      }
+    }
+
+    function scrollToPage(pageIndex: number) {
+      if (!track) return;
+      const { scrollWidth, clientWidth } = track;
+      const maxScroll = scrollWidth - clientWidth;
+      if (maxScroll <= 0) return;
+
+      const targetScroll = (maxScroll / Math.max(1, totalPages - 1)) * pageIndex;
+      track.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+      activeIndex = pageIndex;
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (!track) return;
+        track.scrollBy({ left: -track.clientWidth * 0.75, behavior: 'smooth' });
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (!track) return;
+        track.scrollBy({ left: track.clientWidth * 0.75, behavior: 'smooth' });
+      });
+    }
+
+    // --- ЛОГИКА СВАЙПА / ПЕРЕТАСКИВАНИЯ МЫШЬЮ ---
+    let isDragging = false;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let movedDistance = 0;
+
+    // Отключаем стандартный "призрачный" перенос картинок браузером
+    track.addEventListener('dragstart', (e) => e.preventDefault());
+
+    track.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // Только левая кнопка мыши
+      isDragging = true;
+      movedDistance = 0;
+      startX = e.clientX;
+      startScrollLeft = track.scrollLeft;
+      track.style.cursor = 'grabbing';
+      track.style.scrollSnapType = 'none'; // Отключаем CSS-снап во время перетаскивания
+      track.style.scrollBehavior = 'auto';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging || !track) return;
+      const dx = e.clientX - startX;
+      movedDistance = Math.abs(dx);
+      if (movedDistance > 3) {
+        e.preventDefault();
+      }
+      track.scrollLeft = startScrollLeft - dx;
+    });
+
+    const stopDragging = () => {
+      if (!isDragging || !track) return;
+      isDragging = false;
+      track.style.cursor = 'grab';
+      track.style.scrollSnapType = 'x mandatory'; // Возвращаем CSS-снап
+      track.style.scrollBehavior = 'smooth';
+    };
+
+    window.addEventListener('mouseup', stopDragging);
+    track.addEventListener('mouseleave', stopDragging);
+
+    // Блокируем случайно вызванный клик по карточке, если произошел свайп/сдвиг
+    track.addEventListener('click', (e) => {
+      if (movedDistance > 5) {
+        e.preventDefault();
+        e.stopPropagation();
+        movedDistance = 0;
+      }
+    }, true);
+
+    track.addEventListener('scroll', updateActiveIndex);
+    window.addEventListener('resize', calculatePages);
+    calculatePages();
+
+    // Карточки и модальное окно
+    const cards = track.querySelectorAll('.compact-card');
+    cards.forEach((card) => {
+      const countryId = card.getAttribute('data-country-id');
+      const countryName = card.getAttribute('data-country-name');
+      const countryDesc = card.getAttribute('data-country-desc');
+      const infoBtn = card.querySelector('[data-info-btn]');
+
+      if (infoBtn) {
+        infoBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (modal && modalTitle && modalText && modalAction) {
+            modalTitle.textContent = countryName || '';
+            modalText.textContent = countryDesc || '';
+            modalAction.textContent = `Смотреть яхты в ${countryName}`;
+            modalAction.setAttribute('data-country-id', countryId || '');
+            modal.style.display = 'flex';
+          }
+        });
+      }
+
+      card.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('selectCountryFilter', { detail: { countryId } }));
+        const yachtsElem = document.getElementById('yachts');
+        if (yachtsElem) {
+          yachtsElem.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+
+    if (modalAction) {
+      modalAction.addEventListener('click', (e) => {
+        e.preventDefault();
+        const countryId = modalAction.getAttribute('data-country-id');
+        if (modal) modal.style.display = 'none';
+        if (countryId) {
+          window.dispatchEvent(new CustomEvent('selectCountryFilter', { detail: { countryId } }));
+        }
+        const yachtsElem = document.getElementById('yachts');
+        if (yachtsElem) {
+          yachtsElem.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    }
+
+    if (modalClose && modal) {
+      modalClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>
+
+<style>
+  .destinations-section {
+    background-color: var(--color-bg-light);
+    padding-top: 50px;
+    padding-bottom: 60px;
+    position: relative;
+  }
+
+  .destinations-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .section-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-navy);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .view-all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-navy);
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    padding: 6px 0;
+  }
+
+  .view-all-link:hover {
+    color: var(--color-orange);
+    transform: translateX(4px);
+  }
+
+  /* Slider Wrapper */
+  .slider-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .slider-track {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding: 8px 4px 16px 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .slider-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Compact Card */
+  .compact-card {
+    flex: 0 0 calc(20% - 16px);
+    min-width: 150px;
+    max-width: 260px;
+    height: 230px;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    scroll-snap-align: start;
+    user-select: none;
+  -webkit-user-drag: none;
+  }
+
+  .compact-card:active {
+    cursor: grabbing;
+  }
+
+  .card-bg-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+    -webkit-user-drag: none;
+    transition: transform 0.6s ease;
+  }
+
+  .compact-card:hover :global(.card-bg-img img) {
+    transform: scale(1.1);
+  }
+
+  .card-gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.2) 0%,
+      rgba(0, 0, 0, 0) 40%,
+      rgba(5, 40, 35, 0.88) 100%
+    );
+  }
+
+  .card-top-row {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    z-index: 2;
+  }
+
+
+  .compact-info-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(4px);
+    color: var(--color-navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s ease;
+    z-index: 3;
+  }
+
+
+  .compact-info-btn:hover {
+    background: #ffffff;
+    transform: scale(1.15);
+  }
+
+  .card-bottom-content {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 2;
+    color: #ffffff;
+  }
+
+  .compact-country-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    line-height: 1.25;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .compact-action-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-orange);
+    opacity: 0.9;
+    /* transform: translateY(4px); */
+    transition: all 0.3s ease;
+  }
+
+  .compact-card:hover .compact-action-hint {
+    /* transform: translateY(0); */
+    opacity: 1;
+  }
+
+  /* Footer Controls */
+  .slider-controls-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 24px;
+    gap: 16px;
+  }
+
+  .pagination-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pagination-dots :global(.dot) {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: rgba(5, 51, 43, 0.2);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .pagination-dots :global(.dot.active) {
+    width: 28px;
+    border-radius: 10px;
+    background-color: var(--color-orange);
+  }
+
+  .nav-arrows {
+    display: flex;
+    gap: 10px;
+  }
+
+  .nav-arrow-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background-color: #ffffff;
+    color: var(--color-navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .nav-arrow-btn:hover {
+    background-color: var(--color-navy);
+    color: #ffffff;
+    border-color: var(--color-navy);
+    transform: translateY(-2px);
+  }
+
+  /* Modal */
+  .info-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(5, 51, 43, 0.65);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .info-modal-card {
+    background-color: #ffffff;
+    border-radius: 24px;
+    max-width: 540px;
+    width: 100%;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+    animation: scaleUp 0.25s ease-out;
+  }
+
+  .info-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--color-bg-light);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-navy-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .info-modal-close:hover {
+    background: #e2e8f0;
+    color: var(--color-navy);
+  }
+
+  .info-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+
+  .info-modal-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--color-navy);
+    margin: 0;
+  }
+
+  .info-modal-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-navy-light);
+    margin-bottom: 24px;
+  }
+
+  .info-modal-action {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  @keyframes scaleUp {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @media (max-width: 1024px) {
+    .compact-card {
+      flex: 0 0 220px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .section-title {
+      font-size: 24px;
+    }
+    .compact-card {
+      flex: 0 0 180px;
+      height: 270px;
+    }
+  }
+</style>

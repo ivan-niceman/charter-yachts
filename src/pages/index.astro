@@ -1,17 +1,37 @@
 ---
-
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import Destinations from '../components/Destinations.astro';
+import YachtCatalog from '../components/YachtCatalog.astro';
+import WhyUs from '../components/WhyUs.astro';
+// import Reviews from '../components/Reviews.astro';
+// import FAQ from '../components/FAQ.astro';
+// import { ContactsFooter } from '../components/ContactsFooter';
 import Footer from '../components/Footer.astro';
+import ModalManager from '../components/ModalManager.astro';
 
+// Динамический импорт актуальных данных из Google Таблиц
+import { fetchInitialDataServerSide } from '../lib/sheets';
+
+const data = await fetchInitialDataServerSide();
+const countries = data.countries;
+const yachts = data.yachts;
 ---
 
 <Layout title="Абсолют-тур — Премиальные Дайвинг-Туры и Фрахт Яхт" description="Агентство ООО «Абсолют-тур» по организации премиальных путешествий на яхтах и дайвинг-сафари по всему миру.">
   <Header />
-  <Hero />
   <main>
-    <slot />
+    <Hero />
+    <Destinations countries={countries} />
+    <YachtCatalog yachts={yachts} countries={countries} />
+    <WhyUs />
+    <!-- <Reviews /> -->
+    <!-- <FAQ /> -->
+    <!-- <ContactsFooter client:visible /> -->
   </main>
   <Footer />
+  
+  {/* Менеджер для открытия модального окна бронирования */}
+  <ModalManager yachts={yachts} client:load />
 </Layout>

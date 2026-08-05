@@ -1,0 +1,195 @@
+---
+import type { Yacht, Country } from '../lib/sheets';
+import ImagePreloader from './ImagePreloader.astro';
+
+interface Props {
+  yacht: Yacht;
+  country?: Country;
+}
+
+const { yacht, country } = Astro.props;
+
+const cleanImageUrl = (url: string) => {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (trimmed.includes('/folders/') || trimmed.includes('/drive/folders/') || trimmed.includes('disk.yandex') || trimmed.includes('.html')) {
+    return '';
+  }
+  const driveMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || 
+                     trimmed.match(/lh3\.google\.com\/u\/\d+\/d\/([a-zA-Z0-9_-]+)/) ||
+                     trimmed.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/) ||
+                     trimmed.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
+                     trimmed.match(/drive\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${driveMatch[1]}=w1200`;
+  }
+  return trimmed;
+};
+
+const rawImages = (yacht.images && Array.isArray(yacht.images) ? yacht.images : [])
+  .map(cleanImageUrl)
+  .filter((img: string) => typeof img === 'string' && img.trim().length > 0);
+
+const displayImage = rawImages.length > 0 
+  ? rawImages[0] 
+  : '';
+---
+
+<div class="yacht-card" data-yacht-id={yacht.id} data-country-id={yacht.countryId}>
+  <div class="yacht-image-wrap">
+    <ImagePreloader
+      src={displayImage}
+      alt={yacht.name}
+      class="yacht-image"
+    />
+    {country && (
+      <div class="yacht-badges">
+        <span class="badge country-badge">
+          {country.name}
+        </span>
+      </div>
+    )}
+  </div>
+
+  <div class="yacht-body">
+    <h3 class="yacht-title">{yacht.name}</h3>
+
+    <div class="yacht-actions">
+      <button
+        type="button"
+        class="btn btn-secondary action-details"
+        data-details-id={yacht.id}
+      >
+        Подробнее
+      </button>
+      <a
+        href="#booking"
+        class="btn btn-primary action-book"
+        data-book-yacht={yacht.name}
+      >
+        Забронировать
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .yacht-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgba(10, 82, 70, 0.12);
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(5, 51, 43, 0.05);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s;
+    position: relative;
+    height: 100%;
+  }
+
+  .yacht-card:hover {
+    box-shadow: 0 16px 36px rgba(5, 51, 43, 0.12);
+    border-color: rgba(255, 105, 0, 0.4);
+  }
+
+  .yacht-image-wrap {
+    position: relative;
+    height: 240px;
+    overflow: hidden;
+    background-color: #0f2520;
+  }
+
+  .yacht-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.9s;
+  }
+
+  .yacht-card:hover :global(.yacht-image img) {
+    transform: scale(1.1);
+  }
+
+  .yacht-badges {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+  }
+
+  .badge {
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .country-badge {
+    background: rgba(255, 255, 255, 0.95);
+    color: #0a5246;
+  }
+
+  .yacht-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .yacht-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0a5246;
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  .yacht-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: auto;
+  }
+
+  .action-details, .action-book {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 16px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .action-details {
+    background-color: #f0f7f6;
+    color: #0a5246;
+    border: 1px solid rgba(10, 82, 70, 0.15);
+  }
+
+  .action-details:hover {
+    background-color: #0a5246;
+    color: #ffffff;
+  }
+
+  .action-book {
+    background-color: #ff6900;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(255, 105, 0, 0.25);
+  }
+
+  .action-book:hover {
+    background-color: #e05d00;
+    box-shadow: 0 6px 16px rgba(255, 105, 0, 0.35);
+  }
+</style>
