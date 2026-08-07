@@ -1,0 +1,944 @@
+---
+// BookingForm.astro - Form component in Astro with white card, original text, floating labels, and 3-second auto-closing popup notification
+interface Props {
+  prefillYacht?: string;
+}
+
+const { prefillYacht = '' } = Astro.props;
+---
+
+<section id="booking" class="section booking-section">
+  <div class="container">
+    <div class="booking-wrapper">
+      <div class="booking-form-col">
+        <form class="booking-form" id="booking-form" novalidate>
+          <div class="form-header">
+            <span class="title">Готовы к путешествию?</span>
+            <h2 class="subtitle">Забронируйте яхту своей мечты</h2>
+            <p class="form-subtitle">Заполните форму, и мы подготовим идеальный расчет</p>
+          </div>
+
+          <!-- Selected Yacht Badge -->
+          <div class="selected-yacht-badge" id="selected-yacht-badge" style={prefillYacht ? "display: flex;" : "display: none;"}>
+            <div class="badge-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="5" r="3"></circle>
+                <line x1="12" y1="22" x2="12" y2="8"></line>
+                <path d="M5 12H2a10 10 0 0 0 20 0h-3"></path>
+              </svg>
+            </div>
+            <div class="badge-text">
+              <span class="badge-label">Выбранная яхта:</span>
+              <strong class="badge-name" id="selected-yacht-name">{prefillYacht}</strong>
+            </div>
+            <button type="button" class="badge-clear-btn" id="badge-clear-btn" title="Сбросить выбор яхты" aria-label="Сбросить выбор">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Server Error Alert -->
+          <div class="error-alert" id="server-error-alert" style="display: none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span id="server-error-text"></span>
+          </div>
+
+          <!-- 3-Column Input Row for Desktop -->
+          <div class="fields-row">
+            <!-- Field 1: Name -->
+            <div class="floating-group" id="group-name">
+              <input
+                type="text"
+                id="input-name"
+                name="name"
+                class="floating-input"
+                placeholder=" "
+              />
+              <label for="input-name" class="floating-label">
+                <svg class="label-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Ваше имя *
+              </label>
+              <span class="field-error-msg" id="error-name" style="display: none;"></span>
+            </div>
+
+            <!-- Field 2: Phone -->
+            <div class="floating-group" id="group-phone">
+              <input
+                type="tel"
+                id="input-phone"
+                name="phone"
+                class="floating-input"
+                placeholder=" "
+              />
+              <label for="input-phone" class="floating-label">
+                <svg class="label-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+                Телефон *
+              </label>
+              <span class="field-error-msg" id="error-phone" style="display: none;"></span>
+            </div>
+
+            <!-- Field 3: Email -->
+            <div class="floating-group" id="group-email">
+              <input
+                type="email"
+                id="input-email"
+                name="email"
+                class="floating-input"
+                placeholder=" "
+              />
+              <label for="input-email" class="floating-label">
+                <svg class="label-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Электронная почта (E-mail) *
+              </label>
+              <span class="field-error-msg" id="error-email" style="display: none;"></span>
+            </div>
+          </div>
+
+          <!-- Field 4: Comment -->
+          <div class="floating-group">
+            <textarea
+              id="input-comment"
+              name="comment"
+              class="floating-input floating-textarea"
+              placeholder=" "
+              rows="3"
+            ></textarea>
+            <label for="input-comment" class="floating-label floating-textarea-label">
+              <svg class="label-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Комментарий (даты, количество гостей или пожелания)
+            </label>
+          </div>
+
+          <!-- Checkbox Consent -->
+          <div class="checkbox-wrap" id="group-consent">
+            <label class="checkbox-label">
+              <input type="checkbox" id="input-consent" name="consent" checked />
+              <span class="checkbox-text">
+                Соглашаюсь на обработку персональных данных в соответствии с ФЗ № 152-ФЗ и <a href="/privacy" target="_blank" rel="noopener noreferrer">Политикой конфиденциальности</a>.
+              </span>
+            </label>
+            <span class="field-error-msg checkbox-error" id="error-consent" style="display: none;"></span>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary submit-btn" id="submit-btn">
+            <span id="submit-btn-text">Отправить заявку</span>
+            <svg id="submit-btn-spinner" class="spinner-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.3"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pop-up notification modal (Auto closes after 3 seconds) -->
+  <div class="booking-modal-backdrop" id="booking-success-modal" style="display: none;">
+    <div class="booking-modal-card">
+      <button type="button" class="booking-modal-close" id="booking-modal-close-btn" aria-label="Закрыть окно">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="booking-modal-header">
+        <div class="success-icon-wrap">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#05332b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h3 class="modal-title">Заявка успешно отправлена!</h3>
+        <p class="modal-subtitle" id="modal-user-greeting">
+          Спасибо! Мы свяжемся с вами в течение 15 минут.
+        </p>
+      </div>
+
+      <div class="modal-summary-box">
+        <div class="summary-row">
+          <span>Клиент:</span> <strong id="modal-sum-name"></strong>
+        </div>
+        <div class="summary-row">
+          <span>Телефон:</span> <strong id="modal-sum-phone"></strong>
+        </div>
+        <div class="summary-row">
+          <span>Email:</span> <strong id="modal-sum-email"></strong>
+        </div>
+        <div class="summary-row" id="modal-sum-yacht-row" style="display: none;">
+          <span>Яхта:</span> <strong id="modal-sum-yacht"></strong>
+        </div>
+      </div>
+
+      <!-- Auto-close timer progress indicator -->
+      <div class="timer-bar-wrap">
+        <div class="timer-bar" id="modal-timer-bar"></div>
+      </div>
+      <p class="timer-note">
+        Окно автоматически закроется через <span id="modal-countdown">3</span> сек.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('booking-form') as HTMLFormElement | null;
+    const nameInput = document.getElementById('input-name') as HTMLInputElement | null;
+    const phoneInput = document.getElementById('input-phone') as HTMLInputElement | null;
+    const emailInput = document.getElementById('input-email') as HTMLInputElement | null;
+    const commentInput = document.getElementById('input-comment') as HTMLTextAreaElement | null;
+    const consentInput = document.getElementById('input-consent') as HTMLInputElement | null;
+
+    const badge = document.getElementById('selected-yacht-badge') as HTMLDivElement | null;
+    const badgeName = document.getElementById('selected-yacht-name') as HTMLElement | null;
+    const clearBadgeBtn = document.getElementById('badge-clear-btn') as HTMLButtonElement | null;
+
+    const serverErrorAlert = document.getElementById('server-error-alert') as HTMLDivElement | null;
+    const serverErrorText = document.getElementById('server-error-text') as HTMLElement | null;
+
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+    const submitBtnText = document.getElementById('submit-btn-text') as HTMLElement | null;
+    const submitBtnSpinner = document.getElementById('submit-btn-spinner') as HTMLElement | null;
+
+    // Modal elements
+    const modal = document.getElementById('booking-success-modal') as HTMLDivElement | null;
+    const modalCloseBtn = document.getElementById('booking-modal-close-btn') as HTMLButtonElement | null;
+    const modalGreeting = document.getElementById('modal-user-greeting') as HTMLElement | null;
+    const modalSumName = document.getElementById('modal-sum-name') as HTMLElement | null;
+    const modalSumPhone = document.getElementById('modal-sum-phone') as HTMLElement | null;
+    const modalSumEmail = document.getElementById('modal-sum-email') as HTMLElement | null;
+    const modalSumYachtRow = document.getElementById('modal-sum-yacht-row') as HTMLDivElement | null;
+    const modalSumYacht = document.getElementById('modal-sum-yacht') as HTMLElement | null;
+    const modalTimerBar = document.getElementById('modal-timer-bar') as HTMLDivElement | null;
+    const modalCountdown = document.getElementById('modal-countdown') as HTMLElement | null;
+
+    let selectedYachtName = badgeName ? badgeName.textContent?.trim() || '' : '';
+    let hasAttemptedSubmit = false;
+    let autoCloseTimer: number | null = null;
+    let countdownInterval: number | null = null;
+
+    // Слушаем выбор яхты со всей страницы
+    const handleYachtSelect = (e: Event) => {
+      const customEvent = e as CustomEvent<{ yachtName: string }>;
+      const name = customEvent.detail?.yachtName || '';
+      if (name) {
+        selectedYachtName = name;
+        if (badgeName) badgeName.textContent = name;
+        if (badge) badge.style.display = 'flex';
+
+        setTimeout(() => {
+          const bookingSec = document.getElementById('booking');
+          if (bookingSec) {
+            bookingSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    };
+
+    window.addEventListener('openBooking', handleYachtSelect);
+    window.addEventListener('selectYachtForBooking', handleYachtSelect);
+
+    // Сброс выборки яхты
+    if (clearBadgeBtn) {
+      clearBadgeBtn.addEventListener('click', () => {
+        selectedYachtName = '';
+        if (badge) badge.style.display = 'none';
+      });
+    }
+
+    // Валидатор полей
+    function validateField(fieldName: string) {
+      let error = '';
+
+      if (fieldName === 'name') {
+        const val = nameInput?.value.trim() || '';
+        if (!val) error = 'Пожалуйста, введите Ваше имя';
+        else if (val.length < 2) error = 'Имя должно содержать не менее 2 символов';
+      }
+
+      if (fieldName === 'phone') {
+        const val = phoneInput?.value.trim() || '';
+        if (!val) error = 'Пожалуйста, укажите номер телефона';
+        else {
+          const digits = val.replace(/\D/g, '');
+          if (digits.length < 10) error = 'Укажите корректный номер телефона (не менее 10 цифр)';
+        }
+      }
+
+      if (fieldName === 'email') {
+        const val = emailInput?.value.trim() || '';
+        if (!val) error = 'Пожалуйста, укажите ваш e-mail';
+        else {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(val)) error = 'Укажите корректный e-mail (например: name@domain.com)';
+        }
+      }
+
+      if (fieldName === 'consent') {
+        if (!consentInput?.checked) {
+          error = 'Необходимо подтвердить согласие на обработку данных';
+        }
+      }
+
+      const groupElem = document.getElementById(`group-${fieldName}`);
+      const errElem = document.getElementById(`error-${fieldName}`);
+
+      if (hasAttemptedSubmit) {
+        if (error) {
+          if (groupElem) groupElem.classList.add('has-error');
+          if (errElem) {
+            errElem.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> ${error}`;
+            errElem.style.display = 'inline-flex';
+          }
+        } else {
+          if (groupElem) groupElem.classList.remove('has-error');
+          if (errElem) errElem.style.display = 'none';
+        }
+      }
+
+      return !error;
+    }
+
+    function validateAll() {
+      const vName = validateField('name');
+      const vPhone = validateField('phone');
+      const vEmail = validateField('email');
+      const vConsent = validateField('consent');
+
+      return vName && vPhone && vEmail && vConsent;
+    }
+
+    // Динамическое обновление ошибок во время ввода ТОЛЬКО ЕСЛИ была попытка отправки
+    [nameInput, phoneInput, emailInput, consentInput].forEach((input) => {
+      if (!input) return;
+      input.addEventListener('input', () => {
+        if (hasAttemptedSubmit) {
+          const name = input.name;
+          validateField(name);
+        }
+      });
+      if (input.type === 'checkbox') {
+        input.addEventListener('change', () => {
+          if (hasAttemptedSubmit) validateField(input.name);
+        });
+      }
+    });
+
+    // Функция открытия всплывающего окна и запуск таймера на 3 секунды
+    function openSuccessModal(name: string, phone: string, email: string, yacht: string) {
+      if (!modal) return;
+
+      if (modalGreeting) modalGreeting.textContent = `Спасибо, ${name}! Мы свяжемся с вами в течение 15 минут.`;
+      if (modalSumName) modalSumName.textContent = name;
+      if (modalSumPhone) modalSumPhone.textContent = phone;
+      if (modalSumEmail) modalSumEmail.textContent = email;
+
+      if (yacht && modalSumYachtRow && modalSumYacht) {
+        modalSumYacht.textContent = yacht;
+        modalSumYachtRow.style.display = 'flex';
+      } else if (modalSumYachtRow) {
+        modalSumYachtRow.style.display = 'none';
+      }
+
+      modal.style.display = 'flex';
+
+      // Анимация таймера на 3 секунды
+      if (modalTimerBar) {
+        modalTimerBar.style.transition = 'none';
+        modalTimerBar.style.width = '100%';
+        // Форсируем reflow
+        void modalTimerBar.offsetWidth;
+        modalTimerBar.style.transition = 'width 3s linear';
+        modalTimerBar.style.width = '0%';
+      }
+
+      let secondsLeft = 3;
+      if (modalCountdown) modalCountdown.textContent = '3';
+
+      if (countdownInterval) clearInterval(countdownInterval);
+      countdownInterval = window.setInterval(() => {
+        secondsLeft -= 1;
+        if (modalCountdown) modalCountdown.textContent = Math.max(0, secondsLeft).toString();
+        if (secondsLeft <= 0) {
+          if (countdownInterval) clearInterval(countdownInterval);
+        }
+      }, 1000);
+
+      if (autoCloseTimer) clearTimeout(autoCloseTimer);
+      autoCloseTimer = window.setTimeout(() => {
+        closeModal();
+      }, 3000);
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      modal.style.display = 'none';
+      if (autoCloseTimer) clearTimeout(autoCloseTimer);
+      if (countdownInterval) clearInterval(countdownInterval);
+    }
+
+    if (modalCloseBtn) {
+      modalCloseBtn.addEventListener('click', closeModal);
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+    }
+
+    // Обработка отправки формы
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (serverErrorAlert) serverErrorAlert.style.display = 'none';
+
+        hasAttemptedSubmit = true;
+
+        if (!validateAll()) {
+          return;
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+        if (submitBtnText) submitBtnText.style.display = 'none';
+        if (submitBtnSpinner) submitBtnSpinner.style.display = 'inline-block';
+
+        const nameVal = nameInput?.value.trim() || '';
+        const phoneVal = phoneInput?.value.trim() || '';
+        const emailVal = emailInput?.value.trim() || '';
+        const commentVal = commentInput?.value.trim() || '';
+
+        try {
+          const response = await fetch('/api/booking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: nameVal,
+              phone: phoneVal,
+              email: emailVal,
+              comment: commentVal,
+              yacht: selectedYachtName || 'Общий подбор тура',
+              consent: consentInput?.checked || true
+            })
+          });
+
+          const resData = await response.json();
+
+          if (response.ok && resData.success) {
+            openSuccessModal(nameVal, phoneVal, emailVal, selectedYachtName);
+
+            // Сброс формы
+            form.reset();
+            hasAttemptedSubmit = false;
+            if (consentInput) consentInput.checked = true;
+
+            // Очищаем ошибки
+            ['name', 'phone', 'email', 'consent'].forEach((fieldName) => {
+              const groupElem = document.getElementById(`group-${fieldName}`);
+              const errElem = document.getElementById(`error-${fieldName}`);
+              if (groupElem) groupElem.classList.remove('has-error');
+              if (errElem) errElem.style.display = 'none';
+            });
+          } else {
+            if (serverErrorAlert && serverErrorText) {
+              serverErrorText.textContent = resData.error || 'Произошла ошибка при отправке заявки.';
+              serverErrorAlert.style.display = 'flex';
+            }
+          }
+        } catch (err) {
+          if (serverErrorAlert && serverErrorText) {
+            serverErrorText.textContent = 'Сетевая ошибка. Пожалуйста, проверьте интернет-соединение.';
+            serverErrorAlert.style.display = 'flex';
+          }
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+          if (submitBtnSpinner) submitBtnSpinner.style.display = 'none';
+          if (submitBtnText) {
+            submitBtnText.textContent = 'Отправить заявку';
+            submitBtnText.style.display = 'inline';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+<style>
+  .booking-wrapper {
+    max-width: 920px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Original White Card Form container */
+  .booking-form-col {
+    background-color: #ffffff;
+    border-radius: var(--radius-lg, 24px);
+    padding: 40px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+    color: var(--color-navy, #05332b);
+  }
+
+  .form-header {
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  .form-subtitle {
+    font-size: 15px;
+    color: var(--color-navy-light, #4e635f);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* Selected Yacht Badge */
+  .selected-yacht-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f4fcf9;
+    border: 1.5px solid #d0e8e2;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .badge-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background-color: #ff6900;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .badge-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .badge-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #4e635f;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-name {
+    font-size: 16px;
+    color: #05332b;
+  }
+
+  .badge-clear-btn {
+    background: none;
+    border: none;
+    color: #7a948e;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .badge-clear-btn:hover {
+    background-color: #e0eae7;
+    color: #dc2626;
+  }
+
+  .error-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* 3-column Grid for desktop */
+  .fields-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  /* Floating Label Effect - smooth transition onto border */
+  .floating-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .floating-input {
+    width: 100%;
+    height: 56px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1.5px solid #d0e0db;
+    background-color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    color: #05332b;
+    outline: none;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .floating-textarea {
+    height: auto;
+    min-height: 110px;
+    padding-top: 16px;
+    resize: vertical;
+  }
+
+  .floating-label {
+    position: absolute;
+    left: 14px;
+    top: 17px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6a807a;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: transparent;
+    padding: 0 4px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2;
+  }
+
+  .floating-textarea-label {
+    top: 16px;
+  }
+
+  .label-icon {
+    color: #7a948e;
+    transition: color 0.25s ease;
+  }
+
+  /* Smooth floating label animation onto input border */
+  .floating-input:focus ~ .floating-label,
+  .floating-input:not(:placeholder-shown) ~ .floating-label {
+    top: -8px;
+    left: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-orange, #ff6900);
+    background-color: #ffffff;
+    padding: 0 6px;
+    border-radius: 4px;
+  }
+
+  .floating-input:focus ~ .floating-label .label-icon,
+  .floating-input:not(:placeholder-shown) ~ .floating-label .label-icon {
+    color: var(--color-orange, #ff6900);
+  }
+
+  .floating-input:focus {
+    border-color: var(--color-orange, #ff6900);
+    box-shadow: 0 0 0 3.5px rgba(255, 105, 0, 0.12);
+  }
+
+  /* Validation Error styling */
+  .floating-group.has-error .floating-input {
+    border-color: #dc2626;
+    background-color: #fff8f8;
+  }
+
+  .floating-group.has-error .floating-input:focus {
+    box-shadow: 0 0 0 3.5px rgba(220, 38, 38, 0.12);
+  }
+
+  .floating-group.has-error .floating-label {
+    color: #dc2626 !important;
+  }
+
+  .floating-group.has-error .floating-label .label-icon {
+    color: #dc2626 !important;
+  }
+
+  .field-error-msg {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #dc2626;
+    margin-top: 5px;
+    margin-left: 4px;
+  }
+
+  /* Checkbox styling */
+  .checkbox-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .checkbox-label input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--color-orange, #ff6900);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checkbox-text {
+    font-size: 12px;
+    color: var(--color-navy-light, #4e635f);
+    line-height: 1.45;
+  }
+
+  .checkbox-text a {
+    color: var(--color-navy, #05332b);
+    text-decoration: underline;
+  }
+
+  .checkbox-error {
+    margin-top: 6px;
+  }
+
+  /* Submit Button */
+  .submit-btn {
+    width: 100%;
+    padding: 16px 28px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: var(--color-orange, #ff6900);
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(255, 105, 0, 0.3);
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background-color: #e05d00;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 105, 0, 0.4);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .spinner-icon {
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Pop-up Success Modal */
+  .booking-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(5, 51, 43, 0.7);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .booking-modal-card {
+    background-color: #ffffff;
+    border-radius: 24px;
+    max-width: 480px;
+    width: 100%;
+    padding: 32px 28px 24px 28px;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+    animation: modalPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    color: #05332b;
+    text-align: center;
+  }
+
+  .booking-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background-color: #f0f7f5;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4e635f;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .booking-modal-close:hover {
+    background-color: #ff6900;
+    color: #ffffff;
+  }
+
+  .success-icon-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background-color: #e6f7f3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+  }
+
+  .modal-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #05332b;
+    margin: 0 0 6px 0;
+  }
+
+  .modal-subtitle {
+    font-size: 14px;
+    color: #4e635f;
+    margin-bottom: 20px;
+  }
+
+  .modal-summary-box {
+    background-color: #f6faf9;
+    border: 1px solid #e0eae7;
+    border-radius: 14px;
+    padding: 14px 18px;
+    text-align: left;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .summary-row {
+    font-size: 13px;
+    color: #4e635f;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px dashed #e0eae7;
+    padding-bottom: 4px;
+  }
+
+  .summary-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .summary-row strong {
+    color: #05332b;
+    text-align: right;
+  }
+
+  /* Timer bar & note */
+  .timer-bar-wrap {
+    width: 100%;
+    height: 5px;
+    background-color: #e0eae7;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .timer-bar {
+    height: 100%;
+    background-color: #ff6900;
+    width: 100%;
+  }
+
+  .timer-note {
+    font-size: 12px;
+    color: #7a948e;
+    margin: 0;
+  }
+
+  .timer-note span {
+    font-weight: 700;
+    color: #05332b;
+  }
+
+  @keyframes modalPopIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @media (max-width: 820px) {
+    .fields-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .booking-form-col {
+      padding: 24px 20px;
+    }
+    .booking-modal-card {
+      padding: 24px 20px 20px 20px;
+    }
+  }
+</style>

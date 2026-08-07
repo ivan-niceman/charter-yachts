@@ -65,9 +65,11 @@ import logo from '../assets/logo-b.svg?url';
   .header {
     position: sticky;
     top: 0;
-    z-index: 1500;
+    min-height: var(--header-height);
+    z-index: 150;
     background-color: var(--color-bg-card);
     border-bottom: 1px solid var(--color-border-light);
+    box-shadow: 0 0 20px rgba(10, 82, 70, 0.5);
   }
 
   .header__inner {

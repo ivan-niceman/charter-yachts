@@ -34,7 +34,7 @@
   --color-border-light: #e0eae7;
   --color-border-focus: #ff6900;
   --shadow-sm: 0 2px 10px rgba(10, 82, 70, 0.04);
-  --shadow-md: 0 10px 30px rgba(10, 82, 70, 0.08);
+  --shadow-md: 0 10px 30px rgba(10, 82, 70, 0.5);
   --shadow-lg: 0 20px 50px rgba(5, 51, 43, 0.12);
   --shadow-luxury: 0 25px 60px rgba(0, 0, 0, 0.2);
 
@@ -53,7 +53,7 @@
   --radius-full: 9999px;
 
   --container-max-width: 1440px;
-  --header-height: 88px;
+  --header-height: 80px;
 }
 
 * {
@@ -94,7 +94,7 @@ body {
   display: flex;
   flex-direction: column;
   font-family: var(--font-family-body);
-  height: 100%;
+  min-height: 100%;
   font-weight: 400;
   min-width: 375px;
   color: var(--color-text-main);
