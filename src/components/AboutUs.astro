@@ -1,0 +1,248 @@
+---
+const reasons = [
+  {
+    icon: 'award',
+    title: 'Экспертные знания',
+    description: 'Более 10 лет опыта в организации яхт-путешествий',
+  },
+  {
+    icon: 'compass',
+    title: 'Индивидуальный подход',
+    description: 'Маршруты и сервис создаются под ваши пожелания',
+  },
+  {
+    icon: 'sparkles',
+    title: 'Премиальный сервис',
+    description: 'Все детали продуманы для вашего комфорта и удовольствия',
+  },
+  {
+    icon: 'user-check',
+    title: 'Конфиденциальность',
+    description: 'Полная приватность и безопасность на каждом этапе',
+  },
+  {
+    icon: 'headset',
+    title: 'Поддержка 24/7',
+    description: 'Мы всегда на связи до, во время и после путешествия',
+  },
+];
+---
+
+<section id="about-us" class="section about-us">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="title">О компании</h2>
+      <h3 class="subtitle">Ваш отдых — наша забота</h3>
+    </div>
+
+    <p class="about-us-text">Мы создаем индивидуальные яхтенные путешествия в самых красивых регионах мира - от Мальдив и Сейшел до Галапагосских островов и Палау. Фрахт яхты - это возможность выйти за пределы привычного отдыха и получить полную свободу: просыпаться каждое утро в новой бухте, открывать острова, недоступные массовому туризму, и проводить время только с теми, кто действительно важен. А команда яхты обеспечит необходимый сервис.</p>
+    <p class="about-us-text">Наши путешествия подходят для семейного отдыха, компаний друзей и корпоративных выездов. Пространство яхты позволяет совместить приватность и общение: отдыхать в уединении, устраивать ужины на закате, праздники, тимбилдинги и мероприятия любого формата.</p>
+    <p class="about-us-text">Мы берем на себя полный цикл организации путешествия: подбор яхты, разработку маршрута, трансферы, питание, активности на воде и прочие дополнительные пожелания. Вам остается только одно - наслаждаться путешествием, в котором весь океан принадлежит только вам.</p>
+
+    <h3 class="subtitle">Почему путешествуют с нами</h3>
+    <p class="about-us-text">Мы создаем не просто морские путешествия, а персональный опыт, в котором каждая деталь продумана для вашего комфорта. Приватность, премиальные яхты, высокий уровень сервиса и возможность увидеть самые красивые уголки мира без суеты и массового туризма - именно за этим наши гости возвращаются снова.</p>
+
+    <ul class="reasons-grid">
+      {reasons.map((item) => (
+        <li class="reason-card">
+          <div class="reason-icon-wrap">
+            {item.icon === 'award' && (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="6"></circle>
+                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+              </svg>
+            )}
+
+            {item.icon === 'compass' && (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+              </svg>
+            )}
+
+            {item.icon === 'sparkles' && (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"></path>
+                <path d="M5 3v4"></path>
+                <path d="M19 17v4"></path>
+                <path d="M3 5h4"></path>
+                <path d="M17 19h4"></path>
+              </svg>
+            )}
+
+            {item.icon === 'user-check' && (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <polyline points="16 11 18 13 22 9"></polyline>
+              </svg>
+            )}
+
+            {item.icon === 'headset' && (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H3a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1zm0 0a9 9 0 0 1 18 0m0 0h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1z"></path>
+                <path d="M21 16v2a3 3 0 0 1-3 3h-5"></path>
+              </svg>
+            )}
+          </div>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .about-us {
+    background-color: var(--color-bg-light);
+  }
+
+  .about-us .subtitle {
+    margin-bottom: 40px;
+  }
+
+  .reasons-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+  }
+
+  .reason-card {
+    background-color: var(--color-bg-card);
+    padding: 20px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-light);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+
+
+  .reason-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--color-orange-light);
+    margin-bottom: 18px;
+  }
+
+  .reason-icon-wrap svg {
+    stroke: var(--color-orange);
+  }
+
+  .reason-card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--color-emerald-dark);
+    margin-bottom: 10px;
+  }
+
+  .reason-card p {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  }
+
+  .about-us-text {
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 30px;
+    color: var(--color-emerald-dark);
+    background-color: #fff;
+    border: 1px solid var(--color-emerald-light);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+  }
+
+  .occasions-block {
+    padding-top: 40px;
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .occasions-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+  }
+
+  .occasion-card {
+    position: relative;
+    height: 320px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    transition: var(--transition-smooth);
+  }
+
+  .occasion-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .occasion-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(4, 32, 27, 0.95) 0%, rgba(4, 32, 27, 0.2) 70%);
+    transition: var(--transition-smooth);
+  }
+
+  .occasion-card:hover .occasion-overlay {
+    background: linear-gradient(0deg, rgba(4, 32, 27, 0.98) 0%, rgba(4, 32, 27, 0.4) 100%);
+  }
+
+  .occasion-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px;
+    color: #ffffff;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .occasion-icon {
+    color: var(--color-orange-main);
+    margin-bottom: 10px;
+  }
+
+  .occasion-content h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .occasion-content span {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.4;
+  }
+
+  @media (max-width: 1024px) {
+    .reasons-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .occasions-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .reasons-grid {
+      grid-template-columns: 1fr;
+    }
+    .occasions-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -14,8 +14,8 @@ const { yachts, countries } = Astro.props;
 <section id="yachts" class="section yachts-section">
   <div class="container">
     <div class="section-header">
-      <h2 class="title">Наш флот</h2>
-      <h3 class="subtitle">Каталог премиальных яхт</h3>
+      <h2 class="title">Яхты</h2>
+      <h3 class="subtitle">Каталог яхт</h3>
     </div>
 
     <!-- Filter Bar: Custom Dropdown & Quick Chips -->
@@ -327,32 +327,8 @@ const { yachts, countries } = Astro.props;
 <style>
   .yachts-section {
     background-color: #ffffff;
-    padding-block: 60px;
   }
 
-  /* .section-header {
-    text-align: center;
-    max-width: 680px;
-    margin: 0 auto 36px;
-  } */
-
-  /* .section-eyebrow {
-    display: block;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: var(--color-orange);
-    margin-bottom: 6px;
-  } */
-
-  /* .section-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--color-navy);
-    margin-bottom: 12px;
-  } */
-
-  /* Filter Bar */
   .filter-bar {
     display: flex;
     flex-direction: column;
@@ -401,7 +377,7 @@ const { yachts, countries } = Astro.props;
     border: 1px solid rgba(10, 82, 70, 0.2);
     border-radius: var(--radius-full);
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   }
 
@@ -743,13 +719,13 @@ const { yachts, countries } = Astro.props;
     gap: 10px;
     padding: 14px 32px;
     background-color: #ffffff;
-    color: #0a5246; /* var(--color-navy) */
+    color: var(--color-emerald-dark);
     border: 2px solid rgba(10, 82, 70, 0.2);
     border-radius: 100px;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s;
     box-shadow: 0 4px 12px rgba(5, 51, 43, 0.03);
   }
 
@@ -757,21 +733,7 @@ const { yachts, countries } = Astro.props;
     background-color: #0a5246;
     color: #ffffff;
     border-color: #0a5246;
-    transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(10, 82, 70, 0.15);
-  }
-
-  .show-more-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 10px rgba(10, 82, 70, 0.1);
-  }
-
-  .show-more-btn .btn-arrow {
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .show-more-btn:hover .btn-arrow {
-    transform: translateY(2px);
   }
 
   @media (max-width: 640px) {

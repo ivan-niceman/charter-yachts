@@ -83,14 +83,13 @@ const displayImage = rawImages.length > 0
     box-shadow: 0 4px 20px rgba(5, 51, 43, 0.05);
     display: flex;
     flex-direction: column;
-    transition: all 0.3s;
+    transition: box-shadow 0.3s;
     position: relative;
     height: 100%;
   }
 
   .yacht-card:hover {
     box-shadow: 0 16px 36px rgba(5, 51, 43, 0.12);
-    border-color: rgba(255, 105, 0, 0.4);
   }
 
   .yacht-image-wrap {
@@ -98,16 +97,16 @@ const displayImage = rawImages.length > 0
     height: 240px;
     overflow: hidden;
     background-color: #0f2520;
+    transition: transform 0.9s;
   }
 
   .yacht-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.9s;
   }
 
-  .yacht-card:hover :global(.yacht-image img) {
+  .yacht-image-wrap:hover :global(.yacht-image img) {
     transform: scale(1.1);
   }
 
@@ -167,7 +166,7 @@ const displayImage = rawImages.length > 0
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
   }
 
   .action-details {

@@ -55,7 +55,7 @@ const { countries } = Astro.props;
                   aria-label={`Информация о направлении ${country.name}`}
                   data-info-btn
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 23 25" fill="#fff" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -114,9 +114,9 @@ const { countries } = Astro.props;
         <h3 class="info-modal-title" id="destinations-modal-title">Мальдивы</h3>
       </div>
       <p class="info-modal-text" id="destinations-modal-text"></p>
-      <a href="#yachts" class="btn btn-primary info-modal-action" id="destinations-modal-action">
+      <!-- <a href="#yachts" class="btn btn-primary info-modal-action" id="destinations-modal-action">
         Смотреть яхты в направлении
-      </a>
+      </a> -->
     </div>
   </div>
 </section>
@@ -204,14 +204,26 @@ const { countries } = Astro.props;
     if (prevBtn) {
       prevBtn.addEventListener('click', () => {
         if (!track) return;
-        track.scrollBy({ left: -track.clientWidth * 0.75, behavior: 'smooth' });
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        if (track.scrollLeft <= 5) {
+          // Если мы в самом начале, переходим в конец
+          track.scrollTo({ left: maxScroll, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: -track.clientWidth * 0.75, behavior: 'smooth' });
+        }
       });
     }
 
     if (nextBtn) {
       nextBtn.addEventListener('click', () => {
         if (!track) return;
-        track.scrollBy({ left: track.clientWidth * 0.75, behavior: 'smooth' });
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        if (Math.ceil(track.scrollLeft) >= maxScroll - 5) {
+          // Если мы в самом конце, переходим в начало
+          track.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: track.clientWidth * 0.75, behavior: 'smooth' });
+        }
       });
     }
 
@@ -280,13 +292,18 @@ const { countries } = Astro.props;
       if (infoBtn) {
         infoBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (modal && modalTitle && modalText && modalAction) {
-            modalTitle.textContent = countryName || '';
-            modalText.textContent = countryDesc || '';
-            modalAction.textContent = `Смотреть яхты в ${countryName}`;
-            modalAction.setAttribute('data-country-id', countryId || '');
-            modal.style.display = 'flex';
-          }
+          // if (modal && modalTitle && modalText && modalAction) {
+          //   modalTitle.textContent = countryName || '';
+          //   modalText.textContent = countryDesc || '';
+          //   modalAction.textContent = `Смотреть яхты в ${countryName}`;
+          //   modalAction.setAttribute('data-country-id', countryId || '');
+          //   modal.style.display = 'flex';
+          // }
+            if (modal && modalTitle && modalText) {
+              modalTitle.textContent = countryName || '';
+              modalText.textContent = countryDesc || '';
+              modal.style.display = 'flex';
+            }
         });
       }
 
@@ -331,8 +348,6 @@ const { countries } = Astro.props;
 <style>
   .destinations-section {
     background-color: var(--color-bg-light);
-    padding-top: 50px;
-    padding-bottom: 60px;
     position: relative;
   }
 
@@ -360,7 +375,7 @@ const { countries } = Astro.props;
     font-weight: 600;
     font-size: 15px;
     text-decoration: none;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
     padding: 6px 0;
   }
 
@@ -396,8 +411,8 @@ const { countries } = Astro.props;
     flex: 0 0 calc(20% - 16px);
     min-width: 150px;
     max-width: 260px;
-    height: 230px;
-    border-radius: 20px;
+    height: 160px;
+    border-radius: var(--border-radius-sm, 12px);
     position: relative;
     overflow: hidden;
     cursor: pointer;
@@ -436,9 +451,9 @@ const { countries } = Astro.props;
 
   .card-top-row {
     position: absolute;
-    top: 14px;
-    left: 14px;
-    right: 14px;
+    top: 10px;
+    left: 10px;
+    right: 10px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -447,22 +462,17 @@ const { countries } = Astro.props;
 
 
   .compact-info-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(4px);
-    color: var(--color-navy);
+    color: var(--color-navy-light);
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.25s ease;
+    transition: transform 0.3s ease;
     z-index: 3;
   }
 
 
   .compact-info-btn:hover {
-    background: #ffffff;
     transform: scale(1.15);
   }
 
@@ -492,72 +502,11 @@ const { countries } = Astro.props;
     font-weight: 600;
     color: var(--color-orange);
     opacity: 0.9;
-    /* transform: translateY(4px); */
     transition: all 0.3s ease;
   }
 
   .compact-card:hover .compact-action-hint {
-    /* transform: translateY(0); */
     opacity: 1;
-  }
-
-  /* Footer Controls */
-  .slider-controls-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 24px;
-    gap: 16px;
-  }
-
-  .pagination-dots {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .pagination-dots :global(.dot) {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background-color: rgba(5, 51, 43, 0.2);
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .pagination-dots :global(.dot.active) {
-    width: 28px;
-    border-radius: 10px;
-    background-color: var(--color-orange);
-  }
-
-  .nav-arrows {
-    display: flex;
-    gap: 10px;
-  }
-
-  .nav-arrow-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: 1px solid var(--color-border);
-    background-color: #ffffff;
-    color: var(--color-navy);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-
-  .nav-arrow-btn:hover {
-    background-color: var(--color-navy);
-    color: #ffffff;
-    border-color: var(--color-navy);
-    transform: translateY(-2px);
   }
 
   /* Modal */
@@ -570,6 +519,7 @@ const { countries } = Astro.props;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    cursor: pointer;
   }
 
   .info-modal-card {
@@ -577,17 +527,18 @@ const { countries } = Astro.props;
     border-radius: 24px;
     max-width: 540px;
     width: 100%;
-    padding: 32px;
+    padding: 24px;
     position: relative;
     box-shadow: 0 24px 48px rgba(0,0,0,0.2);
-    animation: scaleUp 0.25s ease-out;
+    cursor: default;
+    animation: scaleUp 0.3s ease-out;
   }
 
   .info-modal-close {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: var(--color-bg-light);
+    background-color: var(--color-bg-light);
     border: none;
     width: 36px;
     height: 36px;
@@ -597,12 +548,12 @@ const { countries } = Astro.props;
     justify-content: center;
     color: var(--color-navy-light);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.3s, color 0.3s;
   }
 
   .info-modal-close:hover {
-    background: #e2e8f0;
-    color: var(--color-navy);
+    background-color: var(--color-orange);
+    color: var(--color-bg-light);
   }
 
   .info-modal-header {
@@ -623,8 +574,8 @@ const { countries } = Astro.props;
   .info-modal-text {
     font-size: 15px;
     line-height: 1.6;
-    color: var(--color-navy-light);
-    margin-bottom: 24px;
+    color: var(--color-navy-light)
+    /* margin-bottom: 24px; */
   }
 
   .info-modal-action {

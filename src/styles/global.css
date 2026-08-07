@@ -62,32 +62,32 @@
 }
 
 ::-webkit-scrollbar {
+  background-color: transparent;
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  /* background: var(--color-emerald-subtle); */
-  background: transparent;
+  background-color: transparent;
   border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-emerald-light);
+  background-color: var(--color-emerald-light);
   border-radius: 99px;
-  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-emerald-main);
+  background-color: var(--color-emerald-main);
 }
 
 ::-webkit-scrollbar-corner {
-  background: transparent;
+  background-color: transparent;
 }
 
 html {
   scroll-behavior: smooth;
+  /* scrollbar-gutter: stable; */
 }
 
 body {
@@ -125,6 +125,11 @@ main {
   .container {
     padding: 0 15px;
   }
+}
+
+.section {
+  padding-top: 60px;
+  padding-bottom: 60px;
 }
 
 .section-header {
@@ -187,4 +192,59 @@ main {
 
 .btn-secondary:hover {
   background-color: var(--color-emerald-subtle);
+}
+
+.slider-controls-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  gap: 16px;
+}
+
+.pagination-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(15, 46, 37, 0.2);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-dots .dot.active {
+  width: 28px;
+  border-radius: 10px;
+  background-color: var(--color-orange);
+}
+
+.nav-arrows {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-arrow-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background-color: #ffffff;
+  color: var(--color-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.nav-arrow-btn:hover {
+  background-color: var(--color-orange);
+  color: #ffffff;
 }

@@ -13,7 +13,7 @@ import logo from '../assets/logo-b.svg?url';
 
     <div class="header__actions">
       <div class="header__phone">
-        <a href="tel:+78005559922" class="header__phone-number">8 800 555 99 22</a>
+        <a href="tel:+79313977103" class="header__phone-number">+7 (931) 397-71-03</a>
         <span class="header__phone-hours">Ежедневно 10:00 – 20:00</span>
       </div>
 
@@ -22,6 +22,7 @@ import logo from '../assets/logo-b.svg?url';
 
     <button
       type="button"
+      id="mobile-menu"
       class="header__burger"
       aria-label="Открыть меню"
       aria-expanded="false"
@@ -51,7 +52,7 @@ import logo from '../assets/logo-b.svg?url';
       <Navigation class="mobile-menu__nav"/>
 
       <div class="mobile-menu__phone">
-        <a href="tel:+78005559922" class="header__phone-number">8 800 555 99 22</a>
+        <a href="tel:+79313977103" class="header__phone-number">+7 (931) 397-71-03</a>
         <span class="header__phone-hours">Ежедневно 10:00 – 20:00</span>
       </div>
 
@@ -64,7 +65,7 @@ import logo from '../assets/logo-b.svg?url';
   .header {
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 1500;
     background-color: var(--color-bg-card);
     border-bottom: 1px solid var(--color-border-light);
   }
@@ -73,7 +74,7 @@ import logo from '../assets/logo-b.svg?url';
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
+    gap: 15px;
     padding-block: 16px;
   }
 
@@ -86,8 +87,7 @@ import logo from '../assets/logo-b.svg?url';
   .header :global(.nav-list) {
     display: flex;
     align-items: center;
-    gap: 28px;
-    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .header :global(.nav-list__link) {
@@ -103,11 +103,10 @@ import logo from '../assets/logo-b.svg?url';
     color: var(--color-orange);
   }
 
-  /* Actions: phone + CTA (десктоп) */
   .header__actions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
     flex-shrink: 0;
   }
 
@@ -132,9 +131,6 @@ import logo from '../assets/logo-b.svg?url';
     white-space: nowrap;
   }
 
-
-
-  /* Burger — скрыт на десктопе, появляется на мобильных вместо nav+phone */
   .header__burger {
     display: none;
     flex-direction: column;
@@ -155,10 +151,9 @@ import logo from '../assets/logo-b.svg?url';
     height: 2px;
     background-color: var(--color-text-main);
     border-radius: 2px;
-    transition: transform 0.25s ease, opacity 0.25s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease;
   }
 
-  /* Когда меню открыто — превращаем три полоски в крестик */
   .header__burger[aria-expanded='true'] .header__burger-line:nth-child(1) {
     transform: translateY(7px) rotate(45deg);
   }
@@ -169,7 +164,7 @@ import logo from '../assets/logo-b.svg?url';
     transform: translateY(-7px) rotate(-45deg);
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1000px) {
     .header :global(.nav-list),
     .header__phone,
     .header__actions .btn-primary {
@@ -310,7 +305,7 @@ import logo from '../assets/logo-b.svg?url';
     // Фиксируем переменные для TypeScript (убирает ошибку "possibly null")
     const activeMenu = menu;
     const activeBtn = toggleBtn;
-    const closeTriggers = activeMenu.querySelectorAll<HTMLElement>('[data-menu-close]');
+    const closeTriggers = activeMenu.querySelectorAll<HTMLElement>('[data-menu-close], .nav-list__link');
 
     function openMenu(): void {
       activeMenu.setAttribute('data-open', 'true');

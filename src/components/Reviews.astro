@@ -1,0 +1,476 @@
+---
+import type { Review } from '../lib/sheets';
+import { fetchInitialDataServerSide } from '../lib/sheets';
+
+interface Props {
+  reviews?: Review[];
+}
+
+let { reviews } = Astro.props;
+
+if (!reviews || !Array.isArray(reviews) || reviews.length === 0) {
+  try {
+    const initialData = await fetchInitialDataServerSide();
+    reviews = initialData.reviews;
+  } catch (e) {
+    reviews = [];
+  }
+}
+
+const items = Array.isArray(reviews) ? reviews : [];
+
+let baseItems = [...items];
+if (items.length > 1) {
+  while (baseItems.length < 12) {
+    baseItems = [...baseItems, ...items];
+  }
+}
+const displayItems = items.length > 1 ? [...baseItems, ...baseItems, ...baseItems] : [...items];
+const L = baseItems.length;
+---
+
+{items.length > 0 && (
+  <section id="reviews" class="section reviews-section">
+  <div class="container">
+    <div class="reviews-header">
+      <div class="header-text">
+        <h2 class="title">ОТЗЫВЫ</h2>
+        <h3 class="subtitle">Истории незабываемых путешествий</h3>
+      </div>
+    </div>
+
+    <!-- Slider Container -->
+    <div class="reviews-slider-container" id="reviews-container">
+      <div class="reviews-slider-track" id="reviews-track" data-length={L} data-count={items.length}>
+        {displayItems.map((rev) => (
+          <div class="review-card-wrapper">
+            <div class="review-card">
+              <div class="stars-row">
+                {Array.from({ length: rev.rating || 5 }).map(() => (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff6900" stroke="#ff6900" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                ))}
+              </div>
+
+              {rev.title && <h3 class="review-title">{rev.title}</h3>}
+              {rev.text && <p class="review-text">"{rev.text}"</p>}
+
+              <div class="author-row">
+                {rev.avatar ? (
+                  <img src={rev.avatar} alt={rev.name || 'Автор отзыва'} class="author-avatar" loading="lazy" referrerpolicy="no-referrer" />
+                ) : (
+                  <div class="author-avatar-placeholder" aria-label="Аватар отсутствует">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                )}
+                {(rev.name || rev.date) && (
+                  <div class="author-meta">
+                    {rev.name && <strong class="author-name">{rev.name}</strong>}
+                    {rev.date && <span class="review-date">{rev.date}</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="reviews-bottom-controls">
+      <div class="slider-controls-footer">
+        <div class="pagination-dots" id="reviews-dots"></div>
+        <div class="nav-arrows">
+          <button type="button" class="nav-arrow-btn prev-btn" id="reviews-prev" aria-label="Предыдущий отзыв">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button type="button" class="nav-arrow-btn next-btn" id="reviews-next" aria-label="Следующий отзыв">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+)}
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('reviews-container') as HTMLElement | null;
+    const track = document.getElementById('reviews-track') as HTMLElement | null;
+    const prevBtn = document.getElementById('reviews-prev');
+    const nextBtn = document.getElementById('reviews-next');
+    const dotsContainer = document.getElementById('reviews-dots');
+
+    if (!container || !track) return;
+
+    const containerEl = container;
+    const trackEl = track;
+
+    const L = parseInt(trackEl.getAttribute('data-length') || '1', 10);
+    const count = parseInt(trackEl.getAttribute('data-count') || '1', 10);
+
+    const bottomControls = document.querySelector('.reviews-bottom-controls') as HTMLElement | null;
+
+    if (count <= 1) {
+      if (bottomControls) bottomControls.style.display = 'none';
+      containerEl.style.cursor = 'default';
+      trackEl.style.transform = 'none';
+
+      const updateSingleWidth = () => {
+        const containerWidth = containerEl.clientWidth;
+        const maxCardW = Math.min(650, containerWidth);
+        containerEl.style.setProperty('--card-width', `${maxCardW}px`);
+        containerEl.style.setProperty('--gap-width', '0px');
+      };
+      updateSingleWidth();
+      window.addEventListener('resize', updateSingleWidth);
+      return;
+    }
+
+    let currentIndex = L; // Start in the middle copy
+    let isTransitioning = false;
+
+    function renderDots() {
+      if (!dotsContainer) return;
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = `dot ${i === 0 ? 'active' : ''}`;
+        dot.setAttribute('aria-label', `Перейти к отзыву ${i + 1}`);
+        dot.addEventListener('click', () => {
+          const currentReal = ((currentIndex % count) + count) % count;
+          const diff = i - currentReal;
+          currentIndex += diff;
+          moveSlider(true);
+        });
+        dotsContainer.appendChild(dot);
+      }
+    }
+
+    function updatePagination() {
+      if (!dotsContainer) return;
+      const currentReal = ((currentIndex % count) + count) % count;
+      const dots = dotsContainer.querySelectorAll('.dot');
+      dots.forEach((dot, idx) => {
+        if (idx === currentReal) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    }
+
+    function getGap() {
+      return window.innerWidth < 600 ? 16 : 24;
+    }
+
+    function updateCardWidth() {
+      const containerWidth = containerEl.clientWidth;
+      let visibleCount = 4;
+      if (window.innerWidth < 600) visibleCount = 1;
+      else if (window.innerWidth < 900) visibleCount = 2;
+      else if (window.innerWidth < 1200) visibleCount = 3;
+
+      const gap = getGap();
+      const cardWidth = (containerWidth - (visibleCount - 1) * gap) / visibleCount;
+      containerEl.style.setProperty('--card-width', `${cardWidth}px`);
+      containerEl.style.setProperty('--gap-width', `${gap}px`);
+      return cardWidth + gap;
+    }
+
+    function moveSlider(animate = true) {
+      const step = updateCardWidth();
+      if (animate) {
+        trackEl.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+        isTransitioning = true;
+      } else {
+        trackEl.style.transition = 'none';
+        isTransitioning = false;
+      }
+      const offset = -currentIndex * step;
+      trackEl.style.transform = `translate3d(${offset}px, 0, 0)`;
+      updatePagination();
+    }
+
+    function handleNext() {
+      if (isTransitioning) return;
+      currentIndex++;
+      moveSlider(true);
+    }
+
+    function handlePrev() {
+      if (isTransitioning) return;
+      currentIndex--;
+      moveSlider(true);
+    }
+
+    trackEl.addEventListener('transitionend', () => {
+      isTransitioning = false;
+      const step = updateCardWidth();
+      if (currentIndex >= 2 * L) {
+        currentIndex = currentIndex - L;
+        trackEl.style.transition = 'none';
+        trackEl.style.transform = `translate3d(${-currentIndex * step}px, 0, 0)`;
+      } else if (currentIndex < L) {
+        currentIndex = currentIndex + L;
+        trackEl.style.transition = 'none';
+        trackEl.style.transform = `translate3d(${-currentIndex * step}px, 0, 0)`;
+      }
+    });
+
+    prevBtn?.addEventListener('click', () => {
+      handlePrev();
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      handleNext();
+    });
+
+    // Touch & Mouse Dragging
+    let startX = 0;
+    let currentDragX = 0;
+    let isDragging = false;
+
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      if (isTransitioning) return;
+      isDragging = true;
+      startX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      currentDragX = startX;
+      trackEl.style.transition = 'none';
+    }
+
+    function onPointerMove(e: MouseEvent | TouchEvent) {
+      if (!isDragging) return;
+      currentDragX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const deltaX = currentDragX - startX;
+      const step = updateCardWidth();
+      const currentOffset = -currentIndex * step + deltaX;
+      trackEl.style.transform = `translate3d(${currentOffset}px, 0, 0)`;
+    }
+
+    function onPointerUp() {
+      if (!isDragging) return;
+      isDragging = false;
+      const deltaX = currentDragX - startX;
+      if (deltaX < -40) {
+        currentIndex++;
+      } else if (deltaX > 40) {
+        currentIndex--;
+      }
+      moveSlider(true);
+    }
+
+    containerEl.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    containerEl.addEventListener('touchstart', onPointerDown, { passive: true });
+    containerEl.addEventListener('touchmove', onPointerMove, { passive: true });
+    containerEl.addEventListener('touchend', onPointerUp);
+
+    // Initialize position and dots
+    renderDots();
+    updateCardWidth();
+    moveSlider(false);
+
+    window.addEventListener('resize', () => {
+      updateCardWidth();
+      moveSlider(false);
+    });
+  });
+</script>
+
+<style>
+  .reviews-section {
+    background-color: #ffffff;
+    overflow: hidden;
+  }
+
+  .reviews-header {
+    margin-bottom: 32px;
+  }
+
+  .header-text {
+    max-width: 680px;
+  }
+
+  .reviews-bottom-controls {
+    margin-top: 24px;
+  }
+
+  .controls-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  /* .pagination-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pagination-dots :global(.dot) {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(15, 46, 37, 0.2);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .pagination-dots :global(.dot.active) {
+    width: 28px;
+    border-radius: 10px;
+    background-color: var(--color-orange-main);
+  } */
+
+  .slider-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Slider Track and Cards */
+  .reviews-slider-container {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    padding: 10px 0 20px 0;
+    cursor: grab;
+    user-select: none;
+  }
+
+  .reviews-slider-container:active {
+    cursor: grabbing;
+  }
+
+  .reviews-slider-track {
+    display: flex;
+    gap: var(--gap-width, 24px);
+    will-change: transform;
+  }
+
+  .reviews-slider-track[data-count="1"] {
+    justify-content: center;
+  }
+
+  .review-card-wrapper {
+    flex-shrink: 0;
+    width: var(--card-width, 280px);
+    box-sizing: border-box;
+  }
+
+  .review-card {
+    background-color: var(--color-bg-light);
+    padding: 32px 28px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-light);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: border-color .3s;
+  }
+
+  .review-card:hover {
+    border-color: rgba(255, 105, 0, 0.3);
+  }
+
+  .quote-icon {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    color: var(--color-emerald-subtle);
+  }
+
+  .stars-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .review-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-emerald-dark);
+    margin-bottom: 10px;
+    padding-right: 32px;
+  }
+
+  .review-text {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex-grow: 1;
+    font-style: italic;
+  }
+
+  .author-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-light);
+    margin-top: auto;
+  }
+
+  .author-avatar,
+  .author-avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .author-avatar {
+    object-fit: cover;
+    border: 2px solid var(--color-orange-main);
+  }
+
+  .author-avatar-placeholder {
+    background-color: #f1f5f9;
+    color: var(--color-emerald-dark);
+    border: 1.5px solid var(--color-border-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .author-meta {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .author-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-emerald-dark);
+  }
+
+  .review-date {
+    font-size: 12px;
+    color: var(--color-text-light);
+  }
+
+  @media (max-width: 640px) {
+    .reviews-bottom-controls {
+      justify-content: center;
+    }
+  }
+</style>
