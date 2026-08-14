@@ -1,0 +1,13 @@
+# Настройка отображения страницы 404 для Apache / виртуального хостинга
+ErrorDocument 404 /404.html
+
+# Включение перенаправления для статических файлов
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Если запрашиваемый файл или папка не существуют, перенаправлять на 404.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ /404.html [L]
+</IfModule>

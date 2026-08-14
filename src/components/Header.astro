@@ -1,12 +1,13 @@
 ---
+import { Image } from 'astro:assets';
 import Navigation from './Navigation.astro';
-import logo from '../assets/logo-b.svg?url';
+import logo from '../assets/logo.png';
 ---
 
 <header class="header">
   <div class="container header__inner">
     <a href="/" class="header__logo" aria-label="Абсолют-тур — на главную">
-      <img src={logo} alt="Абсолют-тур" class="header__logo-icon" />
+      <Image src={logo} alt="Абсолют-тур" class="header__logo-icon" />
     </a>
 
     <Navigation class="header__nav" />
@@ -14,10 +15,10 @@ import logo from '../assets/logo-b.svg?url';
     <div class="header__actions">
       <div class="header__phone">
         <a href="tel:+79313977103" class="header__phone-number">+7 (931) 397-71-03</a>
-        <span class="header__phone-hours">Ежедневно 10:00 – 20:00</span>
+        <span class="header__phone-hours">Ежедневно 11:00 – 19:00</span>
       </div>
 
-      <a href="#booking" class="btn btn-primary">Подобрать отдых</a>
+      <a href="/#booking" class="btn btn-primary">Подобрать отдых</a>
     </div>
 
     <button
@@ -41,7 +42,7 @@ import logo from '../assets/logo-b.svg?url';
 
     <div class="mobile-menu__panel">
       <div class="mobile-menu__top">
-        <img src={logo} alt="Абсолют-тур" class="header__logo-icon" />
+        <Image src={logo} alt="Абсолют-тур" class="header__logo-icon" />
         <button type="button" class="mobile-menu__close" aria-label="Закрыть меню" data-menu-close>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
@@ -53,7 +54,7 @@ import logo from '../assets/logo-b.svg?url';
 
       <div class="mobile-menu__phone">
         <a href="tel:+79313977103" class="header__phone-number">+7 (931) 397-71-03</a>
-        <span class="header__phone-hours">Ежедневно 10:00 – 20:00</span>
+        <span class="header__phone-hours">Ежедневно 11:00 – 19:00</span>
       </div>
 
       <a href="#booking" class="btn btn-primary mobile-menu__cta" data-menu-close>Подобрать отдых</a>
@@ -77,7 +78,7 @@ import logo from '../assets/logo-b.svg?url';
     align-items: center;
     justify-content: space-between;
     gap: 15px;
-    padding-block: 16px;
+    padding-block: 10px;
   }
 
   .header__logo-icon {
@@ -89,7 +90,10 @@ import logo from '../assets/logo-b.svg?url';
   .header :global(.nav-list) {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
+    max-width: 500px;
+    width: 100%;
   }
 
   .header :global(.nav-list__link) {

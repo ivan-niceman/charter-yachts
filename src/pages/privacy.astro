@@ -1,0 +1,550 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const lastUpdated = "12 августа 2026 г.";
+---
+
+<Layout 
+  title="Политика конфиденциальности — ООО «Абсолют-Тур»" 
+  description="Политика ООО «Абсолют-Тур» в отношении обработки и защиты персональных данных пользователей сайта согласно Федеральному закону № 152-ФЗ."
+>
+  <Header />
+
+  <main class="privacy-page">
+    <div class="privacy-hero">
+      <div class="container">
+        <nav class="breadcrumbs" aria-label="Хлебные крошки">
+          <a href="/" class="breadcrumbs__link">Главная</a>
+          <span class="breadcrumbs__sep">/</span>
+          <span class="breadcrumbs__current">Политика конфиденциальности</span>
+        </nav>
+        
+        <h1 class="privacy-hero__title">Политика конфиденциальности и обработки персональных данных</h1>
+        <p class="privacy-hero__subtitle">
+          ООО «Абсолют-Тур» • В соответствии с Федеральным законом РФ № 152-ФЗ «О персональных данных»
+        </p>
+        
+        <div class="privacy-hero__badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Дата последнего обновления: {lastUpdated}
+        </div>
+      </div>
+    </div>
+
+    <div class="container privacy-container">
+      <div class="privacy-layout">
+        {/* Боковое оглавление */}
+        <aside class="privacy-toc" aria-label="Оглавление документа">
+          <div class="privacy-toc__card">
+            <h3 class="privacy-toc__title">Содержание</h3>
+            <ul class="privacy-toc__list">
+              <li><a href="#section-1" class="privacy-toc__link">1. Общие положения</a></li>
+              <li><a href="#section-2" class="privacy-toc__link">2. Основные понятия</a></li>
+              <li><a href="#section-3" class="privacy-toc__link">3. Состав обрабатываемых данных</a></li>
+              <li><a href="#section-4" class="privacy-toc__link">4. Цели обработки данных</a></li>
+              <li><a href="#section-5" class="privacy-toc__link">5. Правовые основания</a></li>
+              <li><a href="#section-6" class="privacy-toc__link">6. Порядок и способы обработки</a></li>
+              <li><a href="#section-7" class="privacy-toc__link">7. Передача данных третьим лицам</a></li>
+              <li><a href="#section-8" class="privacy-toc__link">8. Локализация и хранение в РФ</a></li>
+              <li><a href="#section-9" class="privacy-toc__link">9. Использование файлов Cookie</a></li>
+              <li><a href="#section-10" class="privacy-toc__link">10. Права субъекта ПД</a></li>
+              <li><a href="#section-11" class="privacy-toc__link">11. Порядок отзыва согласия</a></li>
+            </ul>
+
+            <div class="privacy-toc__action">
+              <button type="button" onclick="window.print()" class="btn btn-secondary btn-print">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                  <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                Распечатать документ
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Текст политики */}
+        <article class="privacy-content">
+          <div class="privacy-callout">
+            <div class="privacy-callout__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div class="privacy-callout__text">
+              <strong>Защита ваших данных — наш приоритет.</strong> ООО «Абсолют-Тур» строго соблюдает нормы Федерального закона от 27.07.2006 № 152-ФЗ «О персональных данных» и обеспечивает максимальную конфиденциальность и безопасность всей передаваемой информации.
+            </div>
+          </div>
+
+          <section id="section-1" class="privacy-section">
+            <h2>1. Общие положения</h2>
+            <p>
+              1.1. Настоящая Политика конфиденциальности (далее — «Политика») определяет порядок обработки и защиты персональных данных физических лиц (далее — «Пользователи»), заходящих на веб-сайт <strong>ООО «Абсолют-Тур»</strong> (далее — «Оператор»), расположенный в сети Интернет.
+            </p>
+            <p>
+              1.2. Обеспечение прав и свобод человека и гражданина при обработке его персональных данных, в том числе защиты прав на неприкосновенность частной жизни, личную и семейную тайну, является важнейшим условием осуществления деятельности Оператора.
+            </p>
+            <p>
+              1.3. Настоящая Политика применяется ко всей информации, которую Оператор может получить о Пользователе во время использования веб-сайта, заполнения форм обратной связи и бронирования туров/яхт.
+            </p>
+          </section>
+
+          <section id="section-2" class="privacy-section">
+            <h2>2. Основные понятия</h2>
+            <ul>
+              <li><strong>Персональные данные (ПД)</strong> — любая информация, относящаяся к прямо или косвенно определенному или определяемому физическому лицу (субъекту персональных данных).</li>
+              <li><strong>Оператор</strong> — Общество с ограниченной ответственностью «Абсолют-Тур», самостоятельно или совместно с другими лицами организующее и осуществляющее обработку персональных данных.</li>
+              <li><strong>Обработка персональных данных</strong> — любое действие (операция) или совокупность действий с персональными данными с использованием средств автоматизации или без таковых (сбор, запись, систематизация, накопление, хранение, уточнение, извлечение, использование, передача, обезличивание, блокирование, удаление, уничтожение).</li>
+              <li><strong>Файлы cookie (куки)</strong> — небольшие фрагменты данных, отправляемые веб-сервером и сохраняемые на устройстве Пользователя для аутентификации, запоминания настроек и сбора статистики.</li>
+            </ul>
+          </section>
+
+          <section id="section-3" class="privacy-section">
+            <h2>3. Состав и категории обрабатываемых данных</h2>
+            <p>3.1. Оператор обрабатывает следующие персональные данные, предоставляемые Пользователем добровольно при заполнении форм на сайте:</p>
+            <div class="privacy-table-wrapper">
+              <table class="privacy-table">
+                <thead>
+                  <tr>
+                    <th>Категория данных</th>
+                    <th>Перечень сведений</th>
+                    <th>Обязательность</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Контактная информация</strong></td>
+                    <td>Имя, номер контактного телефона, адрес электронной почты (e-mail)</td>
+                    <td>Обязательно для обратной связи</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Параметры бронирования</strong></td>
+                    <td>Выбранное направление, название яхты, даты путешествия, число гостей, комментарии к заявке</td>
+                    <td>По выбору пользователя</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Технические данные</strong></td>
+                    <td>IP-адрес, тип и версия браузера, данные файлов cookie, время посещения, источника перехода</td>
+                    <td>Собираются автоматически</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>3.2. Оператор <strong>не осуществляет</strong> обработку специальных категорий персональных данных, касающихся расовой, национальной принадлежности, политических взглядов, религиозных или философских убеждений, состояния здоровья, интимной жизни, а также биометрических персональных данных.</p>
+          </section>
+
+          <section id="section-4" class="privacy-section">
+            <h2>4. Цели обработки персональных данных</h2>
+            <p>Обработка персональных данных Пользователя осуществляется в следующих четко определенных целях:</p>
+            <ol>
+              <li>Обработка входящих заявок, консультация Пользователя и подбор премиальных туров, фрахта яхт и дайвинг-сафари.</li>
+              <li>Заключение и исполнение договоров об оказании туристических услуг и аренды морских судов.</li>
+              <li>Установление обратной связи, включая направление уведомлений, запросов, касающихся использования сайта и уточнения деталей тура.</li>
+              <li>Направление с согласия Пользователя информационных, рекламных сообщений и специальной подборки актуальных маршрутов.</li>
+              <li>Анализ эффективности работы веб-сайта, улучшение удобства интерфейса и качества предоставляемых услуг (с использованием обезличенных данных cookie).</li>
+            </ol>
+          </section>
+
+          <section id="section-5" class="privacy-section">
+            <h2>5. Правовые основания обработки</h2>
+            <p>Правовыми основаниями обработки персональных данных Оператором являются:</p>
+            <ul>
+              <li>Конституция Российской Федерации;</li>
+              <li>Гражданский кодекс Российской Федерации;</li>
+              <li>Федеральный закон от 27.07.2006 № 152-ФЗ «О персональных данных»;</li>
+              <li>Федеральный закон от 24.11.1996 № 132-ФЗ «Об основах туристской деятельности в Российской Федерации»;</li>
+              <li>Уставные документы ООО «Абсолют-Тур»;</li>
+              <li>Согласие Пользователя на обработку его персональных данных, даваемое путем установки отметки (галочки) в формах ввода на сайте.</li>
+            </ul>
+          </section>
+
+          <section id="section-6" class="privacy-section">
+            <h2>6. Порядок и способы обработки персональных данных</h2>
+            <p>6.1. Обработка персональных данных осуществляется с использованием средств автоматизации, а также без использования таких средств (смешанная обработка).</p>
+            <p>6.2. Оператор принимает необходимые организационные и технические меры для защиты персональных данных Пользователя от неправомерного или случайного доступа, уничтожения, изменения, блокирования, копирования, распространения, а также от иных неправомерных действий третьих лиц.</p>
+            <p>6.3. Срок обработки персональных данных ограничивается достижением целей обработки, либо до момента отзыва согласия Пользователем.</p>
+          </section>
+
+          <section id="section-7" class="privacy-section">
+            <h2>7. Передача данных третьим лицам</h2>
+            <p>7.1. Оператор гарантирует конфиденциальность персональных данных. Передача данных третьим лицам допускается исключительно в случаях:</p>
+            <ul>
+              <li>Необходимости бронирования выбранного тура, каюты или яхты у непосредственных судовладельцев, принимающих компаньонов и туроператоров в целях выполнения запроса Пользователя;</li>
+              <li>Использования защищенных каналов информирования ответственных менеджеров (включая автоматизированные сервисы уведомлений почтовых служб и мессенджера Telegram);</li>
+              <li>По требованиям законодательства РФ (органам дознания, следствия, суду) в предусмотренном законом порядке.</li>
+            </ul>
+            <p>7.2. Третьи лица, получающие доступ к данным для исполнения поручения Оператора, обязуются соблюдать конфиденциальность и обеспечивать безопасность персональных данных.</p>
+          </section>
+
+          <section id="section-8" class="privacy-section">
+            <h2>8. Локализация и хранение данных на территории РФ</h2>
+            <p>8.1. В соответствии с требованиями ч. 5 ст. 18 Федерального закона № 152-ФЗ, Оператор обеспечивает сбор, запись, систематизацию, накопление, хранение, уточнение и извлечение персональных данных граждан Российской Федерации с использованием баз данных, находящихся на территории Российской Федерации.</p>
+          </section>
+
+          <section id="section-9" class="privacy-section">
+            <h2>9. Использование файлов Cookie и веб-метрик</h2>
+            <p>9.1. На сайте Оператора используются файлы cookie и сервисы веб-аналитики (включая Яндекс.Метрику) для сбора технических данных о посещении.</p>
+            <p>9.2. Файлы cookie подразделяются на:</p>
+            <ul>
+              <li><strong>Обязательные (технические)</strong> — необходимы для правильного отображения сайта, работы форм бронирования и безопасности. Не могут быть отключены без нарушения работы сайта.</li>
+              <li><strong>Аналитические</strong> — помогают оценивать посещаемость и поведение пользователей для улучшения сервиса.</li>
+            </ul>
+            <p>9.3. Пользователь может в любой момент изменить настройки использования файлов cookie в браузере или вызвав специальную панель настройки cookie в нижней части нашего сайта.</p>
+          </section>
+
+          <section id="section-10" class="privacy-section">
+            <h2>10. Права субъекта персональных данных</h2>
+            <p>Пользователь имеет право:</p>
+            <ul>
+              <li>Получать информацию, касающуюся обработки его персональных данных;</li>
+              <li>Требовать от Оператора уточнения его персональных данных, их блокирования или уничтожения в случае, если данные являются неполными, устаревшими, неточными или незаконно полученными;</li>
+              <li>Отозвать данное ранее согласие на обработку персональных данных в любой момент;</li>
+              <li>Защищать свои права и законные интересы, в том числе обращаться в Роскомнадзор или в судебный орган.</li>
+            </ul>
+          </section>
+
+          <section id="section-11" class="privacy-section">
+            <h2>11. Порядок отзыва согласия на обработку</h2>
+            <p>11.1. Согласие на обработку персональных данных может быть отозвано Пользователем в любое время путем направления письменного обращения Оператору.</p>
+            <p>11.2. Обращение об отзыве согласия можно отправить следующим способом:</p>
+            <ul>
+              <li>По электронной почте: <a href="mailto:reservations@absolute-tour.com" class="privacy-email-link">reservations@absolute-tour.com</a> с темой письма <em>«Отзыв согласия на обработку персональных данных»</em>;</li>
+              <li>Почтовым отправлением по юридическому адресу Оператора.</li>
+            </ul>
+            <p>11.3. В течение 10 рабочих дней с момента получения обращения Оператор прекращает обработку данных и уничтожает их, за исключением случаев, предусмотренных законодательством РФ.</p>
+          </section>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .privacy-page {
+    /* background-color: var(--color-bg-light, #f6faf9); */
+    /* min-height: 100vh;
+    padding-top: calc(var(--header-height, 88px) + 20px); */
+    padding-bottom: 60px;
+    /* color: var(--color-navy, #05332b); */
+  }
+
+  /* Hero Section */
+  .privacy-hero {
+    background: linear-gradient(135deg, #05332b 0%, #0a5246 100%);
+    color: #ffffff;
+    padding-block: 40px 48px;
+    margin-bottom: 40px;
+    box-shadow: inset 0 -10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 16px;
+  }
+
+  .breadcrumbs__link {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .breadcrumbs__link:hover {
+    color: var(--color-orange, #ff6900);
+  }
+
+  .breadcrumbs__sep {
+    opacity: 0.5;
+  }
+
+  .breadcrumbs__current {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .privacy-hero__title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 12px 0;
+    color: #ffffff;
+  }
+
+  .privacy-hero__subtitle {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0 0 20px 0;
+    max-width: 800px;
+  }
+
+  .privacy-hero__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 14px;
+    border-radius: var(--radius-full, 9999px);
+    font-size: 0.825rem;
+    color: #ffffff;
+  }
+
+  /* Layout */
+  .privacy-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-inline: 20px;
+  }
+
+  .privacy-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  /* Sticky TOC */
+  .privacy-toc {
+    position: sticky;
+    top: calc(var(--header-height, 88px) + 20px);
+  }
+
+  .privacy-toc__card {
+    background: #ffffff;
+    border: 1px solid var(--color-border, #e0eae7);
+    border-radius: var(--radius-md, 16px);
+    padding: 20px;
+    box-shadow: var(--shadow-sm, 0 2px 10px rgba(10, 82, 70, 0.04));
+  }
+
+  .privacy-toc__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 14px 0;
+    color: var(--color-navy, #05332b);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border, #e0eae7);
+  }
+
+  .privacy-toc__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .privacy-toc__link {
+    font-size: 0.85rem;
+    color: var(--color-navy-light, #4e635f);
+    text-decoration: none;
+    transition: color 0.2s, transform 0.2s;
+    display: block;
+    line-height: 1.35;
+  }
+
+  .privacy-toc__link:hover {
+    color: var(--color-orange, #ff6900);
+    transform: translateX(2px);
+  }
+
+  .privacy-toc__action {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--color-border, #e0eae7);
+  }
+
+  .btn-print {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.825rem;
+    padding: 10px 14px;
+    background: var(--color-bg-light, #f6faf9);
+    border: 1px solid var(--color-border, #e0eae7);
+    border-radius: var(--radius-full, 9999px);
+    color: var(--color-navy, #05332b);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-print:hover {
+    background: #e0eae7;
+    color: var(--color-orange, #ff6900);
+  }
+
+  /* Content */
+  .privacy-content {
+    background: #ffffff;
+    border: 1px solid var(--color-border, #e0eae7);
+    border-radius: var(--radius-md, 16px);
+    padding: 36px 40px;
+    box-shadow: var(--shadow-sm, 0 2px 10px rgba(10, 82, 70, 0.04));
+    line-height: 1.65;
+    font-size: 0.975rem;
+  }
+
+  .privacy-callout {
+    display: flex;
+    gap: 16px;
+    background: var(--color-bg-light, #f6faf9);
+    border: 1px solid var(--color-emerald-light, #127363);
+    border-left: 4px solid var(--color-emerald-main, #0a5246);
+    border-radius: var(--radius-sm, 8px);
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+
+  .privacy-callout__icon {
+    color: var(--color-emerald-main, #0a5246);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .privacy-callout__text {
+    font-size: 0.925rem;
+    color: var(--color-navy, #05332b);
+  }
+
+  .privacy-section {
+    margin-bottom: 36px;
+    scroll-margin-top: calc(var(--header-height, 80px) + 24px);
+  }
+
+  .privacy-section h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--color-navy, #05332b);
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--color-bg-light, #f6faf9);
+  }
+
+  .privacy-section p {
+    margin: 0 0 12px 0;
+    color: #2c3e3a;
+  }
+
+  .privacy-section ul,
+  .privacy-section ol {
+    margin: 0 0 16px 0;
+    padding-left: 24px;
+    color: #2c3e3a;
+  }
+
+  .privacy-section li {
+    margin-bottom: 8px;
+  }
+
+  /* Table */
+  .privacy-table-wrapper {
+    overflow-x: auto;
+    margin-block: 16px;
+    border-radius: var(--radius-sm, 8px);
+    border: 1px solid var(--color-border, #e0eae7);
+  }
+
+  .privacy-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    text-align: left;
+  }
+
+  .privacy-table th {
+    background: var(--color-bg-light, #f6faf9);
+    padding: 12px 16px;
+    font-weight: 700;
+    color: var(--color-navy, #05332b);
+    border-bottom: 1px solid var(--color-border, #e0eae7);
+  }
+
+  .privacy-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border, #e0eae7);
+    color: #2c3e3a;
+  }
+
+  .privacy-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Contacts card inside policy */
+  .privacy-card-contacts {
+    background: var(--color-bg-light, #f6faf9);
+    border: 1px solid var(--color-border, #e0eae7);
+    border-radius: var(--radius-md, 16px);
+    padding: 24px;
+
+  }
+
+  .operator-details p {
+    margin-bottom: 8px;
+  }
+
+  .operator-details a {
+    color: var(--color-orange, #ff6900);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .operator-details a:hover {
+    text-decoration: underline;
+  }
+
+  .privacy-email-link {
+    color: var(--color-emerald-main, #0a5246);
+    font-weight: 600;
+  }
+
+  /* Print Styles */
+  @media print {
+    .header, .footer, .privacy-hero, .privacy-toc, .cookie-banner {
+      display: none !important;
+    }
+    .privacy-page {
+      padding: 0;
+      background: #ffffff;
+    }
+    .privacy-layout {
+      display: block;
+    }
+    .privacy-content {
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .privacy-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .privacy-toc {
+      position: static;
+    }
+
+    .privacy-content {
+      padding: 24px 20px;
+    }
+  }
+</style>

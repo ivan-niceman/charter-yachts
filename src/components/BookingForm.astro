@@ -1,5 +1,5 @@
 ---
-// BookingForm.astro - Form component in Astro with white card, original text, floating labels, and 3-second auto-closing popup notification
+
 interface Props {
   prefillYacht?: string;
 }
@@ -58,7 +58,7 @@ const { prefillYacht = '' } = Astro.props;
                 id="input-name"
                 name="name"
                 class="floating-input"
-                placeholder=" "
+                placeholder=""
               />
               <label for="input-name" class="floating-label">
                 <svg class="label-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -77,7 +77,7 @@ const { prefillYacht = '' } = Astro.props;
                 id="input-phone"
                 name="phone"
                 class="floating-input"
-                placeholder=" "
+                placeholder=""
               />
               <label for="input-phone" class="floating-label">
                 <svg class="label-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -95,7 +95,7 @@ const { prefillYacht = '' } = Astro.props;
                 id="input-email"
                 name="email"
                 class="floating-input"
-                placeholder=" "
+                placeholder=""
               />
               <label for="input-email" class="floating-label">
                 <svg class="label-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -114,7 +114,7 @@ const { prefillYacht = '' } = Astro.props;
               id="input-comment"
               name="comment"
               class="floating-input floating-textarea"
-              placeholder=" "
+              placeholder=""
               rows="3"
             ></textarea>
             <label for="input-comment" class="floating-label floating-textarea-label">
@@ -130,7 +130,7 @@ const { prefillYacht = '' } = Astro.props;
             <label class="checkbox-label">
               <input type="checkbox" id="input-consent" name="consent" checked />
               <span class="checkbox-text">
-                Соглашаюсь на обработку персональных данных в соответствии с ФЗ № 152-ФЗ и <a href="/privacy" target="_blank" rel="noopener noreferrer">Политикой конфиденциальности</a>.
+                Соглашаюсь на обработку персональных данных в соответствии с ФЗ № 152-ФЗ и <a href="/privacy" target="_blank" rel="noopener noreferrer">политикой конфиденциальности</a>.
               </span>
             </label>
             <span class="field-error-msg checkbox-error" id="error-consent" style="display: none;"></span>
@@ -168,13 +168,13 @@ const { prefillYacht = '' } = Astro.props;
         </div>
         <h3 class="modal-title">Заявка успешно отправлена!</h3>
         <p class="modal-subtitle" id="modal-user-greeting">
-          Спасибо! Мы свяжемся с вами в течение 15 минут.
+          Спасибо! Мы скоро с вами свяжемся.
         </p>
       </div>
 
       <div class="modal-summary-box">
         <div class="summary-row">
-          <span>Клиент:</span> <strong id="modal-sum-name"></strong>
+          <span>Имя:</span> <strong id="modal-sum-name"></strong>
         </div>
         <div class="summary-row">
           <span>Телефон:</span> <strong id="modal-sum-phone"></strong>
@@ -192,7 +192,7 @@ const { prefillYacht = '' } = Astro.props;
         <div class="timer-bar" id="modal-timer-bar"></div>
       </div>
       <p class="timer-note">
-        Окно автоматически закроется через <span id="modal-countdown">3</span> сек.
+        Окно автоматически закроется через <span id="modal-countdown">0</span> сек.
       </p>
     </div>
   </div>
@@ -305,7 +305,7 @@ const { prefillYacht = '' } = Astro.props;
         if (error) {
           if (groupElem) groupElem.classList.add('has-error');
           if (errElem) {
-            errElem.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> ${error}`;
+            errElem.innerHTML = `${error}`;
             errElem.style.display = 'inline-flex';
           }
         } else {
@@ -329,16 +329,22 @@ const { prefillYacht = '' } = Astro.props;
     // Динамическое обновление ошибок во время ввода ТОЛЬКО ЕСЛИ была попытка отправки
     [nameInput, phoneInput, emailInput, consentInput].forEach((input) => {
       if (!input) return;
-      input.addEventListener('input', () => {
-        if (hasAttemptedSubmit) {
-          const name = input.name;
-          validateField(name);
-        }
-      });
       if (input.type === 'checkbox') {
+
         input.addEventListener('change', () => {
-          if (hasAttemptedSubmit) validateField(input.name);
+          if (hasAttemptedSubmit) {
+            validateField(input.name);
+          }
         });
+
+      } else {
+
+        input.addEventListener('input', () => {
+          if (hasAttemptedSubmit) {
+            validateField(input.name);
+          }
+        });
+
       }
     });
 
@@ -346,7 +352,7 @@ const { prefillYacht = '' } = Astro.props;
     function openSuccessModal(name: string, phone: string, email: string, yacht: string) {
       if (!modal) return;
 
-      if (modalGreeting) modalGreeting.textContent = `Спасибо, ${name}! Мы свяжемся с вами в течение 15 минут.`;
+      if (modalGreeting) modalGreeting.textContent = `Спасибо, ${name}! Мы скоро с вами свяжемся.`;
       if (modalSumName) modalSumName.textContent = name;
       if (modalSumPhone) modalSumPhone.textContent = phone;
       if (modalSumEmail) modalSumEmail.textContent = email;
@@ -366,12 +372,12 @@ const { prefillYacht = '' } = Astro.props;
         modalTimerBar.style.width = '100%';
         // Форсируем reflow
         void modalTimerBar.offsetWidth;
-        modalTimerBar.style.transition = 'width 3s linear';
+        modalTimerBar.style.transition = 'width 10s linear';
         modalTimerBar.style.width = '0%';
       }
 
-      let secondsLeft = 3;
-      if (modalCountdown) modalCountdown.textContent = '3';
+      let secondsLeft = 10;
+      if (modalCountdown) modalCountdown.textContent = '10';
 
       if (countdownInterval) clearInterval(countdownInterval);
       countdownInterval = window.setInterval(() => {
@@ -385,7 +391,7 @@ const { prefillYacht = '' } = Astro.props;
       if (autoCloseTimer) clearTimeout(autoCloseTimer);
       autoCloseTimer = window.setTimeout(() => {
         closeModal();
-      }, 3000);
+      }, 10000);
     }
 
     function closeModal() {
@@ -429,7 +435,7 @@ const { prefillYacht = '' } = Astro.props;
         const commentVal = commentInput?.value.trim() || '';
 
         try {
-          const response = await fetch('/api/booking', {
+          const response = await fetch('/booking.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -438,7 +444,8 @@ const { prefillYacht = '' } = Astro.props;
               email: emailVal,
               comment: commentVal,
               yacht: selectedYachtName || 'Общий подбор тура',
-              consent: consentInput?.checked || true
+              // consent: consentInput?.checked || true
+              consent: consentInput?.checked || false
             })
           });
 
@@ -451,6 +458,13 @@ const { prefillYacht = '' } = Astro.props;
             form.reset();
             hasAttemptedSubmit = false;
             if (consentInput) consentInput.checked = true;
+
+            // Сбрасываем сохраненное название яхты в переменной
+            selectedYachtName = '';
+            // Скрываем блок плашки выбранной яхты
+            if (badge) badge.style.display = 'none';
+            // Очищаем текстовый контент плашки
+            if (badgeName) badgeName.textContent = '';
 
             // Очищаем ошибки
             ['name', 'phone', 'email', 'consent'].forEach((fieldName) => {
@@ -763,7 +777,6 @@ const { prefillYacht = '' } = Astro.props;
 
   .submit-btn:hover:not(:disabled) {
     background-color: #e05d00;
-    transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(255, 105, 0, 0.4);
   }
 

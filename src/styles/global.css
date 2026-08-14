@@ -110,6 +110,10 @@ h6 {
   font-family: var(--font-family-heading);
 }
 
+[id] {
+  scroll-margin-top: var(--header-height);
+}
+
 main {
   flex: 1;
 }
@@ -209,8 +213,8 @@ main {
 }
 
 .pagination-dots .dot {
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background-color: rgba(15, 46, 37, 0.2);
   border: none;
@@ -234,9 +238,8 @@ main {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1px solid var(--color-border);
-  background-color: #ffffff;
-  color: var(--color-navy);
+  background-color: var(--color-orange);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -245,6 +248,6 @@ main {
 }
 
 .nav-arrow-btn:hover {
-  background-color: var(--color-orange);
+  background-color: var(--color-orange-hover);
   color: #ffffff;
 }

@@ -1,10 +1,17 @@
 ---
 import { fetchInitialDataServerSide, DEFAULT_HERO_SLIDES, type HeroSlide } from '../lib/sheets';
 
+import { Image } from 'astro:assets';
+import hero1 from '../assets/images/hero/hero-1.jpg';
+import hero2 from '../assets/images/hero/hero-2.jpg';
+import hero3 from '../assets/images/hero/hero-3.webp';
+import hero4 from '../assets/images/hero/hero-4.jpg';
+
 interface Props {
   slides?: HeroSlide[];
 }
 
+const heroImages = [hero1, hero2, hero3, hero4];
 const { slides: customSlides } = Astro.props;
 
 // 1. Статичные тексты для каждого слайда
@@ -38,14 +45,19 @@ if (!fetchedSlides || fetchedSlides.length === 0) {
 }
 
 // 3. Объединяем статичные тексты с ссылками на фото из Google Таблицы
-const slides = slidesText.map((item, index) => {
-  const sheetSlide = fetchedSlides[index] || DEFAULT_HERO_SLIDES[index] || DEFAULT_HERO_SLIDES[0];
-  return {
-    title: item.title,
-    text: item.text,
-    image: sheetSlide?.image || DEFAULT_HERO_SLIDES[index]?.image || '',
-  };
-});
+const slides = slidesText.map((item, index) => ({
+  ...item,
+  image: heroImages[index],
+}));
+
+// const slides = slidesText.map((item, index) => {
+//   const sheetSlide = fetchedSlides[index] || DEFAULT_HERO_SLIDES[index] || DEFAULT_HERO_SLIDES[0];
+//   return {
+//     title: item.title,
+//     text: item.text,
+//     image: sheetSlide?.image || DEFAULT_HERO_SLIDES[index]?.image || '',
+//   };
+// });
 
 const features = [
   { icon: 'users', text: 'Индивидуальный подход и маршруты' },
@@ -54,13 +66,23 @@ const features = [
   { icon: 'shield', text: 'Безопасность и конфиденциальность' },
   { icon: 'support', text: '24/7 поддержка на всех этапах' },
 ];
+
+// const slides = slidesText.map((item, index) => {
+//   const localImg = localHeroImages[index % localHeroImages.length];
+//   const sheetSlide = fetchedSlides[index] || DEFAULT_HERO_SLIDES[index] || DEFAULT_HERO_SLIDES[0];
+//   return {
+//     title: item.title,
+//     text: item.text,
+//     image: localImg?.src || sheetSlide?.image || DEFAULT_HERO_SLIDES[index]?.image || '',
+//   };
+// });
 ---
 
 <section class="hero">
   <div class="hero__bg-slider">
     {slides.map((slide, index) => (
       <div class="hero__bg-slide" class:list={{ 'is-active': index === 0 }} data-hero-bg-slide>
-        <img
+        <Image
           src={slide.image}
           alt={slide.title}
           loading={index === 0 ? 'eager' : 'lazy'}
@@ -69,7 +91,7 @@ const features = [
         />
       </div>
     ))}
-    <div class="hero__bg-overlay"></div>
+    <!-- <div class="hero__bg-overlay"></div> -->
   </div>
 
   <div class="container hero__inner">
@@ -153,7 +175,6 @@ const features = [
 </script>
 
 <style>
-  /* Ваши исходные стили без изменений */
   .hero {
     position: relative;
     min-height: 85vh;
@@ -206,7 +227,7 @@ const features = [
     }
   }
 
-  .hero__bg-overlay {
+  /* .hero__bg-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(
@@ -217,7 +238,7 @@ const features = [
       rgba(238, 247, 246, 0.25) 50%
     );
     z-index: 2;
-  }
+  } */
 
   .hero__inner {
     position: relative;
@@ -338,7 +359,7 @@ const features = [
   .hero__feature {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 7px;
     padding: 5px 8px;
     background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(12px);
@@ -366,9 +387,9 @@ const features = [
   }
 
   @media (max-width: 1024px) {
-    .hero__bg-overlay {
+    /* .hero__bg-overlay {
       background: linear-gradient(180deg, #eef7f6f2 10%, #eef7f6d9 20%, #eef7f63a 40%);
-    }
+    } */
     .hero__features {
       grid-template-columns: repeat(3, 1fr);
     }

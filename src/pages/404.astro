@@ -1,0 +1,290 @@
+---
+export const prerender = true;
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout 
+  title="404 — Страница не найдена | Абсолют-тур" 
+  description="Запрошенная страница не найдена на сайте Абсолют-тур. Перейдите на главную страницу или изучите каталог яхт."
+>
+  <Header />
+  <main class="page-404">
+    <section class="not-found">
+      <div class="container not-found__container">
+        
+        <!-- Декоративный морской компас / спасательный круг -->
+        <div class="not-found__badge-wrap">
+          <div class="not-found__compass">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="compass-svg" aria-hidden="true">
+              <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" class="compass-ring-outer" />
+              <circle cx="50" cy="50" r="38" stroke="currentColor" stroke-width="1.5" class="compass-ring-inner" />
+              <path d="M50 15V22M50 78V85M15 50H22M78 50H85" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <text x="50" y="12" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">N</text>
+              <text x="50" y="94" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">S</text>
+              <text x="96" y="53" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">E</text>
+              <text x="4" y="53" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">W</text>
+              <!-- Стрелка компаса -->
+              <polygon points="50,26 44,50 50,45 56,50" fill="var(--color-orange, #ff6900)" />
+              <polygon points="50,74 44,50 50,45 56,50" fill="currentColor" opacity="0.4" />
+              <circle cx="50" cy="50" r="4" fill="var(--color-orange, #ff6900)" />
+            </svg>
+          </div>
+        </div>
+        <span class="not-found__code">404</span>
+
+        <div class="not-found__content">
+          <span class="not-found__subbadge">Сбой навигации</span>
+          <h1 class="not-found__title">Вы заплыли в неизведанные воды</h1>
+          <p class="not-found__description">
+            К сожалению, запрашиваемая страница не существует, была удалена или перенесена в другую акваторию. Воспользуйтесь навигацией, чтобы вернуться на правильный курс.
+          </p>
+
+          <div class="not-found__actions">
+            <a href="/" class="btn btn-primary not-found__btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              На главную
+            </a>
+            <a href="/#yachts" class="btn btn-secondary not-found__btn">
+              Каталог яхт
+            </a>
+            <a href="/#destinations" class="btn btn-outline not-found__btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              Направления
+            </a>
+          </div>
+
+          <!-- Полезные ссылки / Контакты -->
+          <div class="not-found__help-box">
+            <div class="not-found__help-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <div class="not-found__help-text">
+              <span>Нужна помощь в подборе тура или бронировании яхты?</span>
+              <a href="tel:+79313977103" class="not-found__phone">+7 (931) 397-71-03</a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page-404 {
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, var(--color-bg-light, #f6faf9) 0%, #ffffff 100%);
+    padding: 60px 20px;
+  }
+
+  .not-found {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .not-found__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 28px;
+  }
+
+  .not-found__badge-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .not-found__compass {
+    width: 140px;
+    height: 140px;
+    color: var(--color-emerald-main, #0a5246);
+    opacity: 0.85;
+    animation: compassRotate 20s linear infinite;
+  }
+
+  @keyframes compassRotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .compass-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .not-found__code {
+    font-size: 56px;
+    font-weight: 900;
+    color: var(--color-emerald-dark, #05332b);
+  }
+
+  .not-found__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    max-width: 620px;
+  }
+
+  .not-found__subbadge {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-orange, #ff6900);
+    background: var(--color-orange-light, #fff2e8);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .not-found__title {
+    font-family: var(--font-family-heading, sans-serif);
+    font-size: clamp(1.8rem, 4vw, 2.75rem);
+    font-weight: 800;
+    color: var(--color-emerald-dark, #05332b);
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .not-found__description {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--color-text-muted, #4e635f);
+    margin: 0;
+  }
+
+  .not-found__actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    width: 100%;
+  }
+
+  .not-found__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: var(--radius-sm, 8px);
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--color-orange, #ff6900);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-orange-hover, #e55e00);
+    box-shadow: 0 6px 20px rgba(255, 105, 0, 0.25);
+  }
+
+  .btn-secondary {
+    background: var(--color-emerald-dark, #05332b);
+    color: #ffffff;
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-emerald-main, #0a5246);
+    box-shadow: 0 6px 20px rgba(5, 51, 43, 0.2);
+  }
+
+  .btn-outline {
+    background: #ffffff;
+    color: var(--color-emerald-dark, #05332b);
+    border: 1px solid var(--color-border, #e0eae7);
+  }
+
+  .btn-outline:hover {
+    background: var(--color-bg-light, #f6faf9);
+    border-color: var(--color-emerald-main, #0a5246);
+  }
+
+  .not-found__help-box {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #ffffff;
+    border: 1px solid var(--color-border-light, #e0f0eb);
+    padding: 14px 20px;
+    border-radius: var(--radius-md, 16px);
+    box-shadow: 0 4px 15px rgba(5, 51, 43, 0.04);
+    text-align: left;
+  }
+
+  .not-found__help-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--color-emerald-subtle, #eaf4f2);
+    color: var(--color-emerald-main, #0a5246);
+    flex-shrink: 0;
+  }
+
+  .not-found__help-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #4e635f);
+  }
+
+  .not-found__phone {
+    font-weight: 700;
+    color: var(--color-emerald-dark, #05332b);
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.2s ease;
+  }
+
+  .not-found__phone:hover {
+    color: var(--color-orange, #ff6900);
+  }
+
+  @media (max-width: 600px) {
+    .page-404 {
+      padding: 40px 16px;
+    }
+
+    .not-found__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .not-found__btn {
+      width: 100%;
+    }
+
+    .not-found__help-box {
+      text-align: center;
+    }
+  }
+</style>

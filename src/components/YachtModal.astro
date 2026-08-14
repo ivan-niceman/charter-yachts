@@ -39,9 +39,11 @@ const rawImages: string[] = (yacht.images && Array.isArray(yacht.images) ? yacht
   .map(cleanImageUrl)
   .filter((img: string) => typeof img === 'string' && img.trim().length > 0);
 
-let modalImages: string[] = [...rawImages];
+let modalImages: string[] = rawImages.length > 0 ? rawImages : [DEFAULT_FALLBACKS[0]];
 
 const hasMultipleImages = modalImages.length > 1;
+const L = modalImages.length;
+const displayImages = hasMultipleImages ? [...modalImages, ...modalImages, ...modalImages] : [...modalImages];
 
 // Prepare safety fallbacks for nested stats
 const buildYear = yacht.specs?.year || '—';
@@ -71,15 +73,26 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       <!-- Галерея со слайдером -->
       <div class="gallery-section">
         <div class="main-photo-wrap">
-          <img
-            id={`main-img-${yacht.id}`}
-            src={modalImages[0]}
-            alt={yacht.name}
-            class="modal-main-image"
-            draggable="false"
-            referrerpolicy="no-referrer"
-            data-fallback-images={JSON.stringify(DEFAULT_FALLBACKS)}
-          />
+          <div class="yacht-slider-container">
+            <div
+              class="yacht-slider-track"
+              data-length={L}
+              data-count={modalImages.length}
+            >
+              {displayImages.map((img: string, idx: number) => (
+                <div class="yacht-slide">
+                  <img
+                    src={img}
+                    alt={`${yacht.name} ${idx + 1}`}
+                    class="modal-main-image"
+                    draggable="false"
+                    referrerpolicy="no-referrer"
+                    data-fallback-images={JSON.stringify(DEFAULT_FALLBACKS)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
           
           {hasMultipleImages && (
             <>
@@ -487,9 +500,36 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     height: 460px;
     border-radius: var(--radius-sm, 16px);
     overflow: hidden;
-    cursor: grab;
     user-select: none;
-    touch-action: pan-y;
+    background-color: #04201b;
+  }
+
+  .yacht-slider-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+  }
+
+  .yacht-slider-container:active {
+    cursor: grabbing;
+  }
+
+  .yacht-slider-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    will-change: transform;
+  }
+
+  .yacht-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .modal-main-image {
@@ -497,7 +537,6 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: opacity 0.2s ease-in-out, transform 0.15s ease-out;
     pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
@@ -562,6 +601,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     cursor: pointer;
     transition: var(--transition-smooth, all 0.3s ease);
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10;
   }
 
   .slider-nav:hover {
@@ -581,7 +621,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       height: 36px;
     }
     .nav-prev { left: 5px; }
-  .nav-next { right: 5px; }
+    .nav-next { right: 5px; }
   }
 
   .slide-counter {
@@ -595,6 +635,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     font-size: 12px;
     font-weight: 600;
     backdrop-filter: blur(4px);
+    z-index: 10;
   }
 
   .modal-thumbnails {
@@ -703,9 +744,10 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
   }
 
   .full-description {
-    font-size: 15px;
+    font-size: 13px;
     color: var(--color-text-muted, #4a5d59);
     line-height: 1.4;
+    white-space: pre-line;
   }
 
   /* Specifications Grid */
@@ -746,11 +788,8 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
   .chip {
     font-size: 13px;
     line-height: 1.4;
-    padding: 8px 14px;
-    background-color: var(--color-bg-light, #f4fcf9);
-    color: var(--color-emerald-dark, #063c32);
-    border-radius: var(--radius-sm, 9999px);
-    border: 1px solid var(--color-border-light, #e0f0eb);
+    color: var(--color-text-muted, #4a5d59);
+    white-space: pre-line;
   }
 
   /* Download Photos Banner */
@@ -776,6 +815,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     color: var(--color-text-muted, #4a5d59);
     margin: 0;
     max-width: 580px;
+    white-space: pre-line;
   }
 
   .download-action-btn {
@@ -855,13 +895,108 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
 </style>
 
 <script>
-  function initYachtModals() {
-    const autoplayMap = new Map<HTMLElement, number>();
+  function setupModalSlider(modal: HTMLElement) {
+    const container = modal.querySelector('.yacht-slider-container') as HTMLElement | null;
+    const trackEl = modal.querySelector('.yacht-slider-track') as HTMLElement | null;
+    if (!container || !trackEl) return null;
 
-    function stopAutoplay(modal: HTMLElement) {
-      if (autoplayMap.has(modal)) {
-        clearInterval(autoplayMap.get(modal));
-        autoplayMap.delete(modal);
+    const track = trackEl;
+    const L = parseInt(track.getAttribute('data-length') || '1', 10);
+    const count = parseInt(track.getAttribute('data-count') || '1', 10);
+
+    if (count <= 1) {
+      track.style.transform = 'none';
+      return {
+        reset: () => {},
+        next: () => {},
+        prev: () => {},
+        goTo: (_i: number) => {},
+        stopAutoplay: () => {},
+        toggleAutoplay: () => {}
+      };
+    }
+
+    let currentIndex = L;
+    let isTransitioning = false;
+    let autoplayTimer: number | null = null;
+
+    function getSlideWidth() {
+      return container ? container.clientWidth : 0;
+    }
+
+    function scrollThumbContainer(targetThumb: HTMLElement) {
+      const thumbsContainer = modal.querySelector('.modal-thumbnails') as HTMLElement;
+      if (!thumbsContainer || !targetThumb) return;
+      const targetLeft = targetThumb.offsetLeft - (thumbsContainer.clientWidth / 2) + (targetThumb.clientWidth / 2);
+      thumbsContainer.scrollTo({ left: targetLeft, behavior: 'smooth' });
+    }
+
+    function updateUI() {
+      const realIdx = ((currentIndex % count) + count) % count;
+      const currIdxLabel = modal.querySelector('.curr-idx');
+      if (currIdxLabel) currIdxLabel.textContent = String(realIdx + 1);
+
+      const thumbs = modal.querySelectorAll('.thumb-btn');
+      thumbs.forEach((thumb, idx) => {
+        if (idx === realIdx) {
+          thumb.classList.add('active');
+          scrollThumbContainer(thumb as HTMLElement);
+        } else {
+          thumb.classList.remove('active');
+        }
+      });
+    }
+
+    function moveSlider(animate = true) {
+      if (animate) {
+        track.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+        isTransitioning = true;
+      } else {
+        track.style.transition = 'none';
+        isTransitioning = false;
+      }
+      track.style.transform = `translate3d(${-currentIndex * 100}%, 0, 0)`;
+      updateUI();
+    }
+
+    function handleNext() {
+      if (isTransitioning) return;
+      currentIndex++;
+      moveSlider(true);
+    }
+
+    function handlePrev() {
+      if (isTransitioning) return;
+      currentIndex--;
+      moveSlider(true);
+    }
+
+    function goToRealIndex(targetRealIdx: number) {
+      if (isTransitioning) return;
+      const currentRealIdx = ((currentIndex % count) + count) % count;
+      const diff = targetRealIdx - currentRealIdx;
+      currentIndex += diff;
+      moveSlider(true);
+    }
+
+    track.addEventListener('transitionend', () => {
+      isTransitioning = false;
+      if (currentIndex >= 2 * L) {
+        currentIndex = currentIndex - L;
+        track.style.transition = 'none';
+        track.style.transform = `translate3d(${-currentIndex * 100}%, 0, 0)`;
+      } else if (currentIndex < L) {
+        currentIndex = currentIndex + L;
+        track.style.transition = 'none';
+        track.style.transform = `translate3d(${-currentIndex * 100}%, 0, 0)`;
+      }
+    });
+
+    // Autoplay
+    function stopAutoplay() {
+      if (autoplayTimer !== null) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
       }
       const btn = modal.querySelector('[data-autoplay-btn]') as HTMLElement;
       if (btn) {
@@ -870,100 +1005,124 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       }
     }
 
-    function scrollThumbContainer(modal: HTMLElement, targetThumb: HTMLElement) {
-      const container = modal.querySelector('.modal-thumbnails') as HTMLElement;
-      if (!container || !targetThumb) return;
-      const targetLeft = targetThumb.offsetLeft - (container.clientWidth / 2) + (targetThumb.clientWidth / 2);
-      container.scrollTo({ left: targetLeft, behavior: 'smooth' });
-    }
-
-    function startAutoplay(modal: HTMLElement) {
-      stopAutoplay(modal);
-      const thumbList = modal.querySelectorAll('.thumb-btn');
-      if (thumbList.length <= 1) return;
-
+    function startAutoplay() {
+      stopAutoplay();
       const btn = modal.querySelector('[data-autoplay-btn]') as HTMLElement;
       if (btn) {
         btn.classList.add('is-playing');
         btn.setAttribute('title', 'Остановить автопрокрутку');
       }
-
-      const timerId = window.setInterval(() => {
-        const list = Array.from(modal.querySelectorAll('.thumb-btn')) as HTMLElement[];
-        if (list.length <= 1) return;
-        const activeIdx = list.findIndex(b => b.classList.contains('active'));
-        const nextIdx = (activeIdx + 1) % list.length;
-        setGalleryImage(modal, nextIdx, 'next');
+      autoplayTimer = window.setInterval(() => {
+        handleNext();
       }, 3200);
-
-      autoplayMap.set(modal, timerId);
     }
 
-    function toggleAutoplay(modal: HTMLElement) {
-      if (autoplayMap.has(modal)) {
-        stopAutoplay(modal);
+    function toggleAutoplay() {
+      if (autoplayTimer !== null) {
+        stopAutoplay();
       } else {
-        startAutoplay(modal);
+        startAutoplay();
       }
     }
 
-    function setGalleryImage(modal: HTMLElement, targetIdx: number, direction?: 'next' | 'prev') {
-      const thumbList = Array.from(modal.querySelectorAll('.thumb-btn')) as HTMLElement[];
-      if (!thumbList.length || !thumbList[targetIdx]) return;
+    // Touch & Mouse Dragging
+    let startX = 0;
+    let currentDragX = 0;
+    let isDragging = false;
 
-      const activeThumb = modal.querySelector('.thumb-btn.active') as HTMLElement;
-      const currentIdx = activeThumb ? parseInt(activeThumb.getAttribute('data-index') || '0', 10) : 0;
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      if (isTransitioning) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('.slider-nav') || target.closest('.slide-counter') || target.closest('[data-autoplay-btn]')) return;
 
-      let slideDir = direction;
-      if (!slideDir) {
-        if (targetIdx === 0 && currentIdx === thumbList.length - 1) {
-          slideDir = 'next';
-        } else if (targetIdx === thumbList.length - 1 && currentIdx === 0) {
-          slideDir = 'prev';
-        } else {
-          slideDir = targetIdx >= currentIdx ? 'next' : 'prev';
-        }
+      isDragging = true;
+      startX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      currentDragX = startX;
+      track.style.transition = 'none';
+    }
+
+    function onPointerMove(e: MouseEvent | TouchEvent) {
+      if (!isDragging) return;
+      currentDragX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const deltaX = currentDragX - startX;
+      const slideW = getSlideWidth() || 1;
+      const deltaPercent = (deltaX / slideW) * 100;
+      const currentOffset = -currentIndex * 100 + deltaPercent;
+      track.style.transform = `translate3d(${currentOffset}%, 0, 0)`;
+    }
+
+    function onPointerUp() {
+      if (!isDragging) return;
+      isDragging = false;
+      const deltaX = currentDragX - startX;
+      if (deltaX < -40) {
+        currentIndex++;
+      } else if (deltaX > 40) {
+        currentIndex--;
       }
+      moveSlider(true);
+    }
 
-      const mainImg = modal.querySelector('.modal-main-image') as HTMLImageElement;
-      const newImgUrl = thumbList[targetIdx].getAttribute('data-thumb-src');
+    container.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
 
-      if (mainImg && newImgUrl) {
-        const outX = slideDir === 'next' ? '-70px' : '70px';
-        const inX = slideDir === 'next' ? '70px' : '-70px';
+    container.addEventListener('touchstart', onPointerDown, { passive: true });
+    container.addEventListener('touchmove', onPointerMove, { passive: true });
+    container.addEventListener('touchend', onPointerUp);
 
-        mainImg.style.transition = 'transform 0.18s, opacity 0.18s';
-        mainImg.style.transform = `translateX(${outX})`;
-        mainImg.style.opacity = '0';
+    // Initial positioning
+    currentIndex = L;
+    moveSlider(false);
 
-        setTimeout(() => {
-          mainImg.src = newImgUrl;
-          mainImg.style.transition = 'none';
-          mainImg.style.transform = `translateX(${inX})`;
-          mainImg.style.opacity = '0';
+    window.addEventListener('resize', () => {
+      moveSlider(false);
+    });
 
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              mainImg.style.transition = 'transform 0.28s, opacity 0.28s';
-              mainImg.style.transform = 'translateX(0px)';
-              mainImg.style.opacity = '1';
-            });
-          });
-        }, 180);
+    return {
+      reset: () => {
+        stopAutoplay();
+        currentIndex = L;
+        moveSlider(false);
+      },
+      next: handleNext,
+      prev: handlePrev,
+      goTo: goToRealIndex,
+      stopAutoplay,
+      toggleAutoplay
+    };
+  }
+
+  function initYachtModals() {
+    const slidersMap = new Map<HTMLElement, ReturnType<typeof setupModalSlider>>();
+
+    // Initialize all modals on page
+    const modals = document.querySelectorAll('.modal-overlay');
+    modals.forEach((m) => {
+      const modal = m as HTMLElement;
+      const slider = setupModalSlider(modal);
+      if (slider) slidersMap.set(modal, slider);
+    });
+
+    function closeModal(modal: HTMLElement) {
+      const slider = slidersMap.get(modal);
+      if (slider) slider.stopAutoplay();
+
+      modal.style.display = 'none';
+      modal.classList.remove('is-active');
+
+      const openCards = modal.querySelectorAll('.accordion-card.is-open');
+      openCards.forEach((openCard) => {
+        openCard.classList.remove('is-open');
+        const openWrapper = openCard.querySelector('.accordion-body-wrapper') as HTMLElement;
+        if (openWrapper) openWrapper.style.maxHeight = '0px';
+        const openArrow = openCard.querySelector('.acc-arrow');
+        if (openArrow) openArrow.classList.remove('rotated');
+      });
+
+      if (!document.querySelector('.modal-overlay.is-active')) {
+        document.body.style.overflow = '';
       }
-
-      thumbList.forEach(btn => btn.classList.remove('active'));
-      thumbList[targetIdx].classList.add('active');
-
-      const gridPhotos = modal.querySelectorAll('.photo-grid-card');
-      gridPhotos.forEach(card => card.classList.remove('active-grid-photo'));
-      const matchingGridCard = modal.querySelector(`.photo-grid-card[data-photo-index="${targetIdx}"]`);
-      if (matchingGridCard) matchingGridCard.classList.add('active-grid-photo');
-
-      const currIdxLabel = modal.querySelector('.curr-idx');
-      if (currIdxLabel) currIdxLabel.textContent = String(targetIdx + 1);
-
-      scrollThumbContainer(modal, thumbList[targetIdx]);
     }
 
     // Open modal event listener
@@ -973,42 +1132,18 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
 
       const modal = document.getElementById(`yacht-modal-${yachtId}`) as HTMLElement;
       if (modal) {
-        stopAutoplay(modal);
         modal.style.display = 'flex';
         modal.classList.add('is-active');
         document.body.style.overflow = 'hidden';
 
-        // Reset gallery slider index to 0 when opened
-        const firstThumb = modal.querySelector('.thumb-btn[data-index="0"]') as HTMLElement;
-        if (firstThumb) {
-          firstThumb.click();
+        const slider = slidersMap.get(modal);
+        if (slider) {
+          slider.reset();
         }
       }
     });
 
-    // Close modal function
-    function closeModal(modal: HTMLElement) {
-      stopAutoplay(modal);
-      modal.style.display = 'none';
-      modal.classList.remove('is-active');
-      
-      // Close all accordions inside this modal on close
-      const openCards = modal.querySelectorAll('.accordion-card.is-open');
-      openCards.forEach((openCard) => {
-        openCard.classList.remove('is-open');
-        const openWrapper = openCard.querySelector('.accordion-body-wrapper') as HTMLElement;
-        if (openWrapper) openWrapper.style.maxHeight = '0px';
-        const openArrow = openCard.querySelector('.acc-arrow');
-        if (openArrow) openArrow.classList.remove('rotated');
-      });
-      
-      // Restore scrolling only if no other modals are open
-      if (!document.querySelector('.modal-overlay.is-active')) {
-        document.body.style.overflow = '';
-      }
-    }
-
-    // Global click delegate within document
+    // Global click delegate
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
 
@@ -1016,7 +1151,10 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       const autoplayBtn = target.closest('[data-autoplay-btn]');
       if (autoplayBtn) {
         const modal = autoplayBtn.closest('.modal-overlay') as HTMLElement;
-        if (modal) toggleAutoplay(modal);
+        if (modal) {
+          const slider = slidersMap.get(modal);
+          if (slider) slider.toggleAutoplay();
+        }
         return;
       }
 
@@ -1036,39 +1174,27 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
         return;
       }
 
-      // 3. Thumb button click to change main image
+      // 3. Thumb button click to change slide
       const thumbBtn = target.closest('.thumb-btn');
       if (thumbBtn) {
         const modal = thumbBtn.closest('.modal-overlay') as HTMLElement;
         const indexStr = thumbBtn.getAttribute('data-index');
-        
         if (modal && indexStr !== null) {
           const idx = parseInt(indexStr, 10);
-          setGalleryImage(modal, idx);
+          const slider = slidersMap.get(modal);
+          if (slider) slider.goTo(idx);
         }
         return;
       }
 
-      // 4. Photo grid card click (Card 5 gallery view)
-      const gridCard = target.closest('.photo-grid-card');
-      if (gridCard) {
-        const idxStr = gridCard.getAttribute('data-photo-index');
-        const modal = gridCard.closest('.modal-overlay') as HTMLElement;
-        if (idxStr && modal) {
-          const idx = parseInt(idxStr, 10);
-          setGalleryImage(modal, idx);
-        }
-        return;
-      }
-
-      // 5. Booking button within details modal
+      // 4. Booking button within details modal
       const bookBtn = target.closest('[data-book-yacht]');
       if (bookBtn && bookBtn.closest('.modal-overlay')) {
         const yachtName = bookBtn.getAttribute('data-book-yacht');
         const modal = bookBtn.closest('.modal-overlay') as HTMLElement;
         if (yachtName) {
           if (modal) closeModal(modal);
-          
+
           window.dispatchEvent(new CustomEvent('openBooking', {
             detail: { yachtName }
           }));
@@ -1076,30 +1202,21 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
         return;
       }
 
-      // 6. Navigation prev / next arrows
+      // 5. Navigation prev / next arrows
       const prevBtn = target.closest('.nav-prev');
       const nextBtn = target.closest('.nav-next');
       if (prevBtn || nextBtn) {
         const modal = (prevBtn || nextBtn)!.closest('.modal-overlay') as HTMLElement;
         if (!modal) return;
-
-        const thumbList = Array.from(modal.querySelectorAll('.thumb-btn')) as HTMLElement[];
-        if (thumbList.length <= 1) return;
-
-        const activeIdx = thumbList.findIndex(btn => btn.classList.contains('active'));
-        let targetIdx = activeIdx;
-
-        if (prevBtn) {
-          targetIdx = (activeIdx - 1 + thumbList.length) % thumbList.length;
-          setGalleryImage(modal, targetIdx, 'prev');
-        } else {
-          targetIdx = (activeIdx + 1) % thumbList.length;
-          setGalleryImage(modal, targetIdx, 'next');
+        const slider = slidersMap.get(modal);
+        if (slider) {
+          if (prevBtn) slider.prev();
+          else slider.next();
         }
         return;
       }
 
-      // 7. Accordion collapse / expand toggle
+      // 6. Accordion collapse / expand toggle
       const accHeader = target.closest('.accordion-header');
       if (accHeader) {
         const card = accHeader.closest('.accordion-card');
@@ -1112,7 +1229,6 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
             wrapper.style.maxHeight = '0px';
             if (arrow) arrow.classList.remove('rotated');
           } else {
-            // Close all other accordions in the same modal first
             const modal = card.closest('.modal-overlay');
             if (modal) {
               const openCards = modal.querySelectorAll('.accordion-card.is-open');
@@ -1137,118 +1253,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       }
     });
 
-    // Helper to switch modal image
-    function switchModalImage(modal: HTMLElement, direction: 'next' | 'prev') {
-      const thumbList = Array.from(modal.querySelectorAll('.thumb-btn')) as HTMLElement[];
-      if (thumbList.length <= 1) return;
-
-      const activeIdx = thumbList.findIndex(btn => btn.classList.contains('active'));
-      let targetIdx = activeIdx;
-
-      if (direction === 'prev') {
-        targetIdx = (activeIdx - 1 + thumbList.length) % thumbList.length;
-      } else {
-        targetIdx = (activeIdx + 1) % thumbList.length;
-      }
-
-      setGalleryImage(modal, targetIdx, direction);
-    }
-
-    // 8. Swiping support for touch and mouse drag on main photo gallery
-    let isGalleryDragging = false;
-    let galleryStartX = 0;
-    let galleryStartY = 0;
-    let currentGalleryWrap: HTMLElement | null = null;
-    let currentMainImg: HTMLElement | null = null;
-    let galleryDeltaX = 0;
-
-    const handleSwipeStart = (clientX: number, clientY: number, target: HTMLElement) => {
-      const wrap = target.closest('.main-photo-wrap') as HTMLElement;
-      if (wrap) {
-        isGalleryDragging = true;
-        galleryStartX = clientX;
-        galleryStartY = clientY;
-        galleryDeltaX = 0;
-        currentGalleryWrap = wrap;
-        currentMainImg = wrap.querySelector('.modal-main-image');
-        wrap.style.cursor = 'grabbing';
-      }
-    };
-
-    const handleSwipeMove = (clientX: number, clientY: number) => {
-      if (!isGalleryDragging || !currentGalleryWrap || !currentMainImg) return;
-      const dx = clientX - galleryStartX;
-      const dy = clientY - galleryStartY;
-
-      if (Math.abs(dx) > Math.abs(dy)) {
-        galleryDeltaX = dx;
-        const clampX = Math.max(-120, Math.min(120, dx * 0.5));
-        currentMainImg.style.transform = `translateX(${clampX}px)`;
-      }
-    };
-
-    const handleSwipeEnd = () => {
-      if (!isGalleryDragging || !currentGalleryWrap) return;
-      isGalleryDragging = false;
-      currentGalleryWrap.style.cursor = 'grab';
-
-      if (currentMainImg) {
-        currentMainImg.style.transform = 'translateX(0px)';
-      }
-
-      if (Math.abs(galleryDeltaX) > 25) {
-        const modal = currentGalleryWrap.closest('.modal-overlay') as HTMLElement;
-        if (modal) {
-          switchModalImage(modal, galleryDeltaX < 0 ? 'next' : 'prev');
-        }
-      }
-
-      currentGalleryWrap = null;
-      currentMainImg = null;
-      galleryDeltaX = 0;
-    };
-
-    document.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches.length > 0) {
-        const target = e.target as HTMLElement;
-        if (target.closest('.slider-nav') || target.closest('.slide-counter') || target.closest('[data-autoplay-btn]')) return;
-        handleSwipeStart(e.touches[0].clientX, e.touches[0].clientY, target);
-      }
-    }, { passive: true });
-
-    document.addEventListener('touchmove', (e) => {
-      if (e.touches && e.touches.length > 0) {
-        handleSwipeMove(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: true });
-
-    document.addEventListener('touchend', () => {
-      handleSwipeEnd();
-    }, { passive: true });
-
-    document.addEventListener('mousedown', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('.slider-nav') || target.closest('.slide-counter') || target.closest('[data-autoplay-btn]')) return;
-      const wrap = target.closest('.main-photo-wrap');
-      if (wrap) {
-        e.preventDefault();
-        handleSwipeStart(e.clientX, e.clientY, target);
-      }
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (isGalleryDragging) {
-        handleSwipeMove(e.clientX, e.clientY);
-      }
-    });
-
-    document.addEventListener('mouseup', () => {
-      if (isGalleryDragging) {
-        handleSwipeEnd();
-      }
-    });
-
-    // 9. Keyboard escape button closes active details modal & Arrow keys navigate infinite gallery loop
+    // Keyboard navigation
     document.addEventListener('keydown', (e) => {
       const activeModal = document.querySelector('.modal-overlay.is-active') as HTMLElement;
       if (!activeModal) return;
@@ -1259,20 +1264,21 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       if (e.key === 'Escape') {
         closeModal(activeModal);
       } else if (e.key === 'ArrowLeft' && !isTyping) {
-        switchModalImage(activeModal, 'prev');
+        const slider = slidersMap.get(activeModal);
+        if (slider) slider.prev();
       } else if (e.key === 'ArrowRight' && !isTyping) {
-        switchModalImage(activeModal, 'next');
+        const slider = slidersMap.get(activeModal);
+        if (slider) slider.next();
       }
     });
 
-    // 10. Automatic fallback recovery for broken images
+    // Image fallback recovery
     document.addEventListener('error', (e) => {
       const target = e.target as HTMLImageElement;
       if (!target || target.tagName !== 'IMG') return;
 
       const currentSrc = target.src || '';
-      
-      // Try to recover Google Drive image URLs using drive thumbnails
+
       if (currentSrc.includes('lh3.googleusercontent.com/d/')) {
         const fileId = currentSrc.split('lh3.googleusercontent.com/d/')[1]?.split('=')[0];
         if (fileId) {
@@ -1288,7 +1294,6 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
         }
       }
 
-      // If it is main image, replace with fallback
       if (target.classList.contains('modal-main-image')) {
         const fallbacksAttr = target.getAttribute('data-fallback-images');
         if (fallbacksAttr) {
@@ -1296,7 +1301,6 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
             const fallbacks = JSON.parse(fallbacksAttr);
             target.src = fallbacks[0];
           } catch (err) {
-            // Fallback default
             target.src = 'https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1200&q=80';
           }
         }
@@ -1304,7 +1308,6 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     }, true);
   }
 
-  // Self-initializing bundle load pattern
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initYachtModals);
   } else {

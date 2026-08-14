@@ -1,0 +1,374 @@
+---
+---
+
+<div id="cookie-banner" class="cookie-banner" style="display: none;" role="dialog" aria-live="polite" aria-label="Уведомление об использовании cookie">
+  <div class="cookie-banner__card">
+    <div class="cookie-banner__header">
+      <div class="cookie-banner__title-row">
+        <svg class="cookie-banner__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
+          <path d="M8.5 8.5v.01" />
+          <path d="M16 15.5v.01" />
+          <path d="M12 12v.01" />
+          <path d="M11 17v.01" />
+          <path d="M7 14v.01" />
+        </svg>
+        <h3 class="cookie-banner__title">Файлы Cookie</h3>
+        <span class="cookie-banner__tag">152-ФЗ</span>
+      </div>
+    </div>
+
+    <p class="cookie-banner__text">
+      Мы используем cookie для работы сайта и аналитики согласно <a href="/privacy" class="cookie-banner__link">политике конфиденциальности</a>.
+    </p>
+
+    <!-- Панель точечных настроек -->
+    <div id="cookie-settings-panel" class="cookie-settings" style="display: none;">
+      <div class="cookie-option">
+        <label class="cookie-option__label">
+          <input type="checkbox" checked disabled class="cookie-option__input" />
+          <span class="cookie-option__info">
+            <strong>Обязательные (Технические)</strong>
+            <small>Необходимы для работы сайта, бронирования и безопасности</small>
+          </span>
+        </label>
+      </div>
+
+      <div class="cookie-option">
+        <label class="cookie-option__label">
+          <input type="checkbox" id="cookie-analytics-check" checked class="cookie-option__input" />
+          <span class="cookie-option__info">
+            <strong>Аналитические</strong>
+            <small>Яндекс.Метрика для анализа посещаемости и удобства</small>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <div class="cookie-banner__actions">
+      <button type="button" class="btn btn-primary btn-xs" id="cookie-accept-all">
+        Принять все
+      </button>
+      <button type="button" class="btn btn-secondary btn-xs" id="cookie-necessary-only">
+        Только обязательные
+      </button>
+      <button type="button" class="btn btn-save btn-xs" id="cookie-save-settings" style="display: none;">
+        Сохранить выбор
+      </button>
+      <button type="button" class="cookie-banner__settings-toggle" id="cookie-toggle-settings">
+        Настройки
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cookie-banner {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    left: auto;
+    z-index: 9999;
+    max-width: 380px;
+    width: calc(100vw - 32px);
+    font-family: var(--font-family-calibri, system-ui, sans-serif);
+    animation: cookieSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes cookieSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .cookie-banner__card {
+    background: #ffffff;
+    border: 1px solid var(--color-border-light, #e0f0eb);
+    border-radius: var(--radius-sm, 12px);
+    box-shadow: 0 8px 30px rgba(5, 51, 43, 0.12);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--color-emerald-dark, #063c32);
+  }
+
+  .cookie-banner__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .cookie-banner__title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cookie-banner__icon {
+    color: var(--color-orange-main, #ff6900);
+    flex-shrink: 0;
+  }
+
+  .cookie-banner__title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+    color: var(--color-emerald-dark, #063c32);
+  }
+
+  .cookie-banner__tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--color-orange-main, #ff6900);
+    background: var(--color-orange-light, #fff0e6);
+    padding: 1px 6px;
+    border-radius: 4px;
+    line-height: 1.2;
+  }
+
+  .cookie-banner__close {
+    background: none;
+    border: none;
+    color: var(--color-text-muted, #4a5d59);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cookie-banner__close:hover {
+    color: var(--color-orange-main, #ff6900);
+    background: var(--color-bg-light, #f4fcf9);
+  }
+
+  .cookie-banner__text {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: var(--color-text-muted, #4a5d59);
+    margin: 0;
+  }
+
+  .cookie-banner__link {
+    color: var(--color-emerald-dark, #063c32);
+    text-decoration: underline;
+    font-weight: 600;
+  }
+
+  .cookie-banner__link:hover {
+    color: var(--color-orange-main, #ff6900);
+  }
+
+  /* Settings panel */
+  .cookie-settings {
+    margin-top: 2px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--color-border-light, #e0f0eb);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .cookie-option__label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .cookie-option__input {
+    accent-color: var(--color-emerald-dark, #063c32);
+    width: 14px;
+    height: 14px;
+    margin-top: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .cookie-option__info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .cookie-option__info strong {
+    font-size: 0.76rem;
+    color: var(--color-emerald-dark, #063c32);
+  }
+
+  .cookie-option__info small {
+    font-size: 0.7rem;
+    color: var(--color-text-muted, #4a5d59);
+    line-height: 1.2;
+  }
+
+  /* Actions */
+  .cookie-banner__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding-top: 2px;
+  }
+
+  .btn-xs {
+    padding: 6px 11px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm, 6px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--color-orange-main, #ff6900);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover {
+    background: #e65c00;
+  }
+
+  .btn-secondary {
+    background: var(--color-bg-light, #f4fcf9);
+    color: var(--color-emerald-dark, #063c32);
+    border: 1px solid var(--color-border-light, #e0f0eb);
+  }
+
+  .btn-secondary:hover {
+    background: #e0f0eb;
+  }
+
+  .btn-save {
+    background: var(--color-emerald-dark, #063c32);
+    color: #ffffff;
+  }
+
+  .btn-save:hover {
+    background: #042821;
+  }
+
+  .cookie-banner__settings-toggle {
+    background: none;
+    border: none;
+    color: var(--color-text-muted, #4a5d59);
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 6px;
+    text-decoration: underline;
+    margin-left: auto;
+    transition: color 0.2s;
+  }
+
+  .cookie-banner__settings-toggle:hover {
+    color: var(--color-orange-main, #ff6900);
+  }
+
+  @media (max-width: 480px) {
+    .cookie-banner {
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      width: calc(100vw - 20px);
+    }
+
+    .cookie-banner__actions {
+      flex-direction: row;
+      justify-content: flex-start;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var CONSENT_KEY = 'cookie_consent_v1';
+
+    function initCookieBanner() {
+      var banner = document.getElementById('cookie-banner');
+      if (!banner) return;
+
+      var savedConsent = localStorage.getItem(CONSENT_KEY);
+      if (!savedConsent) {
+        banner.style.display = 'block';
+      }
+
+      var acceptAllBtn = document.getElementById('cookie-accept-all');
+      var necessaryOnlyBtn = document.getElementById('cookie-necessary-only');
+      var saveSettingsBtn = document.getElementById('cookie-save-settings');
+      var toggleSettingsBtn = document.getElementById('cookie-toggle-settings');
+      var settingsPanel = document.getElementById('cookie-settings-panel');
+      var analyticsCheck = document.getElementById('cookie-analytics-check');
+
+      function saveChoice(analyticsAllowed) {
+        var choice = {
+          technical: true,
+          analytics: !!analyticsAllowed,
+          acceptedAt: new Date().toISOString()
+        };
+        localStorage.setItem(CONSENT_KEY, JSON.stringify(choice));
+        banner.style.display = 'none';
+
+        // Генерируем событие для аналитических систем
+        window.dispatchEvent(new CustomEvent('cookieConsentUpdated', { detail: choice }));
+      }
+
+      if (acceptAllBtn) {
+        acceptAllBtn.addEventListener('click', function () {
+          saveChoice(true);
+        });
+      }
+
+      if (necessaryOnlyBtn) {
+        necessaryOnlyBtn.addEventListener('click', function () {
+          saveChoice(false);
+        });
+      }
+
+      if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', function () {
+          var isAllowed = analyticsCheck ? analyticsCheck.checked : false;
+          saveChoice(isAllowed);
+        });
+      }
+
+      if (toggleSettingsBtn && settingsPanel) {
+        toggleSettingsBtn.addEventListener('click', function () {
+          var isHidden = settingsPanel.style.display === 'none';
+          settingsPanel.style.display = isHidden ? 'flex' : 'none';
+          if (saveSettingsBtn) saveSettingsBtn.style.display = isHidden ? 'inline-block' : 'none';
+          toggleSettingsBtn.textContent = isHidden ? 'Скрыть' : 'Настройки';
+        });
+      }
+
+      document.addEventListener('click', function (e) {
+        var trigger = e.target.closest('[data-open-cookie-settings]');
+        if (trigger) {
+          e.preventDefault();
+          banner.style.display = 'block';
+          if (settingsPanel) settingsPanel.style.display = 'flex';
+          if (saveSettingsBtn) saveSettingsBtn.style.display = 'inline-block';
+          if (toggleSettingsBtn) toggleSettingsBtn.textContent = 'Скрыть';
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCookieBanner);
+    } else {
+      initCookieBanner();
+    }
+  })();
+</script>

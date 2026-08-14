@@ -7,6 +7,100 @@ interface Props {
 }
 
 const { countries } = Astro.props;
+
+const COUNTRY_FLAGS_MAP: Record<string, string> = {
+  maldives: 'mv',
+  indonesia: 'id',
+  seychelles: 'sc',
+  galapagos: 'ec',
+  ecuador: 'ec',
+  oman: 'om',
+  palau: 'pw',
+  egypt: 'eg',
+  'costa-rica': 'cr',
+  costarica: 'cr',
+  russia: 'ru',
+  thailand: 'th',
+  turkey: 'tr',
+  greece: 'gr',
+  italy: 'it',
+  spain: 'es',
+  croatia: 'hr',
+  norway: 'no',
+  france: 'fr',
+  montenegro: 'me',
+  // Русские названия
+  мальдивы: 'mv',
+  индонезия: 'id',
+  сейшелы: 'sc',
+  галапагосы: 'ec',
+  оман: 'om',
+  палау: 'pw',
+  египет: 'eg',
+  'коста-рика': 'cr',
+  костарика: 'cr',
+  россия: 'ru',
+  таиланд: 'th',
+  тайланд: 'th',
+  турция: 'tr',
+  греция: 'gr',
+  италия: 'it',
+  испания: 'es',
+  хорватия: 'hr',
+  норвегия: 'no',
+  франция: 'fr',
+  черногория: 'me',
+};
+
+function emojiToCountryCode(emoji: string): string | null {
+  if (!emoji) return null;
+  const chars = [...emoji];
+  if (chars.length >= 2) {
+    const code1 = chars[0].codePointAt(0);
+    const code2 = chars[1].codePointAt(0);
+    if (code1 && code2 && code1 >= 0x1F1E6 && code1 <= 0x1F1FF && code2 >= 0x1F1E6 && code2 <= 0x1F1FF) {
+      return (String.fromCharCode(code1 - 0x1F1E6 + 65) + String.fromCharCode(code2 - 0x1F1E6 + 65)).toLowerCase();
+    }
+  }
+  return null;
+}
+
+function getCountryFlagUrl(country: Country): string {
+  // 1. Прямая ссылка из Google Таблицы / Google Drive
+  if (country.flag && (country.flag.startsWith('http://') || country.flag.startsWith('https://'))) {
+    return country.flag;
+  }
+  // 2. Преобразование эмодзи-флага в ISO код
+  if (country.flag) {
+    const emojiCode = emojiToCountryCode(country.flag);
+    if (emojiCode) {
+      return `https://flagcdn.com/w80/${emojiCode}.png`;
+    }
+  }
+  // 3. Поиск по id или названию страны
+  const idKey = (country.id || '').toLowerCase().trim();
+  const nameKey = (country.name || '').toLowerCase().trim();
+  const code = COUNTRY_FLAGS_MAP[idKey] || COUNTRY_FLAGS_MAP[nameKey];
+  if (code) {
+    return `https://flagcdn.com/w80/${code}.png`;
+  }
+  // 4. Запасной вариант из Google Таблицы
+  if (country.image && (country.image.startsWith('http://') || country.image.startsWith('https://'))) {
+    return country.image;
+  }
+  return '';
+}
+
+// Тройное клонирование + старт с середины — тот же приём, что в Reviews.astro,
+// нужен для бесшовной бесконечной прокрутки без "прыжка" в конце списка.
+let baseItems = [...countries];
+if (countries.length > 1) {
+  while (baseItems.length < 12) {
+    baseItems = [...baseItems, ...countries];
+  }
+}
+const displayItems = countries.length > 1 ? [...baseItems, ...baseItems, ...baseItems] : [...countries];
+const L = baseItems.length;
 ---
 
 <section id="destinations" class="section destinations-section">
@@ -29,54 +123,70 @@ const { countries } = Astro.props;
 
     <!-- Slider Track -->
     <div class="slider-wrapper">
-      <div class="slider-track" id="destinations-slider-track">
-        {countries.map((country: Country) => (
-          <div
-            class="compact-card"
-            data-country-id={country.id}
-            data-country-name={country.name}
-            data-country-flag={country.flag}
-            data-country-desc={country.description}
-          >
-            <ImagePreloader
-              src={country.image}
-              alt={country.name}
-              class="card-bg-img"
-            />
-            <div class="card-gradient-overlay"></div>
+      <div class="slider-track" id="destinations-slider-track" data-length={L} data-count={countries.length}>
+        {displayItems.map((country: Country) => {
+          const flagUrl = getCountryFlagUrl(country);
+          return (
+            <div
+              class="compact-card"
+              data-country-id={country.id}
+              data-country-name={country.name}
+              data-country-flag={country.flag}
+              data-country-desc={country.description}
+            >
+              <ImagePreloader
+                src={country.image}
+                alt={`Карта ${country.name}`}
+                class="card-bg-img"
+              />
+              {/* <div class="card-gradient-overlay"></div> */}
 
-            <!-- Top Row: Flag + Info button -->
-            <div class="card-top-row">
-              {country.description && (
-                <button
-                  type="button"
-                  class="compact-info-btn"
-                  title="Информация о направлении"
-                  aria-label={`Информация о направлении ${country.name}`}
-                  data-info-btn
-                >
-                  <svg width="20" height="20" viewBox="0 0 23 25" fill="#fff" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              <!-- Top Row: Flag on left + Info button on right -->
+              <div class="card-top-row">
+                <div class="compact-flag-wrap" title={`Флаг: ${country.name}`}>
+                  {flagUrl ? (
+                    <img
+                      src={flagUrl}
+                      alt={`Флаг ${country.name}`}
+                      class="compact-flag-img"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span class="compact-flag-emoji">{country.flag || '🏝️'}</span>
+                  )}
+                </div>
+
+                {country.description && (
+                  <button
+                    type="button"
+                    class="compact-info-btn"
+                    title="Информация о направлении"
+                    aria-label={`Информация о направлении ${country.name}`}
+                    data-info-btn
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              <!-- Bottom Content: Country Name on top + "Смотреть яхты ->" underneath -->
+              <div class="card-bottom-content">
+                <h3 class="compact-country-name">{country.name}</h3>
+                <div class="compact-action-hint">
+                  <span>Смотреть яхты</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
-                </button>
-              )}
-            </div>
-
-            <!-- Bottom Content -->
-            <div class="card-bottom-content">
-              <h3 class="compact-country-name">{country.name}</h3>
-              <div class="compact-action-hint">
-                Смотреть яхты
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
 
@@ -114,9 +224,6 @@ const { countries } = Astro.props;
         <h3 class="info-modal-title" id="destinations-modal-title">Мальдивы</h3>
       </div>
       <p class="info-modal-text" id="destinations-modal-text"></p>
-      <!-- <a href="#yachts" class="btn btn-primary info-modal-action" id="destinations-modal-action">
-        Смотреть яхты в направлении
-      </a> -->
     </div>
   </div>
 </section>
@@ -132,144 +239,171 @@ const { countries } = Astro.props;
     const modalClose = document.getElementById('destinations-modal-close') as HTMLButtonElement | null;
     const modalTitle = document.getElementById('destinations-modal-title') as HTMLHeadingElement | null;
     const modalText = document.getElementById('destinations-modal-text') as HTMLParagraphElement | null;
-    const modalAction = document.getElementById('destinations-modal-action') as HTMLAnchorElement | null;
 
     if (!track) return;
 
-    let totalPages = 1;
-    let activeIndex = 0;
+    const trackEl = track;
+    // Видимая "рамка" слайдера — прямой родитель трека (.slider-wrapper),
+    // через него меряем доступную ширину и на нём же ставим overflow:hidden.
+    const containerEl = trackEl.parentElement as HTMLElement;
 
-    function calculatePages() {
-      if (!track) return;
-      const { scrollWidth, clientWidth } = track;
-      const maxScroll = scrollWidth - clientWidth;
-      if (maxScroll <= 5) {
-        totalPages = 1;
-      } else {
-        totalPages = Math.max(1, Math.ceil(scrollWidth / clientWidth));
-      }
-      renderDots();
-      updateActiveIndex();
+    const L = parseInt(trackEl.getAttribute('data-length') || '1', 10);
+    const count = parseInt(trackEl.getAttribute('data-count') || '1', 10);
+
+    const sliderControls = document.querySelector('.slider-controls-footer') as HTMLElement | null;
+
+    if (count <= 1) {
+      // Меньше двух направлений — крутить нечего, показываем как есть.
+      if (sliderControls) sliderControls.style.display = 'none';
+      return;
     }
+
+    let currentIndex = L; // Стартуем со среднего блока клонов
+    let isTransitioning = false;
 
     function renderDots() {
       if (!dotsContainer) return;
       dotsContainer.innerHTML = '';
-      for (let i = 0; i < totalPages; i++) {
+      for (let i = 0; i < count; i++) {
         const dot = document.createElement('button');
         dot.type = 'button';
-        dot.className = `dot ${i === activeIndex ? 'active' : ''}`;
-        dot.setAttribute('aria-label', `Страница ${i + 1}`);
-        dot.addEventListener('click', () => scrollToPage(i));
+        dot.className = `dot ${i === 0 ? 'active' : ''}`;
+        dot.setAttribute('aria-label', `Перейти к направлению ${i + 1}`);
+        dot.addEventListener('click', () => {
+          const currentReal = ((currentIndex % count) + count) % count;
+          const diff = i - currentReal;
+          currentIndex += diff;
+          moveSlider(true);
+        });
         dotsContainer.appendChild(dot);
       }
     }
 
-    function updateActiveIndex() {
-      if (!track) return;
-      const { scrollLeft, scrollWidth, clientWidth } = track;
-      const maxScroll = scrollWidth - clientWidth;
-      if (maxScroll <= 5) {
-        activeIndex = 0;
+    function updatePagination() {
+      if (!dotsContainer) return;
+      const currentReal = ((currentIndex % count) + count) % count;
+      const dots = dotsContainer.querySelectorAll('.dot');
+      dots.forEach((dot, idx) => {
+        if (idx === currentReal) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    }
+
+    // Ширина карточки подобрана под исходные брейкпоинты дизайна
+    // (было: flex-basis 20% на десктопе, фикс. 220px и 180px на срезах).
+    function updateCardWidth() {
+      const containerWidth = containerEl.clientWidth;
+      const gap = 20;
+      let cardWidth: number;
+
+      if (window.innerWidth <= 640) {
+        cardWidth = 180;
+      } else if (window.innerWidth <= 1024) {
+        cardWidth = 220;
       } else {
-        const ratio = Math.max(0, Math.min(1, scrollLeft / maxScroll));
-        activeIndex = Math.min(Math.round(ratio * (totalPages - 1)), totalPages - 1);
+        cardWidth = (containerWidth - 4 * gap) / 5;
       }
-      if (dotsContainer) {
-        const dots = dotsContainer.querySelectorAll('.dot');
-        dots.forEach((d, idx) => {
-          if (idx === activeIndex) {
-            d.classList.add('active');
-          } else {
-            d.classList.remove('active');
-          }
-        });
+
+      containerEl.style.setProperty('--card-width', `${cardWidth}px`);
+      containerEl.style.setProperty('--gap-width', `${gap}px`);
+      return cardWidth + gap;
+    }
+
+    function moveSlider(animate = true) {
+      const step = updateCardWidth();
+      if (animate) {
+        trackEl.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+        isTransitioning = true;
+      } else {
+        trackEl.style.transition = 'none';
+        isTransitioning = false;
       }
+      const offset = -currentIndex * step;
+      trackEl.style.transform = `translate3d(${offset}px, 0, 0)`;
+      updatePagination();
     }
 
-    function scrollToPage(pageIndex: number) {
-      if (!track) return;
-      const { scrollWidth, clientWidth } = track;
-      const maxScroll = scrollWidth - clientWidth;
-      if (maxScroll <= 0) return;
-
-      const targetScroll = (maxScroll / Math.max(1, totalPages - 1)) * pageIndex;
-      track.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth'
-      });
-      activeIndex = pageIndex;
+    function handleNext() {
+      if (isTransitioning) return;
+      currentIndex++;
+      moveSlider(true);
     }
 
-    if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
-        if (!track) return;
-        const maxScroll = track.scrollWidth - track.clientWidth;
-        if (track.scrollLeft <= 5) {
-          // Если мы в самом начале, переходим в конец
-          track.scrollTo({ left: maxScroll, behavior: 'smooth' });
-        } else {
-          track.scrollBy({ left: -track.clientWidth * 0.75, behavior: 'smooth' });
-        }
-      });
+    function handlePrev() {
+      if (isTransitioning) return;
+      currentIndex--;
+      moveSlider(true);
     }
 
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
-        if (!track) return;
-        const maxScroll = track.scrollWidth - track.clientWidth;
-        if (Math.ceil(track.scrollLeft) >= maxScroll - 5) {
-          // Если мы в самом конце, переходим в начало
-          track.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          track.scrollBy({ left: track.clientWidth * 0.75, behavior: 'smooth' });
-        }
-      });
-    }
+    trackEl.addEventListener('transitionend', () => {
+      isTransitioning = false;
+      const step = updateCardWidth();
+      if (currentIndex >= 2 * L) {
+        currentIndex = currentIndex - L;
+        trackEl.style.transition = 'none';
+        trackEl.style.transform = `translate3d(${-currentIndex * step}px, 0, 0)`;
+      } else if (currentIndex < L) {
+        currentIndex = currentIndex + L;
+        trackEl.style.transition = 'none';
+        trackEl.style.transform = `translate3d(${-currentIndex * step}px, 0, 0)`;
+      }
+    });
 
-    // --- ЛОГИКА СВАЙПА / ПЕРЕТАСКИВАНИЯ МЫШЬЮ ---
-    let isDragging = false;
+    prevBtn?.addEventListener('click', handlePrev);
+    nextBtn?.addEventListener('click', handleNext);
+
+    // --- Драг мышью и тачем (реализовано через translate3d, а не нативный scroll) ---
     let startX = 0;
-    let startScrollLeft = 0;
+    let currentDragX = 0;
+    let isDragging = false;
     let movedDistance = 0;
 
-    // Отключаем стандартный "призрачный" перенос картинок браузером
-    track.addEventListener('dragstart', (e) => e.preventDefault());
+    trackEl.addEventListener('dragstart', (e) => e.preventDefault());
 
-    track.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return; // Только левая кнопка мыши
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      if (isTransitioning) return;
       isDragging = true;
       movedDistance = 0;
-      startX = e.clientX;
-      startScrollLeft = track.scrollLeft;
-      track.style.cursor = 'grabbing';
-      track.style.scrollSnapType = 'none'; // Отключаем CSS-снап во время перетаскивания
-      track.style.scrollBehavior = 'auto';
-    });
+      startX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      currentDragX = startX;
+      trackEl.style.transition = 'none';
+    }
 
-    window.addEventListener('mousemove', (e) => {
-      if (!isDragging || !track) return;
-      const dx = e.clientX - startX;
-      movedDistance = Math.abs(dx);
-      if (movedDistance > 3) {
-        e.preventDefault();
-      }
-      track.scrollLeft = startScrollLeft - dx;
-    });
+    function onPointerMove(e: MouseEvent | TouchEvent) {
+      if (!isDragging) return;
+      currentDragX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const deltaX = currentDragX - startX;
+      movedDistance = Math.abs(deltaX);
+      const step = updateCardWidth();
+      const currentOffset = -currentIndex * step + deltaX;
+      trackEl.style.transform = `translate3d(${currentOffset}px, 0, 0)`;
+    }
 
-    const stopDragging = () => {
-      if (!isDragging || !track) return;
+    function onPointerUp() {
+      if (!isDragging) return;
       isDragging = false;
-      track.style.cursor = 'grab';
-      track.style.scrollSnapType = 'x mandatory'; // Возвращаем CSS-снап
-      track.style.scrollBehavior = 'smooth';
-    };
+      const deltaX = currentDragX - startX;
+      if (deltaX < -40) {
+        currentIndex++;
+      } else if (deltaX > 40) {
+        currentIndex--;
+      }
+      moveSlider(true);
+    }
 
-    window.addEventListener('mouseup', stopDragging);
-    track.addEventListener('mouseleave', stopDragging);
+    containerEl.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
 
-    // Блокируем случайно вызванный клик по карточке, если произошел свайп/сдвиг
-    track.addEventListener('click', (e) => {
+    containerEl.addEventListener('touchstart', onPointerDown, { passive: true });
+    containerEl.addEventListener('touchmove', onPointerMove, { passive: true });
+    containerEl.addEventListener('touchend', onPointerUp);
+
+    // Блокируем клик по карточке, если он на самом деле был свайпом
+    trackEl.addEventListener('click', (e) => {
       if (movedDistance > 5) {
         e.preventDefault();
         e.stopPropagation();
@@ -277,12 +411,18 @@ const { countries } = Astro.props;
       }
     }, true);
 
-    track.addEventListener('scroll', updateActiveIndex);
-    window.addEventListener('resize', calculatePages);
-    calculatePages();
+    // Инициализация
+    renderDots();
+    updateCardWidth();
+    moveSlider(false);
 
-    // Карточки и модальное окно
-    const cards = track.querySelectorAll('.compact-card');
+    window.addEventListener('resize', () => {
+      updateCardWidth();
+      moveSlider(false);
+    });
+
+    // --- Карточки и модальное окно направления (логика не менялась) ---
+    const cards = trackEl.querySelectorAll('.compact-card');
     cards.forEach((card) => {
       const countryId = card.getAttribute('data-country-id');
       const countryName = card.getAttribute('data-country-name');
@@ -292,18 +432,11 @@ const { countries } = Astro.props;
       if (infoBtn) {
         infoBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          // if (modal && modalTitle && modalText && modalAction) {
-          //   modalTitle.textContent = countryName || '';
-          //   modalText.textContent = countryDesc || '';
-          //   modalAction.textContent = `Смотреть яхты в ${countryName}`;
-          //   modalAction.setAttribute('data-country-id', countryId || '');
-          //   modal.style.display = 'flex';
-          // }
-            if (modal && modalTitle && modalText) {
-              modalTitle.textContent = countryName || '';
-              modalText.textContent = countryDesc || '';
-              modal.style.display = 'flex';
-            }
+          if (modal && modalTitle && modalText) {
+            modalTitle.textContent = countryName || '';
+            modalText.textContent = countryDesc || '';
+            modal.style.display = 'flex';
+          }
         });
       }
 
@@ -315,21 +448,6 @@ const { countries } = Astro.props;
         }
       });
     });
-
-    if (modalAction) {
-      modalAction.addEventListener('click', (e) => {
-        e.preventDefault();
-        const countryId = modalAction.getAttribute('data-country-id');
-        if (modal) modal.style.display = 'none';
-        if (countryId) {
-          window.dispatchEvent(new CustomEvent('selectCountryFilter', { detail: { countryId } }));
-        }
-        const yachtsElem = document.getElementById('yachts');
-        if (yachtsElem) {
-          yachtsElem.scrollIntoView({ behavior: 'smooth' });
-        }
-      });
-    }
 
     if (modalClose && modal) {
       modalClose.addEventListener('click', () => {
@@ -384,42 +502,44 @@ const { countries } = Astro.props;
     transform: translateX(4px);
   }
 
-  /* Slider Wrapper */
+  /* Slider Wrapper — теперь это "окно" слайдера: обрезает клоны за пределами
+     видимой области. Раньше этого не требовалось, т.к. скролл был нативным
+     (overflow-x: auto стоял прямо на .slider-track). */
   .slider-wrapper {
     position: relative;
     width: 100%;
+    overflow: hidden;
   }
 
   .slider-track {
     display: flex;
     flex-wrap: nowrap;
-    gap: 20px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
+    gap: var(--gap-width, 20px);
+    will-change: transform;
     padding: 8px 4px 16px 4px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .slider-track::-webkit-scrollbar {
-    display: none;
   }
 
   /* Compact Card */
   .compact-card {
-    flex: 0 0 calc(20% - 16px);
-    min-width: 150px;
-    max-width: 260px;
-    height: 160px;
-    border-radius: var(--border-radius-sm, 12px);
+    flex-shrink: 0;
+    width: var(--card-width, 220px);
+    height: 250px;
+    border-radius: 14px;
     position: relative;
     overflow: hidden;
     cursor: pointer;
-    scroll-snap-align: start;
     user-select: none;
-  -webkit-user-drag: none;
+    -webkit-user-drag: none;
+    background-color: #e8f4f2;
+    border: 1px solid rgba(5, 51, 43, 0.08);
+    box-shadow: 0 4px 14px rgba(5, 51, 43, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
+
+  /* .compact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(5, 51, 43, 0.12);
+  } */
 
   .compact-card:active {
     cursor: grabbing;
@@ -435,63 +555,111 @@ const { countries } = Astro.props;
   }
 
   .compact-card:hover :global(.card-bg-img img) {
-    transform: scale(1.1);
+    transform: scale(1.08);
   }
 
-  .card-gradient-overlay {
+  /* .card-gradient-overlay {
     position: absolute;
     inset: 0;
     background: linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.2) 0%,
-      rgba(0, 0, 0, 0) 40%,
-      rgba(5, 40, 35, 0.88) 100%
+      rgba(255, 255, 255, 0.35) 0%,
+      rgba(255, 255, 255, 0.02) 35%,
+      rgba(240, 248, 246, 0.65) 65%,
+      rgba(240, 248, 246, 0.96) 100%
     );
-  }
+    pointer-events: none;
+    transition: background 0.3s ease;
+  } */
+
+  /* .compact-card:hover .card-gradient-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.25) 0%,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(240, 248, 246, 0.72) 65%,
+      rgba(240, 248, 246, 0.98) 100%
+    );
+  } */
 
   .card-top-row {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    top: 12px;
+    left: 12px;
+    right: 12px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
-    z-index: 2;
+    z-index: 3;
   }
 
+  .compact-flag-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.85);
+    background-color: #ffffff;
+    flex-shrink: 0;
+    line-height: 0;
+  }
+
+  .compact-flag-img {
+    width: 30px;
+    height: 20px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .compact-flag-emoji {
+    font-size: 20px;
+    line-height: 1;
+    display: block;
+    padding: 2px 4px;
+  }
 
   .compact-info-btn {
-    color: var(--color-navy-light);
+    color: var(--color-navy, #05332b);
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease;
-    z-index: 3;
+    transition: transform 0.25s ease, background-color 0.25s ease, color 0.25s ease;
+    background-color: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    z-index: 4;
   }
 
-
   .compact-info-btn:hover {
-    transform: scale(1.15);
+    transform: scale(1.1);
+    background-color: #ffffff;
+    color: var(--color-orange, #ff6900);
   }
 
   .card-bottom-content {
     position: absolute;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
-    z-index: 2;
-    color: #ffffff;
+    bottom: 12px;
+    left: 14px;
+    right: 14px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
   }
 
   .compact-country-name {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 700;
-    color: #ffffff;
-    margin: 0 0 4px 0;
+    color: var(--color-navy, #05332b);
+    margin: 0;
     line-height: 1.25;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    letter-spacing: -0.01em;
   }
 
   .compact-action-hint {
@@ -500,13 +668,16 @@ const { countries } = Astro.props;
     gap: 6px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--color-orange);
-    opacity: 0.9;
-    transition: all 0.3s ease;
+    color: var(--color-orange, #ff6900);
+    transition: all 0.25s ease;
   }
 
-  .compact-card:hover .compact-action-hint {
-    opacity: 1;
+  /* .compact-card:hover .compact-action-hint svg {
+    transform: translateX(3px);
+  } */
+
+  .compact-action-hint svg {
+    transition: transform 0.25s ease;
   }
 
   /* Modal */
@@ -563,7 +734,6 @@ const { countries } = Astro.props;
     margin-bottom: 16px;
   }
 
-
   .info-modal-title {
     font-size: 26px;
     font-weight: 700;
@@ -574,8 +744,8 @@ const { countries } = Astro.props;
   .info-modal-text {
     font-size: 15px;
     line-height: 1.6;
-    color: var(--color-navy-light)
-    /* margin-bottom: 24px; */
+    color: var(--color-navy-light);
+    white-space: pre-line;
   }
 
   .info-modal-action {
@@ -590,19 +760,12 @@ const { countries } = Astro.props;
     to { opacity: 1; transform: scale(1); }
   }
 
-  @media (max-width: 1024px) {
-    .compact-card {
-      flex: 0 0 220px;
-    }
-  }
-
   @media (max-width: 640px) {
     .section-title {
       font-size: 24px;
     }
     .compact-card {
-      flex: 0 0 180px;
-      height: 270px;
+      height: 160px;
     }
   }
 </style>

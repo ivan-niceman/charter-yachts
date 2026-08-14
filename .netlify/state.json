@@ -1,0 +1,20 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Bang Lamung",
+			"country": {
+				"code": "TH",
+				"name": "Thailand"
+			},
+			"subdivision": {
+				"code": "20",
+				"name": "Chon Buri"
+			},
+			"timezone": "Asia/Bangkok",
+			"latitude": 13.0513,
+			"longitude": 100.9231,
+			"postalCode": "20150"
+		},
+		"timestamp": 1786339900754
+	}
+}

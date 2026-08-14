@@ -65,9 +65,11 @@
           </svg>
         </div>
         <div class="card-content">
-          <span class="card-label">Адрес офиса</span>
-          <span class="contact-value address-text">Санкт-Петербург, ул. Решетникова 15</span>
-          <span class="card-subtitle">Прием по предварительной договоренности</span>
+          <p class="card-label">Адрес офиса</p>
+          <a href="https://yandex.com/maps/2/saint-petersburg/house/ulitsa_reshetnikova_15/Z0kYdQVpTk0EQFtjfXR2eXtqbA==/?ll=30.329783%2C59.878798&z=16" target="_blank" class="contact-value address-text">
+            Санкт-Петербург, ул. Решетникова 15
+          </a>
+          <p class="card-subtitle">Прием по предварительной договоренности</p>
         </div>
       </li>
 
@@ -128,7 +130,7 @@
   }
 
   .contact-card:hover {
-    box-shadow: var(--shadow-md, 0 10px 30px rgba(10, 82, 70, 0.08));
+    box-shadow: 0 5px 15px rgba(10, 82, 70, 0.2);
     border-color: rgba(255, 105, 0, 0.3);
   }
 
@@ -198,22 +200,26 @@
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
-    transition: opacity 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .messenger-btn:hover {
-    opacity: 0.92;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 
   .tg-btn {
-    background-color: #229ed9;
+    background-color: rgb(34, 158, 217);
     color: #ffffff;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .tg-btn:hover {
+    box-shadow: 0 4px 5px rgba(34, 158, 217, .7);
   }
 
   .wa-btn {
     background-color: #25d366;
     color: #ffffff;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .wa-btn:hover {
+    box-shadow: 0 4px 5px rgba(37, 211, 102, .7);
   }
 
   .legal-details {
