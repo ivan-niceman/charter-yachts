@@ -27,14 +27,12 @@ const navColumns = [
 
 <footer class="footer">
   <div class="container footer__inner">
-    {/* Left Branding Column */}
     <div class="footer__brand">
       <a href="/" class="footer__logo" aria-label="Абсолют-тур — На главную">
         <Image src={logo} alt="Абсолют-тур" class="footer__logo-img" />
       </a>
     </div>
 
-    {/* Navigation Columns */}
     <div class="footer__nav-grid">
       {navColumns.map((col) => (
         <div class="footer__col">
@@ -42,9 +40,9 @@ const navColumns = [
           <ul class="footer__col-list" role="list">
             {col.links.map((link) => (
               <li>
-                <a 
-                  href={link.href} 
-                  class="footer__link" 
+                <a
+                  href={link.href}
+                  class="footer__link"
                   {...(link.dataAttr ? { [link.dataAttr]: true } : {})}
                 >
                   {link.label}
@@ -56,11 +54,10 @@ const navColumns = [
       ))}
     </div>
 
-    {/* Right Contact & Socials */}
     <div class="footer__contacts">
       <div class="footer__phone-block">
         <a href="tel:+79313977103" class="footer__phone">+7 (931) 397-71-03</a>
-        <a href="mailto:reservations@absolute-tour.com" class="footer__hours" style="text-decoration:none; color: var(--color-navy-light);">reservations@absolute-tour.com</a>
+        <a href="mailto:reservations@absolute-tour.com" class="footer__hours">reservations@absolute-tour.com</a>
       </div>
 
       <div class="footer__socials">
@@ -78,7 +75,9 @@ const navColumns = [
           </svg>
         </a>
         <a href="https://vk.com/absolute.tour" target="_blank" rel="noopener noreferrer" class="footer__social-btn" aria-label="Vkontakte">
-          <svg width="25" height="25" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor" stroke-width="2.016"><defs><style>.a{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;}</style></defs><path class="a" d="M27.55,35.19V28.55c4.46.68,5.87,4.19,8.71,6.64H43.5a29.36,29.36,0,0,0-7.9-10.47c2.6-3.58,5.36-6.95,6.71-12.06H35.73c-2.58,3.91-3.94,8.49-8.18,11.51V12.66H18l2.28,2.82,0,10.05c-3.7-.43-6.2-7.2-8.91-12.87H4.5C7,20.32,12.26,37.13,27.55,35.19Z"></path></g><g id="SVGRepo_iconCarrier"><defs><style>.a{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;}</style></defs><path class="a" d="M27.55,35.19V28.55c4.46.68,5.87,4.19,8.71,6.64H43.5a29.36,29.36,0,0,0-7.9-10.47c2.6-3.58,5.36-6.95,6.71-12.06H35.73c-2.58,3.91-3.94,8.49-8.18,11.51V12.66H18l2.28,2.82,0,10.05c-3.7-.43-6.2-7.2-8.91-12.87H4.5C7,20.32,12.26,37.13,27.55,35.19Z"></path></g></svg>
+          <svg width="25" height="25" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M27.55 35.19v-6.64c4.46.68 5.87 4.19 8.71 6.64h7.24a29.36 29.36 0 0 0-7.9-10.47c2.6-3.58 5.36-6.95 6.71-12.06h-6.58c-2.58 3.91-3.94 8.49-8.18 11.51V12.66H18l2.28 2.82v10.05c-3.7-.43-6.2-7.2-8.91-12.87H4.5C7 20.32 12.26 37.13 27.55 35.19Z"/>
+          </svg>
         </a>
       </div>
     </div>
@@ -89,6 +88,7 @@ const navColumns = [
       <p class="footer__copyright">
         © {currentYear} ООО «АБСОЛЮТ-ТУР».<br />Все права защищены.
       </p>
+      <a href="https://nice-dev.ru/" class="nice-dev" target="_blank" rel="noopener noreferrer" aria-label="nice-dev.ru">© Nice Dev Web-Studio 2020 - {currentYear}</a>
     </div>
   </div>
 </footer>
@@ -111,11 +111,14 @@ const navColumns = [
     padding-bottom: 32px;
   }
 
-  /* Branding Column */
   .footer__brand {
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+
+  .footer__logo {
+    width: fit-content;
   }
 
   .footer__logo-img {
@@ -124,7 +127,6 @@ const navColumns = [
     object-fit: contain;
   }
 
-  /* Bottom Copyright Section */
   .footer__bottom {
     border-top: 1px solid var(--color-border);
     padding-block: 20px;
@@ -138,7 +140,6 @@ const navColumns = [
     text-align: left;
   }
 
-  /* Navigation Columns Grid */
   .footer__nav-grid {
     display: flex;
     justify-content: space-between;
@@ -173,7 +174,6 @@ const navColumns = [
     color: var(--color-orange);
   }
 
-  /* Contacts & Socials */
   .footer__contacts {
     display: flex;
     flex-direction: column;
@@ -256,9 +256,26 @@ const navColumns = [
     }
   }
 
-  @media (max-width: 480px) {
-    .footer__nav-grid {
-      grid-template-columns: 1fr;
+  .nice-dev {
+    display: block;
+    margin: 30px auto 0;
+    width: fit-content;
+    font-size: 10px;
+    color: #4e635f;
+    animation: colorPulse 5s infinite;
+  }
+
+  .nice-dev:hover {
+    animation: none;
+    color: var(--color-orange);
+  }
+
+  @keyframes colorPulse {
+    0%, 100% {
+      color: rgba(78, 99, 95, 0.5);
+    }
+    50% {
+      color: rgba(78, 99, 95);
     }
   }
 </style>

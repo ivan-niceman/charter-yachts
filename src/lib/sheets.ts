@@ -92,6 +92,50 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   },
 ];
 
+export const DEFAULT_COUNTRY_MAPS: Record<string, string> = {
+  maldives: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Maldives_location_map.svg/1024px-Maldives_location_map.svg.png',
+  мальдивы: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Maldives_location_map.svg/1024px-Maldives_location_map.svg.png',
+  indonesia: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Indonesia_location_map.svg/1280px-Indonesia_location_map.svg.png',
+  индонезия: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Indonesia_location_map.svg/1280px-Indonesia_location_map.svg.png',
+  seychelles: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Seychelles_location_map.svg/1024px-Seychelles_location_map.svg.png',
+  сейшелы: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Seychelles_location_map.svg/1024px-Seychelles_location_map.svg.png',
+  galapagos: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Galapagos_Islands_location_map.svg/1280px-Galapagos_Islands_location_map.svg.png',
+  галапагосы: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Galapagos_Islands_location_map.svg/1280px-Galapagos_Islands_location_map.svg.png',
+  oman: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Oman_location_map.svg/1024px-Oman_location_map.svg.png',
+  оман: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Oman_location_map.svg/1024px-Oman_location_map.svg.png',
+  palau: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Palau_location_map.svg/1024px-Palau_location_map.svg.png',
+  палау: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Palau_location_map.svg/1024px-Palau_location_map.svg.png',
+  egypt: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Egypt_location_map.svg/1024px-Egypt_location_map.svg.png',
+  египет: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Egypt_location_map.svg/1024px-Egypt_location_map.svg.png',
+  'costa-rica': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Costa_Rica_location_map.svg/1024px-Costa_Rica_location_map.svg.png',
+  costarica: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Costa_Rica_location_map.svg/1024px-Costa_Rica_location_map.svg.png',
+  'коста-рика': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Costa_Rica_location_map.svg/1024px-Costa_Rica_location_map.svg.png',
+  костарика: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Costa_Rica_location_map.svg/1024px-Costa_Rica_location_map.svg.png',
+  russia: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Russia_location_map.svg/1280px-Russia_location_map.svg.png',
+  россия: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Russia_location_map.svg/1280px-Russia_location_map.svg.png',
+  thailand: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Thailand_location_map.svg/1024px-Thailand_location_map.svg.png',
+  таиланд: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Thailand_location_map.svg/1024px-Thailand_location_map.svg.png',
+  тайланд: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Thailand_location_map.svg/1024px-Thailand_location_map.svg.png',
+  turkey: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Turkey_location_map.svg/1280px-Turkey_location_map.svg.png',
+  турция: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Turkey_location_map.svg/1280px-Turkey_location_map.svg.png',
+  greece: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Greece_location_map.svg/1024px-Greece_location_map.svg.png',
+  греция: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Greece_location_map.svg/1024px-Greece_location_map.svg.png',
+  italy: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Italy_location_map.svg/1024px-Italy_location_map.svg.png',
+  италия: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Italy_location_map.svg/1024px-Italy_location_map.svg.png',
+  spain: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Spain_location_map.svg/1280px-Spain_location_map.svg.png',
+  испания: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Spain_location_map.svg/1280px-Spain_location_map.svg.png',
+  croatia: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Croatia_location_map.svg/1024px-Croatia_location_map.svg.png',
+  хорватия: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Croatia_location_map.svg/1024px-Croatia_location_map.svg.png',
+  norway: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Norway_location_map.svg/1024px-Norway_location_map.svg.png',
+  норвегия: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Norway_location_map.svg/1024px-Norway_location_map.svg.png',
+  france: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/France_location_map.svg/1024px-France_location_map.svg.png',
+  франция: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/France_location_map.svg/1024px-France_location_map.svg.png',
+  montenegro: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Montenegro_location_map.svg/1024px-Montenegro_location_map.svg.png',
+  черногория: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Montenegro_location_map.svg/1024px-Montenegro_location_map.svg.png',
+  primer: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Maldives_location_map.svg/1024px-Maldives_location_map.svg.png',
+  пример: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Maldives_location_map.svg/1024px-Maldives_location_map.svg.png'
+};
+
 export const DEFAULT_COUNTRIES: Country[] = [
   {
     id: 'maldives',
@@ -671,6 +715,7 @@ export function formatGoogleDriveImageUrl(url: string): string {
   }
 
   const driveMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || 
+                     trimmed.match(/drive\.google\.com\/thumbnail\?.*id=([a-zA-Z0-9_-]+)/) ||
                      trimmed.match(/lh3\.google\.com\/u\/\d+\/d\/([a-zA-Z0-9_-]+)/) ||
                      trimmed.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/) ||
                      trimmed.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
@@ -678,7 +723,12 @@ export function formatGoogleDriveImageUrl(url: string): string {
                      trimmed.match(/docs\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/);
 
   if (driveMatch && driveMatch[1]) {
-    return `https://lh3.googleusercontent.com/d/${driveMatch[1]}`;
+    const fileId = driveMatch[1].replace(/=w\d+/, '');
+    if (trimmed.toLowerCase().endsWith('.svg') || trimmed.toLowerCase().includes('.svg')) {
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    // lh3.googleusercontent.com/d/ID is Google's fast edge CDN
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
   }
 
   return trimmed;
@@ -795,6 +845,7 @@ export interface RegionData {
   description: string;
   flag?: string;
   image?: string;
+  order: number;
 }
 
 export async function fetchRegionData(publishedSheetKey: string, regionGid: string): Promise<Record<string, RegionData>> {
@@ -807,72 +858,43 @@ export async function fetchRegionData(publishedSheetKey: string, regionGid: stri
       const csvText = await res.text();
       const rows = parseFullCSV(csvText);
 
-      for (const row of rows) {
-        const rowUrls: string[] = [];
-        row.forEach(cell => {
-          extractUrls(cell || '').forEach(u => {
-            const formatted = formatGoogleDriveImageUrl(u);
-            if (formatted && !rowUrls.includes(formatted)) {
-              rowUrls.push(formatted);
-            }
-          });
-        });
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || row.length === 0) continue;
 
-        for (let colIdx = 0; colIdx < row.length; colIdx++) {
-          const cell = row[colIdx];
-          const trimmed = cell?.trim() || '';
-          if (!trimmed || trimmed === 'Описание региона' || trimmed.toLowerCase().startsWith('http')) continue;
+        const descCell = String(row[0] || '').trim();
+        if (!descCell || descCell === 'Описание региона' || descCell.toLowerCase().startsWith('http')) continue;
 
-          const lines = trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const lines = descCell.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (lines.length === 0) continue;
 
-          if (lines.length >= 1) {
-            const rawCountryName = lines[0];
-            const { cleanName, flag: extractedEmoji } = extractFlag(rawCountryName);
+        const rawCountryName = lines[0];
+        const { cleanName, flag: extractedEmoji } = extractFlag(rawCountryName);
 
-            if (!cleanName || cleanName === 'Название' || cleanName.length < 2) continue;
+        if (!cleanName || cleanName === 'Название' || cleanName.length < 2) continue;
 
-            const desc = lines.slice(1).join('\n').trim();
+        const desc = lines.slice(1).join('\n').trim();
+        const key = cleanName.toLowerCase();
 
-            const cellUrls: string[] = [];
-            lines.forEach(l => {
-              extractUrls(l).forEach(u => {
-                const formatted = formatGoogleDriveImageUrl(u);
-                if (formatted && !cellUrls.includes(formatted)) {
-                  cellUrls.push(formatted);
-                }
-              });
-            });
+        // 1. Извлекаем флаг (Колонка B / индекс 1)
+        const flagCell = String(row[1] || '').trim();
+        const flagUrls = extractUrls(flagCell);
+        const flagUrl = flagUrls.length > 0 ? formatGoogleDriveImageUrl(flagUrls[0]) : '';
 
-            const allUrls = [...cellUrls];
-            rowUrls.forEach(u => { if (!allUrls.includes(u)) allUrls.push(u); });
+        // 2. Извлекаем карту (Колонка C / индекс 2)
+        const mapCell = String(row[2] || '').trim();
+        const mapUrls = extractUrls(mapCell);
+        const mapUrl = mapUrls.length > 0 ? formatGoogleDriveImageUrl(mapUrls[0]) : '';
 
-            const key = cleanName.toLowerCase();
-            if (key) {
-              if (!result[key]) {
-                result[key] = { description: desc };
-              } else if (desc && desc.length > (result[key].description?.length || 0)) {
-                result[key].description = desc;
-              }
+        // 3. Карта: если в Столбце C есть ссылка — используем её. Если ссылки на карту нет — загружаем вместо карты флаг!
+        const cardImage = mapUrl || flagUrl || undefined;
 
-              if (extractedEmoji) {
-                result[key].flag = extractedEmoji;
-              }
-
-              if (allUrls.length > 0) {
-                result[key].flag = allUrls[0];
-                if (allUrls.length === 1) {
-                  if (!result[key].image) {
-                    result[key].image = allUrls[0];
-                  }
-                } else {
-                  if (!result[key].image) {
-                    result[key].image = allUrls[1];
-                  }
-                }
-              }
-            }
-          }
-        }
+        result[key] = {
+          description: desc,
+          flag: flagUrl || extractedEmoji || undefined,
+          image: cardImage,
+          order: r
+        };
       }
     }
   } catch (e) {
@@ -895,13 +917,29 @@ let serverCacheData: SheetDataResponse | null = null;
 let serverCacheTimestamp = 0;
 const CACHE_TTL_MS = 30 * 1000; // 30 seconds TTL cache
 
+export const DEFAULT_PUBLISHED_SHEET_KEY =
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PUBLIC_GOOGLE_PUBLISHED_KEY) ||
+  '2PACX-1vQeRQ5VAaQfGuBuOl1AKIktnCubBKhDAcGlQD5-1PyqIJ8P5VR6HKjRxkYBQZrWzeHs1QD5XlA54GGl';
+
+export const DEFAULT_REGIONS_GID =
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PUBLIC_GOOGLE_REGIONS_GID) ||
+  '995502228';
+
+export const DEFAULT_GENERAL_GID =
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PUBLIC_GOOGLE_GENERAL_GID) ||
+  '41819776';
+
+export const DEFAULT_REVIEWS_GID =
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PUBLIC_GOOGLE_REVIEWS_GID) ||
+  '572753176';
+
 export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
   const now = Date.now();
   if (serverCacheData && (now - serverCacheTimestamp < CACHE_TTL_MS)) {
     return serverCacheData;
   }
 
-  const PUBLISHED_SHEET_KEY = '2PACX-1vQeRQ5VAaQfGuBuOl1AKIktnCubBKhDAcGlQD5-1PyqIJ8P5VR6HKjRxkYBQZrWzeHs1QD5XlA54GGl';
+  const PUBLISHED_SHEET_KEY = DEFAULT_PUBLISHED_SHEET_KEY;
 
   try {
     const defaultGids = [
@@ -918,13 +956,13 @@ export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
 
     // 1. Fetch region data and discover tabs in parallel
     const [regionData, discoveredTabs] = await Promise.all([
-      fetchRegionData(PUBLISHED_SHEET_KEY, '995502228').catch(() => ({} as Record<string, RegionData>)),
+      fetchRegionData(PUBLISHED_SHEET_KEY, DEFAULT_REGIONS_GID).catch(() => ({} as Record<string, RegionData>)),
       discoverTabsFromPubHtml(PUBLISHED_SHEET_KEY).catch(() => [])
     ]);
 
     let activeGids = defaultGids.map(g => ({ ...g, flag: KNOWN_FLAGS[g.id] || '🏝️' }));
-    let generalTabGid: string | null = '41819776';
-    let reviewsTabGid: string | null = '572753176';
+    let generalTabGid: string | null = DEFAULT_GENERAL_GID;
+    let reviewsTabGid: string | null = DEFAULT_REVIEWS_GID;
 
     if (discoveredTabs.length > 0) {
       const genTab = discoveredTabs.find(t => t.name.includes('Общая инфа'));
@@ -986,8 +1024,47 @@ export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
           const csvText = await resp.text();
           const rows = parseFullCSV(csvText);
           const tabYachts: Yacht[] = [];
+          let tabFlagUrl = '';
+          let tabMapUrl = '';
 
-          if (rows.length > 1) {
+          if (rows.length > 0) {
+            // Определяем индексы колонок "Флаг" (I) и "Карта" (J) по заголовкам
+            let flagColIdx = -1;
+            let mapColIdx = -1;
+
+            const headerRow = rows[0].map(c => (c || '').toLowerCase().trim());
+            headerRow.forEach((col, idx) => {
+              if (col === 'флаг' || col.includes('flag') || col.includes('флаг')) {
+                flagColIdx = idx;
+              } else if (col === 'карта' || col.includes('карта') || col.includes('map')) {
+                mapColIdx = idx;
+              }
+            });
+
+            // По умолчанию Колонка I = 8, Колонка J = 9
+            if (flagColIdx === -1) flagColIdx = 8;
+            if (mapColIdx === -1) mapColIdx = 9;
+
+            // Извлекаем флаг и карту из строк этой вкладки
+            for (let r = 1; r < rows.length; r++) {
+              const rRow = rows[r];
+              if (!rRow) continue;
+
+              if (!tabFlagUrl && rRow[flagColIdx]) {
+                const u = extractUrls(rRow[flagColIdx]);
+                if (u.length > 0) {
+                  tabFlagUrl = formatGoogleDriveImageUrl(u[0]);
+                }
+              }
+
+              if (!tabMapUrl && rRow[mapColIdx]) {
+                const u = extractUrls(rRow[mapColIdx]);
+                if (u.length > 0) {
+                  tabMapUrl = formatGoogleDriveImageUrl(u[0]);
+                }
+              }
+            }
+
             let currentYacht: Yacht | null = null;
 
             for (let i = 1; i < rows.length; i++) {
@@ -1000,11 +1077,13 @@ export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
               const entCell = row[5]?.trim() || '';
 
               const urlsInRow: string[] = [];
-              row.forEach((cell: string) => {
-                extractUrls(cell).forEach((u: string) => {
+              for (let colIdx = 0; colIdx < row.length; colIdx++) {
+                // Исключаем колонки Флага и Карты из галереи яхт
+                if (colIdx === flagColIdx || colIdx === mapColIdx) continue;
+                extractUrls(row[colIdx]).forEach((u: string) => {
                   if (!urlsInRow.includes(u)) urlsInRow.push(u);
                 });
-              });
+              }
 
               rawName = rawName.replace(/^[,;\"'\s]+/, '').trim();
 
@@ -1054,10 +1133,14 @@ export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
                 }
                 urlsInRow.forEach(u => {
                   if (currentYacht) {
-                    if (u.includes('drive.google.com') || u.includes('disk.yandex.ru') || u.includes('dropbox.com')) {
+                    const isFolder = u.includes('/folders/') || u.includes('/drive/folders/') || u.includes('disk.yandex.ru/d/');
+                    if (isFolder) {
                       currentYacht.driveFolderUrl = u;
-                    } else if (!currentYacht.images.includes(u)) {
-                      currentYacht.images.push(u);
+                    } else {
+                      const formatted = formatGoogleDriveImageUrl(u);
+                      if (formatted && !currentYacht.images.includes(formatted)) {
+                        currentYacht.images.push(formatted);
+                      }
                     }
                   }
                 });
@@ -1080,41 +1163,50 @@ export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
               tabYachts.push(currentYacht);
             }
           }
-          return tabYachts;
+          return {
+            tabId: tab.id,
+            tabName: tab.name,
+            yachts: tabYachts,
+            flag: tabFlagUrl,
+            image: tabMapUrl
+          };
         }
       } catch (e) {
         // tab error
       }
-      return [];
+      return {
+        tabId: tab.id,
+        tabName: tab.name,
+        yachts: [],
+        flag: '',
+        image: ''
+      };
     });
 
-    const [fetchedHeroSlides, fetchedReviews, yachtResults] = await Promise.all([
+    const [fetchedHeroSlides, fetchedReviews, tabResults] = await Promise.all([
       fetchGenPromise,
       fetchRevPromise,
       Promise.all(fetchYachtsPromises)
     ]);
 
-    const fetchedYachts: Yacht[] = yachtResults.flat();
-
-    const countriesWithFetchedYachts = new Set(fetchedYachts.map(y => y.countryId));
-    const combinedYachts = [...fetchedYachts];
-    for (const defYacht of DEFAULT_YACHTS) {
-      if (countriesWithFetchedYachts.has(defYacht.countryId)) {
-        continue;
-      }
-      if (!combinedYachts.some(y => y.name.toLowerCase() === defYacht.name.toLowerCase())) {
-        combinedYachts.push(defYacht);
-      }
-    }
+    const fetchedYachts: Yacht[] = tabResults.flatMap(r => r.yachts);
+    // Если получены реальные яхты из Google Таблицы — используем их; если запрос пустой/таймаут — используем fallback
+    const combinedYachts = fetchedYachts.length > 0 ? fetchedYachts : DEFAULT_YACHTS;
 
     const dynamicCountries: Country[] = activeGids.map(tab => {
       const defaultCountry = DEFAULT_COUNTRIES.find(c => c.id === tab.id);
+      const tabData = tabResults.find(r => r.tabId === tab.id);
       const regInfo = regionData[tab.name.toLowerCase()] || regionData[tab.id.toLowerCase()];
-      const desc = regInfo?.description || defaultCountry?.description || 'Направление для незабываемого яхтенного круиза.';
-      const rawFlag = regInfo?.flag || tab.flag || defaultCountry?.flag || KNOWN_FLAGS[tab.id] || '';
-      const flag = formatGoogleDriveImageUrl(rawFlag) || defaultCountry?.flag || '';
-      const rawImage = regInfo?.image || defaultCountry?.image || '';
-      const image = formatGoogleDriveImageUrl(rawImage) || defaultCountry?.image || '';
+      const desc = regInfo?.description || '';
+
+      // 1. Флаг: колонка I вкладки страны -> вкладка "Регионы" (колонка B) -> tab.flag -> default
+      const rawFlag = tabData?.flag || regInfo?.flag || tab.flag || defaultCountry?.flag || KNOWN_FLAGS[tab.id] || '';
+      const flag = formatGoogleDriveImageUrl(rawFlag) || rawFlag || '';
+
+      // 2. Карта/Фон: колонка J вкладки страны -> вкладка "Регионы" (колонка C) -> если ссылки на карту нет, загружаем вместо карты флаг!
+      const rawImage = tabData?.image || regInfo?.image || flag || defaultCountry?.image || '';
+      const image = formatGoogleDriveImageUrl(rawImage) || rawImage || '';
+
       const season = extractSeason(desc) || defaultCountry?.popularSeason || 'Круглый год';
       const yachtCount = combinedYachts.filter(y => y.countryId === tab.id).length;
 

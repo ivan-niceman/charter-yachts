@@ -80,7 +80,6 @@ const L = baseItems.length;
       </div>
     </div>
 
-    <!-- Bottom Controls -->
     <div class="reviews-bottom-controls">
       <div class="slider-controls-footer">
         <div class="pagination-dots" id="reviews-dots"></div>
@@ -308,42 +307,6 @@ const L = baseItems.length;
     margin-top: 24px;
   }
 
-  .controls-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  /* .pagination-dots {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .pagination-dots :global(.dot) {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: rgba(15, 46, 37, 0.2);
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .pagination-dots :global(.dot.active) {
-    width: 28px;
-    border-radius: 10px;
-    background-color: var(--color-orange-main);
-  } */
-
-  .slider-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-  }
-
   /* Slider Track and Cards */
   .reviews-slider-container {
     width: 100%;
@@ -376,7 +339,7 @@ const L = baseItems.length;
 
   .review-card {
     background-color: var(--color-bg-light);
-    padding: 32px 28px;
+    padding: 20px 15px;
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-border-light);
     box-shadow: var(--shadow-sm);
@@ -389,13 +352,6 @@ const L = baseItems.length;
 
   .review-card:hover {
     border-color: rgba(255, 105, 0, 0.3);
-  }
-
-  .quote-icon {
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    color: var(--color-emerald-subtle);
   }
 
   .stars-row {

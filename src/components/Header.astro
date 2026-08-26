@@ -8,9 +8,10 @@ import logo from '../assets/logo.png';
   <div class="container header__inner">
     <a href="/" class="header__logo" aria-label="Абсолют-тур — на главную">
       <Image src={logo} alt="Абсолют-тур" class="header__logo-icon" />
+      <p class="header__logo-name"><span>А</span>БСОЛЮТ-ТУР</p>
     </a>
 
-    <Navigation class="header__nav" />
+    <Navigation />
 
     <div class="header__actions">
       <div class="header__phone">
@@ -18,7 +19,7 @@ import logo from '../assets/logo.png';
         <span class="header__phone-hours">Ежедневно 11:00 – 19:00</span>
       </div>
 
-      <a href="/#booking" class="btn btn-primary">Подобрать отдых</a>
+      <a href="/#yachts" class="btn btn-primary">забронировать яхту</a>
     </div>
 
     <button
@@ -50,14 +51,14 @@ import logo from '../assets/logo.png';
         </button>
       </div>
 
-      <Navigation class="mobile-menu__nav"/>
+      <Navigation />
 
       <div class="mobile-menu__phone">
         <a href="tel:+79313977103" class="header__phone-number">+7 (931) 397-71-03</a>
         <span class="header__phone-hours">Ежедневно 11:00 – 19:00</span>
       </div>
 
-      <a href="#booking" class="btn btn-primary mobile-menu__cta" data-menu-close>Подобрать отдых</a>
+      <a href="#booking" class="btn btn-primary mobile-menu__cta" data-menu-close>забронировать яхту</a>
     </div>
   </div>
 </header>
@@ -81,8 +82,23 @@ import logo from '../assets/logo.png';
     padding-block: 10px;
   }
 
+  .header__logo {
+    display: flex;
+    align-items: center;
+  }
+
+  .header__logo-name {
+    font-weight: 800;
+    font-size: 16px;
+    color: #000;
+    white-space: nowrap;
+  }
+  .header__logo-name>span {
+    color: var(--color-orange);
+  }
+
   .header__logo-icon {
-    width: 150px;
+    width: 120px;
     height: auto;
     object-fit: cover;
   }
@@ -170,7 +186,7 @@ import logo from '../assets/logo.png';
     transform: translateY(-7px) rotate(-45deg);
   }
 
-  @media (max-width: 1000px) {
+  @media (max-width: 1150px) {
     .header :global(.nav-list),
     .header__phone,
     .header__actions .btn-primary {

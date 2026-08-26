@@ -465,9 +465,6 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
   }
 
   .header-eyebrow {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
@@ -478,7 +475,6 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
 
   .country-badge {
     background-color: var(--color-orange-light, #fff0e6);
-    padding: 2px 10px;
     border-radius: var(--radius-full, 9999px);
   }
 
@@ -488,6 +484,15 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     color: var(--color-emerald-dark, #063c32);
     line-height: 1.2;
     margin: 0;
+  }
+
+  @media(max-width: 425px) {
+    .header-eyebrow {
+      font-size: 10px;
+    }
+    .modal-title {
+      font-size: 26px;
+    }
   }
 
   /* Slider */

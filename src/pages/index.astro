@@ -13,13 +13,10 @@ import Contacts from '../components/Contacts.astro';
 import BookingForm from '../components/BookingForm.astro';
 import Footer from '../components/Footer.astro';
 
-// Динамический импорт актуальных данных из Google Таблиц
 import { fetchInitialDataServerSide } from '../lib/sheets';
 
-const data = await fetchInitialDataServerSide();
-const countries = data.countries;
-const yachts = data.yachts;
-const reviews = data.reviews;
+const { countries, yachts, reviews } = await fetchInitialDataServerSide();
+
 ---
 
 <Layout title="Абсолют-тур — Премиальные Дайвинг-Туры и Фрахт Яхт" description="Агентство ООО «Абсолют-тур» по организации премиальных путешествий на яхтах и дайвинг-сафари по всему миру.">
@@ -31,8 +28,8 @@ const reviews = data.reviews;
     <AboutUs />
     <Reviews reviews={reviews} />
     <FAQ />
-    <Contacts />
     <BookingForm />
+    <Contacts />
   </main>
   <Footer />
 </Layout>

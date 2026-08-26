@@ -36,7 +36,7 @@ const displayImage = rawImages.length > 0
   : '';
 ---
 
-<div class="yacht-card" data-yacht-id={yacht.id} data-country-id={yacht.countryId}>
+<div class="yacht-card" data-yacht-id={yacht.id} data-country-id={yacht.countryId} data-country-name={yacht.countryName || country?.name || ''}>
   <div class="yacht-image-wrap">
     <ImagePreloader
       src={displayImage}
@@ -96,7 +96,7 @@ const displayImage = rawImages.length > 0
     position: relative;
     height: 240px;
     overflow: hidden;
-    background-color: #0f2520;
+    background-color: var(--color-bg-light);
     transition: transform 0.9s;
   }
 

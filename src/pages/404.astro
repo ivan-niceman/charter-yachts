@@ -14,24 +14,20 @@ import Footer from '../components/Footer.astro';
   <main class="page-404">
     <section class="not-found">
       <div class="container not-found__container">
-        
-        <!-- Декоративный морской компас / спасательный круг -->
-        <div class="not-found__badge-wrap">
-          <div class="not-found__compass">
-            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="compass-svg" aria-hidden="true">
-              <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" class="compass-ring-outer" />
-              <circle cx="50" cy="50" r="38" stroke="currentColor" stroke-width="1.5" class="compass-ring-inner" />
-              <path d="M50 15V22M50 78V85M15 50H22M78 50H85" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              <text x="50" y="12" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">N</text>
-              <text x="50" y="94" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">S</text>
-              <text x="96" y="53" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">E</text>
-              <text x="4" y="53" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">W</text>
-              <!-- Стрелка компаса -->
-              <polygon points="50,26 44,50 50,45 56,50" fill="var(--color-orange, #ff6900)" />
-              <polygon points="50,74 44,50 50,45 56,50" fill="currentColor" opacity="0.4" />
-              <circle cx="50" cy="50" r="4" fill="var(--color-orange, #ff6900)" />
-            </svg>
-          </div>
+        <div class="not-found__compass">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="compass-svg" aria-hidden="true">
+            <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" class="compass-ring-outer" />
+            <circle cx="50" cy="50" r="38" stroke="currentColor" stroke-width="1.5" class="compass-ring-inner" />
+            <path d="M50 15V22M50 78V85M15 50H22M78 50H85" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <text x="50" y="12" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">N</text>
+            <text x="50" y="94" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">S</text>
+            <text x="96" y="53" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">E</text>
+            <text x="4" y="53" font-size="8" font-weight="bold" fill="currentColor" text-anchor="middle">W</text>
+            <!-- Стрелка компаса -->
+            <polygon points="50,26 44,50 50,45 56,50" fill="var(--color-orange, #ff6900)" />
+            <polygon points="50,74 44,50 50,45 56,50" fill="currentColor" opacity="0.4" />
+            <circle cx="50" cy="50" r="4" fill="var(--color-orange, #ff6900)" />
+          </svg>
         </div>
         <span class="not-found__code">404</span>
 
@@ -98,14 +94,6 @@ import Footer from '../components/Footer.astro';
     text-align: center;
     gap: 28px;
   }
-
-  .not-found__badge-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   .not-found__compass {
     width: 140px;
     height: 140px;
@@ -193,35 +181,15 @@ import Footer from '../components/Footer.astro';
     text-decoration: none;
   }
 
-  .btn-primary {
-    background: var(--color-orange, #ff6900);
-    color: #ffffff;
-  }
-
-  .btn-primary:hover {
-    background: var(--color-orange-hover, #e55e00);
-    box-shadow: 0 6px 20px rgba(255, 105, 0, 0.25);
-  }
-
-  .btn-secondary {
-    background: var(--color-emerald-dark, #05332b);
-    color: #ffffff;
-  }
-
-  .btn-secondary:hover {
-    background: var(--color-emerald-main, #0a5246);
-    box-shadow: 0 6px 20px rgba(5, 51, 43, 0.2);
-  }
-
   .btn-outline {
-    background: #ffffff;
-    color: var(--color-emerald-dark, #05332b);
-    border: 1px solid var(--color-border, #e0eae7);
+    background-color: #ffffff;
+    color: var(--color-emerald-dark);
+    border: 1px solid var(--color-border);
   }
 
   .btn-outline:hover {
-    background: var(--color-bg-light, #f6faf9);
-    border-color: var(--color-emerald-main, #0a5246);
+    background-color: var(--color-bg-light);
+    border-color: var(--color-emerald-main);
   }
 
   .not-found__help-box {
@@ -244,7 +212,7 @@ import Footer from '../components/Footer.astro';
     width: 42px;
     height: 42px;
     border-radius: 10px;
-    background: var(--color-emerald-subtle, #eaf4f2);
+    background-color:#eaf4f2;
     color: var(--color-emerald-main, #0a5246);
     flex-shrink: 0;
   }

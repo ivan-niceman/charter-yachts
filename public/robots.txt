@@ -1,2 +1,14 @@
 User-agent: *
 Disallow: /
+
+# Allow: /
+
+# Закрываем доступ к служебным скриптам и endpoint‑ам, если они не предназначены для открытого доступа
+# (например, обработчик формы бронирования, если он расположен в корне)
+# Disallow: /booking.php
+# Disallow: /private/
+
+# Указываем расположение sitemap (Astro генерирует его автоматически при использовании @astrojs/sitemap)
+# Sitemap: https://ваш-домен.com/sitemap-index.xml
+# Sitemap: https://xn----7sbd4boodkbk1j.xn--p1ai/sitemap-index.xml
+# абсолют-тур.рф

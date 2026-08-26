@@ -66,41 +66,39 @@ function emojiToCountryCode(emoji: string): string | null {
 }
 
 function getCountryFlagUrl(country: Country): string {
-  // 1. Прямая ссылка из Google Таблицы / Google Drive
+  // 1. Если есть ссылка на флаг (из Google Таблицы / Google Drive / URL) - ВСЕГДА используем именно её!
   if (country.flag && (country.flag.startsWith('http://') || country.flag.startsWith('https://'))) {
     return country.flag;
   }
-  // 2. Преобразование эмодзи-флага в ISO код
+  // 2. Если есть emoji флага
   if (country.flag) {
     const emojiCode = emojiToCountryCode(country.flag);
     if (emojiCode) {
-      return `https://flagcdn.com/w80/${emojiCode}.png`;
+      return `https://flagcdn.com/${emojiCode}.svg`;
     }
   }
-  // 3. Поиск по id или названию страны
+  // 3. Автоматически по названию страны
   const idKey = (country.id || '').toLowerCase().trim();
   const nameKey = (country.name || '').toLowerCase().trim();
   const code = COUNTRY_FLAGS_MAP[idKey] || COUNTRY_FLAGS_MAP[nameKey];
   if (code) {
-    return `https://flagcdn.com/w80/${code}.png`;
-  }
-  // 4. Запасной вариант из Google Таблицы
-  if (country.image && (country.image.startsWith('http://') || country.image.startsWith('https://'))) {
-    return country.image;
+    return `https://flagcdn.com/${code}.svg`;
   }
   return '';
 }
 
-// Тройное клонирование + старт с середины — тот же приём, что в Reviews.astro,
-// нужен для бесшовной бесконечной прокрутки без "прыжка" в конце списка.
-let baseItems = [...countries];
-if (countries.length > 1) {
-  while (baseItems.length < 12) {
-    baseItems = [...baseItems, ...countries];
+function getCountryCardBgUrl(country: Country): string {
+  // 1. Если есть прямая ссылка на карту (из Google Таблицы / Google Drive / URL)
+  if (country.image && (country.image.startsWith('http://') || country.image.startsWith('https://'))) {
+    return country.image;
   }
+  // 2. Если ссылки на карту нет — загружаем вместо карты флаг
+  return getCountryFlagUrl(country);
 }
-const displayItems = countries.length > 1 ? [...baseItems, ...baseItems, ...baseItems] : [...countries];
-const L = baseItems.length;
+
+// Тройное клонирование списка для бесшовной бесконечной прокрутки
+const displayItems = countries.length > 1 ? [...countries, ...countries, ...countries] : [...countries];
+const L = countries.length;
 ---
 
 <section id="destinations" class="section destinations-section">
@@ -121,25 +119,25 @@ const L = baseItems.length;
       </a>
     </div>
 
-    <!-- Slider Track -->
     <div class="slider-wrapper">
       <div class="slider-track" id="destinations-slider-track" data-length={L} data-count={countries.length}>
         {displayItems.map((country: Country) => {
           const flagUrl = getCountryFlagUrl(country);
+          const bgUrl = getCountryCardBgUrl(country);
           return (
             <div
               class="compact-card"
               data-country-id={country.id}
               data-country-name={country.name}
-              data-country-flag={country.flag}
               data-country-desc={country.description}
             >
-              <ImagePreloader
-                src={country.image}
-                alt={`Карта ${country.name}`}
-                class="card-bg-img"
-              />
-              {/* <div class="card-gradient-overlay"></div> */}
+              {bgUrl && (
+                <ImagePreloader
+                  src={bgUrl}
+                  alt={`Карта ${country.name}`}
+                  class="card-bg-img"
+                />
+              )}
 
               <!-- Top Row: Flag on left + Info button on right -->
               <div class="card-top-row">
@@ -150,27 +148,28 @@ const L = baseItems.length;
                       alt={`Флаг ${country.name}`}
                       class="compact-flag-img"
                       loading="lazy"
+                      referrerpolicy="no-referrer"
+                      onerror={`this.onerror=null; const code='${COUNTRY_FLAGS_MAP[(country.id || '').toLowerCase()] || COUNTRY_FLAGS_MAP[(country.name || '').toLowerCase()] || ''}'; if(code){ this.src='https://flagcdn.com/'+code+'.svg'; } else { this.style.display='none'; }`}
                     />
                   ) : (
                     <span class="compact-flag-emoji">{country.flag || '🏝️'}</span>
                   )}
                 </div>
 
-                {country.description && (
-                  <button
-                    type="button"
-                    class="compact-info-btn"
-                    title="Информация о направлении"
-                    aria-label={`Информация о направлении ${country.name}`}
-                    data-info-btn
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="16" x2="12" y2="12"></line>
-                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  class="compact-info-btn"
+                  title="Информация о направлении"
+                  aria-label={`Информация о направлении ${country.name}`}
+                  data-info-btn
+                  style={country.description ? 'display: flex;' : 'display: none;'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                </button>
               </div>
 
               <!-- Bottom Content: Country Name on top + "Смотреть яхты ->" underneath -->
@@ -190,10 +189,8 @@ const L = baseItems.length;
       </div>
     </div>
 
-    <!-- Bottom Controls: Dots + Navigation Arrows -->
     <div class="slider-controls-footer">
       <div class="pagination-dots" id="destinations-dots">
-        <!-- Generated via JS -->
       </div>
 
       <div class="nav-arrows">
@@ -236,29 +233,24 @@ const L = baseItems.length;
     const nextBtn = document.getElementById('destinations-next') as HTMLButtonElement | null;
 
     const modal = document.getElementById('destinations-modal') as HTMLDivElement | null;
-    const modalClose = document.getElementById('destinations-modal-close') as HTMLButtonElement | null;
     const modalTitle = document.getElementById('destinations-modal-title') as HTMLHeadingElement | null;
     const modalText = document.getElementById('destinations-modal-text') as HTMLParagraphElement | null;
 
     if (!track) return;
 
     const trackEl = track;
-    // Видимая "рамка" слайдера — прямой родитель трека (.slider-wrapper),
-    // через него меряем доступную ширину и на нём же ставим overflow:hidden.
     const containerEl = trackEl.parentElement as HTMLElement;
 
-    const L = parseInt(trackEl.getAttribute('data-length') || '1', 10);
-    const count = parseInt(trackEl.getAttribute('data-count') || '1', 10);
-
+    let count = parseInt(trackEl.getAttribute('data-count') || '1', 10);
     const sliderControls = document.querySelector('.slider-controls-footer') as HTMLElement | null;
 
     if (count <= 1) {
-      // Меньше двух направлений — крутить нечего, показываем как есть.
       if (sliderControls) sliderControls.style.display = 'none';
       return;
     }
 
-    let currentIndex = L; // Стартуем со среднего блока клонов
+    // Стартуем строго со среднего блока (с 1-й оригинальной карточки)
+    let currentIndex = count;
     let isTransitioning = false;
 
     function renderDots() {
@@ -292,20 +284,23 @@ const L = baseItems.length;
       });
     }
 
-    // Ширина карточки подобрана под исходные брейкпоинты дизайна
-    // (было: flex-basis 20% на десктопе, фикс. 220px и 180px на срезах).
+    // Ровно 5 карточек на десктопе, 3 на планшете, 2 на мобильных устройствах
+    function getVisibleCount() {
+      if (window.innerWidth <= 640) return 2;
+      if (window.innerWidth <= 1024) return 3;
+      return 5;
+    }
+
+    function getGap() {
+      return window.innerWidth < 640 ? 12 : 20;
+    }
+
     function updateCardWidth() {
       const containerWidth = containerEl.clientWidth;
-      const gap = 20;
-      let cardWidth: number;
-
-      if (window.innerWidth <= 640) {
-        cardWidth = 180;
-      } else if (window.innerWidth <= 1024) {
-        cardWidth = 220;
-      } else {
-        cardWidth = (containerWidth - 4 * gap) / 5;
-      }
+      const visibleCount = getVisibleCount();
+      const gap = getGap();
+      
+      const cardWidth = (containerWidth - (visibleCount - 1) * gap) / visibleCount;
 
       containerEl.style.setProperty('--card-width', `${cardWidth}px`);
       containerEl.style.setProperty('--gap-width', `${gap}px`);
@@ -341,12 +336,12 @@ const L = baseItems.length;
     trackEl.addEventListener('transitionend', () => {
       isTransitioning = false;
       const step = updateCardWidth();
-      if (currentIndex >= 2 * L) {
-        currentIndex = currentIndex - L;
+      if (currentIndex >= 2 * count) {
+        currentIndex = currentIndex - count;
         trackEl.style.transition = 'none';
         trackEl.style.transform = `translate3d(${-currentIndex * step}px, 0, 0)`;
-      } else if (currentIndex < L) {
-        currentIndex = currentIndex + L;
+      } else if (currentIndex < count) {
+        currentIndex = currentIndex + count;
         trackEl.style.transition = 'none';
         trackEl.style.transform = `translate3d(${-currentIndex * step}px, 0, 0)`;
       }
@@ -355,7 +350,7 @@ const L = baseItems.length;
     prevBtn?.addEventListener('click', handlePrev);
     nextBtn?.addEventListener('click', handleNext);
 
-    // --- Драг мышью и тачем (реализовано через translate3d, а не нативный scroll) ---
+    // --- Драг мышью и тачем ---
     let startX = 0;
     let currentDragX = 0;
     let isDragging = false;
@@ -402,7 +397,6 @@ const L = baseItems.length;
     containerEl.addEventListener('touchmove', onPointerMove, { passive: true });
     containerEl.addEventListener('touchend', onPointerUp);
 
-    // Блокируем клик по карточке, если он на самом деле был свайпом
     trackEl.addEventListener('click', (e) => {
       if (movedDistance > 5) {
         e.preventDefault();
@@ -411,7 +405,7 @@ const L = baseItems.length;
       }
     }, true);
 
-    // Инициализация
+    // Инициализация при старте
     renderDots();
     updateCardWidth();
     moveSlider(false);
@@ -421,20 +415,118 @@ const L = baseItems.length;
       moveSlider(false);
     });
 
-    // --- Карточки и модальное окно направления (логика не менялась) ---
-    const cards = trackEl.querySelectorAll('.compact-card');
-    cards.forEach((card) => {
-      const countryId = card.getAttribute('data-country-id');
-      const countryName = card.getAttribute('data-country-name');
-      const countryDesc = card.getAttribute('data-country-desc');
+    // --- Фоновая динамическая синхронизация из Google Таблицы ---
+    const PUBLISHED_KEY =
+      (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PUBLIC_GOOGLE_PUBLISHED_KEY) ||
+      '2PACX-1vQeRQ5VAaQfGuBuOl1AKIktnCubBKhDAcGlQD5-1PyqIJ8P5VR6HKjRxkYBQZrWzeHs1QD5XlA54GGl';
+    const REGIONS_GID =
+      (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PUBLIC_GOOGLE_REGIONS_GID) ||
+      '995502228';
+    const dynamicRegionDesc: Record<string, string> = {};
+
+    function parseSimpleCSV(text: string): string[][] {
+      const rows: string[][] = [];
+      let currentRow: string[] = [];
+      let currentCell = '';
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            currentCell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          currentRow.push(currentCell);
+          currentCell = '';
+        } else if ((char === '\r' || char === '\n') && !inQuotes) {
+          if (char === '\r' && nextChar === '\n') i++;
+          currentRow.push(currentCell);
+          if (currentRow.some(c => c.trim() !== '')) rows.push(currentRow);
+          currentRow = [];
+          currentCell = '';
+        } else {
+          currentCell += char;
+        }
+      }
+      if (currentCell || currentRow.length > 0) {
+        currentRow.push(currentCell);
+        if (currentRow.some(c => c.trim() !== '')) rows.push(currentRow);
+      }
+      return rows;
+    }
+
+    function cleanStr(s: string): string {
+      return (s || '')
+        .toLowerCase()
+        .replace(/[\u{1F300}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]+/gu, '')
+        .replace(/[^a-zа-яё0-9]/gi, '')
+        .trim();
+    }
+
+    function extractUrls(str: string): string[] {
+      if (!str) return [];
+      const rawMatches = str.match(/https?:\/\/[^\s\"]+/g) || [];
+      const urls: string[] = [];
+      for (const match of rawMatches) {
+        const parts = match.split(/(?=https?:\/\/)/).map(u => u.trim()).filter(Boolean);
+        for (let p of parts) {
+          p = p.replace(/[,;]+$/, '');
+          if (p) urls.push(p);
+        }
+      }
+      return urls;
+    }
+
+    function formatGoogleDriveImageUrl(url: string): string {
+      if (!url || typeof url !== 'string') return '';
+      const trimmed = url.trim();
+      if (!trimmed) return '';
+
+      if (trimmed.includes('/folders/') || trimmed.includes('/drive/folders/')) {
+        return trimmed;
+      }
+
+      const driveMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || 
+                         trimmed.match(/drive\.google\.com\/thumbnail\?.*id=([a-zA-Z0-9_-]+)/) ||
+                         trimmed.match(/lh3\.google\.com\/u\/\d+\/d\/([a-zA-Z0-9_-]+)/) ||
+                         trimmed.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/) ||
+                         trimmed.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
+                         trimmed.match(/drive\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/) ||
+                         trimmed.match(/docs\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/);
+
+      if (driveMatch && driveMatch[1]) {
+        const fileId = driveMatch[1].replace(/=w\d+/, '');
+        if (trimmed.toLowerCase().endsWith('.svg') || trimmed.toLowerCase().includes('.svg')) {
+          return `https://drive.google.com/uc?export=view&id=${fileId}`;
+        }
+        return `https://lh3.googleusercontent.com/d/${fileId}`;
+      }
+
+      return trimmed;
+    }
+
+    function bindCardEvents(card: HTMLElement) {
+      const countryId = card.getAttribute('data-country-id') || '';
+      const countryName = card.getAttribute('data-country-name') || '';
       const infoBtn = card.querySelector('[data-info-btn]');
 
       if (infoBtn) {
         infoBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           if (modal && modalTitle && modalText) {
-            modalTitle.textContent = countryName || '';
-            modalText.textContent = countryDesc || '';
+            const cleanKey = cleanStr(countryName);
+            const dynamicDesc = cleanKey ? dynamicRegionDesc[cleanKey] : null;
+            const fallbackDesc = card.getAttribute('data-country-desc');
+            const finalDesc = dynamicDesc || fallbackDesc || '';
+
+            if (!finalDesc) return;
+
+            modalTitle.textContent = countryName;
+            modalText.textContent = finalDesc;
             modal.style.display = 'flex';
           }
         });
@@ -447,23 +539,255 @@ const L = baseItems.length;
           yachtsElem.scrollIntoView({ behavior: 'smooth' });
         }
       });
-    });
+    }
 
-    if (modalClose && modal) {
-      modalClose.addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
+    const CLIENT_FLAGS_MAP: Record<string, string> = {
+      maldives: 'mv', indonesia: 'id', seychelles: 'sc', galapagos: 'ec', ecuador: 'ec',
+      oman: 'om', palau: 'pw', egypt: 'eg', 'costa-rica': 'cr', costarica: 'cr',
+      russia: 'ru', thailand: 'th', turkey: 'tr', greece: 'gr', italy: 'it', spain: 'es',
+      croatia: 'hr', norway: 'no', france: 'fr', montenegro: 'me',
+      мальдивы: 'mv', индонезия: 'id', сейшелы: 'sc', галапагосы: 'ec',
+      оман: 'om', палау: 'pw', египет: 'eg', 'коста-рика': 'cr', костарика: 'cr',
+      россия: 'ru', таиланд: 'th', тайланд: 'th', турция: 'tr', греция: 'gr',
+      италия: 'it', испания: 'es', хорватия: 'hr', норвегия: 'no', франция: 'fr', черногория: 'me'
+    };
 
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.style.display = 'none';
+    function createSingleCard(item: { name: string; id: string; desc: string; flagUrl?: string; bgUrl?: string }): HTMLElement {
+      const card = document.createElement('div');
+      card.className = 'compact-card';
+      card.setAttribute('data-country-id', item.id);
+      card.setAttribute('data-country-name', item.name);
+      card.setAttribute('data-country-desc', item.desc);
+
+      const hasDesc = Boolean(item.desc);
+      const cleanKey = cleanStr(item.name) || cleanStr(item.id);
+      const flagCode = CLIENT_FLAGS_MAP[cleanKey] || CLIENT_FLAGS_MAP[item.id.toLowerCase()] || CLIENT_FLAGS_MAP[item.name.toLowerCase()] || '';
+      const flagUrl = item.flagUrl || (flagCode ? `https://flagcdn.com/${flagCode}.svg` : '');
+      const bgUrl = item.bgUrl || flagUrl;
+
+      card.innerHTML = `
+        ${bgUrl ? `
+          <div class="card-bg-img">
+            <img src="${bgUrl}" alt="Фон ${item.name}" loading="lazy" />
+          </div>
+        ` : ''}
+        <div class="card-top-row">
+          <div class="compact-flag-wrap" title="Флаг: ${item.name}">
+            ${flagUrl ? `<img src="${flagUrl}" alt="Флаг ${item.name}" class="compact-flag-img" loading="lazy" onerror="this.style.display='none'" />` : '<span class="compact-flag-emoji">🏝️</span>'}
+          </div>
+          <button
+            type="button"
+            class="compact-info-btn"
+            title="Информация о направлении"
+            aria-label="Информация о направлении ${item.name}"
+            data-info-btn
+            style="${hasDesc ? 'display: flex;' : 'display: none;'}"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="card-bottom-content">
+          <h3 class="compact-country-name">${item.name}</h3>
+          <div class="compact-action-hint">
+            <span>Смотреть яхты</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </div>
+        </div>
+      `;
+
+      bindCardEvents(card);
+      return card;
+    }
+
+    Promise.all([
+      fetch(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_KEY}/pubhtml?t=${Date.now()}`)
+        .then(r => r.ok ? r.text() : '').catch(() => ''),
+      fetch(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_KEY}/pub?gid=${REGIONS_GID}&single=true&output=csv&t=${Date.now()}`)
+        .then(r => r.ok ? r.text() : '').catch(() => '')
+    ]).then(async ([pubHtml, csvText]) => {
+      const detectedTabs: { name: string; gid: string }[] = [];
+
+      if (pubHtml) {
+        const regex = /name:\s*"([^"]+)",\s*pageUrl:\s*"[^"]*",\s*gid:\s*"([^"]+)"/g;
+        let match;
+        const ignore = ['регионы', 'regions', 'общаяинфаfaq', 'общаяинфа', 'faq', 'отзывыклиентов', 'отзывы', 'reviews'];
+        while ((match = regex.exec(pubHtml)) !== null) {
+          const rawName = match[1]
+            .replace(/\\x26/g, '&').replace(/\\x27/g, "'").replace(/\\x22/g, '"')
+            .replace(/\\u([0-9a-fA-F]{4})/g, (_, c) => String.fromCharCode(parseInt(c, 16)))
+            .replace(/\\/g, '');
+          const key = cleanStr(rawName);
+          if (key && !ignore.includes(key)) {
+            detectedTabs.push({ name: rawName.trim(), gid: match[2] });
+          }
+        }
+      }
+
+      if (csvText) {
+        const rows = parseSimpleCSV(csvText);
+        for (const row of rows) {
+          const descCell = String(row[0] || '').trim();
+          if (!descCell || descCell === 'Описание региона' || descCell.toLowerCase().startsWith('http')) continue;
+          const lines = descCell.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          if (lines.length === 0) continue;
+          const cleanName = cleanStr(lines[0]);
+          if (!cleanName || cleanName === 'название' || cleanName.length < 2) continue;
+          const desc = lines.slice(1).join('\n').trim();
+          if (desc) {
+            dynamicRegionDesc[cleanName] = desc;
+          }
+        }
+      }
+
+      // Проверяем каждую вкладку на наличие реальных данных (яхт).
+      // Если данных нет (вкладка пустая / только заголовок), карточка НЕ создается и удаляется!
+      const tabDataPromises = detectedTabs.map(async (tab) => {
+        try {
+          const res = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_KEY}/pub?gid=${tab.gid}&single=true&output=csv&t=${Date.now()}`);
+          if (!res.ok) return null;
+          const text = await res.text();
+          const rows = parseSimpleCSV(text);
+          let yachtCount = 0;
+          let tabFlag = '';
+          let tabMap = '';
+
+          for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const nameCell = String(row[0] || '').trim();
+            if (nameCell && nameCell !== 'Яхта' && nameCell !== 'Название' && !nameCell.toLowerCase().startsWith('http')) {
+              yachtCount++;
+            }
+            const flagCell = String(row[8] || '').trim();
+            if (flagCell && !tabFlag) {
+              const urls = extractUrls(flagCell);
+              if (urls.length > 0) tabFlag = formatGoogleDriveImageUrl(urls[0]);
+            }
+            const mapCell = String(row[9] || '').trim();
+            if (mapCell && !tabMap) {
+              const urls = extractUrls(mapCell);
+              if (urls.length > 0) tabMap = formatGoogleDriveImageUrl(urls[0]);
+            }
+          }
+
+          // Если в таблице нет ни одной яхты - данных нет!
+          if (yachtCount === 0) {
+            return null;
+          }
+
+          return {
+            tab,
+            yachtCount,
+            flagUrl: tabFlag,
+            bgUrl: tabMap || tabFlag
+          };
+        } catch (e) {
+          return null;
         }
       });
-    }
+
+      const tabResults = await Promise.all(tabDataPromises);
+      const validTabs = tabResults.filter((r): r is NonNullable<typeof r> => r !== null);
+      const activeSheetKeys = new Set<string>(validTabs.map(r => cleanStr(r.tab.name)));
+      const activeTabsList = validTabs.map(r => r.tab);
+
+      if (validTabs.length > 0) {
+        const existingDOMCards = Array.from(trackEl.querySelectorAll('.compact-card'));
+        const uniqueDOMCountries = new Map<string, { name: string; id: string; desc: string; flagUrl?: string; bgUrl?: string; html?: HTMLElement }>();
+
+        existingDOMCards.forEach((c) => {
+          const name = c.getAttribute('data-country-name') || '';
+          const id = c.getAttribute('data-country-id') || '';
+          const desc = c.getAttribute('data-country-desc') || '';
+          const key = cleanStr(name) || cleanStr(id);
+          if (key && !uniqueDOMCountries.has(key)) {
+            uniqueDOMCountries.set(key, { name, id, desc, html: c as HTMLElement });
+          }
+        });
+
+        const finalList: { name: string; id: string; desc: string; flagUrl?: string; bgUrl?: string; html?: HTMLElement }[] = [];
+        validTabs.forEach(({ tab, flagUrl, bgUrl }) => {
+          const key = cleanStr(tab.name);
+          const desc = dynamicRegionDesc[key] || '';
+          if (uniqueDOMCountries.has(key)) {
+            const existing = uniqueDOMCountries.get(key)!;
+            finalList.push({
+              ...existing,
+              desc: desc || existing.desc,
+              flagUrl: flagUrl || existing.flagUrl,
+              bgUrl: bgUrl || existing.bgUrl
+            });
+          } else {
+            finalList.push({
+              name: tab.name,
+              id: tab.name.toLowerCase(),
+              desc,
+              flagUrl,
+              bgUrl
+            });
+          }
+        });
+
+        const isChanged = finalList.length !== count || finalList.some((item, i) => {
+          const currentKey = cleanStr(existingDOMCards[i]?.getAttribute('data-country-name') || '');
+          return currentKey !== cleanStr(item.name);
+        });
+
+        if (isChanged && finalList.length > 0) {
+          trackEl.innerHTML = '';
+          const trippled = finalList.length > 1 ? [...finalList, ...finalList, ...finalList] : finalList;
+
+          trippled.forEach((item) => {
+            if (item.html && !item.flagUrl && !item.bgUrl) {
+              const clone = item.html.cloneNode(true) as HTMLElement;
+              bindCardEvents(clone);
+              trackEl.appendChild(clone);
+            } else {
+              const newCard = createSingleCard(item);
+              trackEl.appendChild(newCard);
+            }
+          });
+
+          count = finalList.length;
+          currentIndex = count;
+
+          if (count <= 1 && sliderControls) {
+            sliderControls.style.display = 'none';
+          } else if (sliderControls) {
+            sliderControls.style.display = 'flex';
+          }
+
+          renderDots();
+          updateCardWidth();
+          moveSlider(false);
+        }
+
+        window.dispatchEvent(new CustomEvent('syncActiveCountries', {
+          detail: { activeNames: Array.from(activeSheetKeys), activeTabs: activeTabsList }
+        }));
+      }
+
+      trackEl.querySelectorAll('.compact-card').forEach((card) => {
+        const cName = cleanStr(card.getAttribute('data-country-name') || '');
+        const infoBtn = card.querySelector<HTMLElement>('[data-info-btn]');
+        const hasDesc = Boolean(cName && dynamicRegionDesc[cName]);
+        if (infoBtn) {
+          infoBtn.style.display = hasDesc ? 'flex' : 'none';
+        }
+      });
+    }).catch(() => {});
+
+    trackEl.querySelectorAll<HTMLElement>('.compact-card').forEach(bindCardEvents);
   });
 </script>
 
-<style>
+<style is:global>
   .destinations-section {
     background-color: var(--color-bg-light);
     position: relative;
@@ -502,9 +826,6 @@ const L = baseItems.length;
     transform: translateX(4px);
   }
 
-  /* Slider Wrapper — теперь это "окно" слайдера: обрезает клоны за пределами
-     видимой области. Раньше этого не требовалось, т.к. скролл был нативным
-     (overflow-x: auto стоял прямо на .slider-track). */
   .slider-wrapper {
     position: relative;
     width: 100%;
@@ -516,17 +837,19 @@ const L = baseItems.length;
     flex-wrap: nowrap;
     gap: var(--gap-width, 20px);
     will-change: transform;
-    padding: 8px 4px 16px 4px;
+    padding: 8px 0 16px 0;
   }
 
-  /* Compact Card */
-  .compact-card {
-    flex-shrink: 0;
-    width: var(--card-width, 220px);
-    height: 250px;
-    border-radius: 14px;
-    position: relative;
-    overflow: hidden;
+  .destinations-section .compact-card,
+  .slider-track .compact-card {
+    flex-shrink: 0 !important;
+    width: var(--card-width, 220px) !important;
+    max-width: var(--card-width, 220px) !important;
+    min-width: var(--card-width, 220px) !important;
+    height: 300px !important;
+    border-radius: 14px !important;
+    position: relative !important;
+    overflow: hidden !important;
     cursor: pointer;
     user-select: none;
     -webkit-user-drag: none;
@@ -534,55 +857,50 @@ const L = baseItems.length;
     border: 1px solid rgba(5, 51, 43, 0.08);
     box-shadow: 0 4px 14px rgba(5, 51, 43, 0.06);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box !important;
   }
 
-  /* .compact-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 24px rgba(5, 51, 43, 0.12);
-  } */
-
-  .compact-card:active {
+  .destinations-section .compact-card:active,
+  .slider-track .compact-card:active {
     cursor: grabbing;
   }
 
-  .card-bg-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .destinations-section .card-bg-img,
+  .slider-track .card-bg-img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .destinations-section .card-bg-img img,
+  .slider-track .card-bg-img img,
+  .destinations-section img.card-bg-img,
+  .slider-track img.card-bg-img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
     user-select: none;
     -webkit-user-drag: none;
     transition: transform 0.6s ease;
+    display: block !important;
   }
 
-  .compact-card:hover :global(.card-bg-img img) {
+  .destinations-section .compact-card:hover .card-bg-img img,
+  .slider-track .compact-card:hover .card-bg-img img {
     transform: scale(1.08);
   }
 
-  /* .card-gradient-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.35) 0%,
-      rgba(255, 255, 255, 0.02) 35%,
-      rgba(240, 248, 246, 0.65) 65%,
-      rgba(240, 248, 246, 0.96) 100%
-    );
-    pointer-events: none;
-    transition: background 0.3s ease;
-  } */
-
-  /* .compact-card:hover .card-gradient-overlay {
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.25) 0%,
-      rgba(255, 255, 255, 0) 30%,
-      rgba(240, 248, 246, 0.72) 65%,
-      rgba(240, 248, 246, 0.98) 100%
-    );
-  } */
-
-  .card-top-row {
+  .destinations-section .card-top-row,
+  .slider-track .card-top-row {
     position: absolute;
     top: 12px;
     left: 12px;
@@ -593,7 +911,8 @@ const L = baseItems.length;
     z-index: 3;
   }
 
-  .compact-flag-wrap {
+  .destinations-section .compact-flag-wrap,
+  .slider-track .compact-flag-wrap {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -605,21 +924,24 @@ const L = baseItems.length;
     line-height: 0;
   }
 
-  .compact-flag-img {
+  .destinations-section .compact-flag-img,
+  .slider-track .compact-flag-img {
     width: 30px;
     height: 20px;
     object-fit: cover;
     display: block;
   }
 
-  .compact-flag-emoji {
+  .destinations-section .compact-flag-emoji,
+  .slider-track .compact-flag-emoji {
     font-size: 20px;
     line-height: 1;
     display: block;
     padding: 2px 4px;
   }
 
-  .compact-info-btn {
+  .destinations-section .compact-info-btn,
+  .slider-track .compact-info-btn {
     color: var(--color-navy, #05332b);
     padding: 0;
     display: flex;
@@ -636,13 +958,15 @@ const L = baseItems.length;
     z-index: 4;
   }
 
-  .compact-info-btn:hover {
+  .destinations-section .compact-info-btn:hover,
+  .slider-track .compact-info-btn:hover {
     transform: scale(1.1);
     background-color: #ffffff;
     color: var(--color-orange, #ff6900);
   }
 
-  .card-bottom-content {
+  .destinations-section .card-bottom-content,
+  .slider-track .card-bottom-content {
     position: absolute;
     bottom: 12px;
     left: 14px;
@@ -653,7 +977,8 @@ const L = baseItems.length;
     gap: 3px;
   }
 
-  .compact-country-name {
+  .destinations-section .compact-country-name,
+  .slider-track .compact-country-name {
     font-size: 19px;
     font-weight: 700;
     color: var(--color-navy, #05332b);
@@ -662,7 +987,8 @@ const L = baseItems.length;
     letter-spacing: -0.01em;
   }
 
-  .compact-action-hint {
+  .destinations-section .compact-action-hint,
+  .slider-track .compact-action-hint {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -672,15 +998,11 @@ const L = baseItems.length;
     transition: all 0.25s ease;
   }
 
-  /* .compact-card:hover .compact-action-hint svg {
-    transform: translateX(3px);
-  } */
-
-  .compact-action-hint svg {
+  .destinations-section .compact-action-hint svg,
+  .slider-track .compact-action-hint svg {
     transition: transform 0.25s ease;
   }
 
-  /* Modal */
   .info-modal-backdrop {
     position: fixed;
     inset: 0;
@@ -748,13 +1070,6 @@ const L = baseItems.length;
     white-space: pre-line;
   }
 
-  .info-modal-action {
-    width: 100%;
-    justify-content: center;
-    text-align: center;
-    text-decoration: none;
-  }
-
   @keyframes scaleUp {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
@@ -764,8 +1079,9 @@ const L = baseItems.length;
     .section-title {
       font-size: 24px;
     }
-    .compact-card {
-      height: 160px;
+    .destinations-section .compact-card,
+    .slider-track .compact-card {
+      height: 160px !important;
     }
   }
 </style>

@@ -52,9 +52,6 @@
       <button type="button" class="btn btn-secondary btn-xs" id="cookie-necessary-only">
         Только обязательные
       </button>
-      <button type="button" class="btn btn-save btn-xs" id="cookie-save-settings" style="display: none;">
-        Сохранить выбор
-      </button>
       <button type="button" class="cookie-banner__settings-toggle" id="cookie-toggle-settings">
         Настройки
       </button>
@@ -132,24 +129,6 @@
     padding: 1px 6px;
     border-radius: 4px;
     line-height: 1.2;
-  }
-
-  .cookie-banner__close {
-    background: none;
-    border: none;
-    color: var(--color-text-muted, #4a5d59);
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 4px;
-    transition: color 0.2s, background 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .cookie-banner__close:hover {
-    color: var(--color-orange-main, #ff6900);
-    background: var(--color-bg-light, #f4fcf9);
   }
 
   .cookie-banner__text {
@@ -230,34 +209,6 @@
     transition: all 0.2s ease;
     border: none;
     white-space: nowrap;
-  }
-
-  .btn-primary {
-    background: var(--color-orange-main, #ff6900);
-    color: #ffffff;
-  }
-
-  .btn-primary:hover {
-    background: #e65c00;
-  }
-
-  .btn-secondary {
-    background: var(--color-bg-light, #f4fcf9);
-    color: var(--color-emerald-dark, #063c32);
-    border: 1px solid var(--color-border-light, #e0f0eb);
-  }
-
-  .btn-secondary:hover {
-    background: #e0f0eb;
-  }
-
-  .btn-save {
-    background: var(--color-emerald-dark, #063c32);
-    color: #ffffff;
-  }
-
-  .btn-save:hover {
-    background: #042821;
   }
 
   .cookie-banner__settings-toggle {

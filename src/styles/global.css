@@ -4,8 +4,6 @@
 :root {
   --color-emerald-dark: #05332b;
   --color-emerald-main: #0a5246;
-  --color-emerald-light: #127363;
-  --color-emerald-subtle: #eaf4f2;
   --color-emerald-glass: rgba(10, 82, 70, 0.85);
 
   /* Accent Color */
@@ -58,7 +56,7 @@
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-emerald-light) var(--color-emerald-subtle);
+  scrollbar-color: var(--color-emerald-light) #eaf4f2;
 }
 
 ::-webkit-scrollbar {
@@ -87,7 +85,6 @@
 
 html {
   scroll-behavior: smooth;
-  /* scrollbar-gutter: stable; */
 }
 
 body {
@@ -104,9 +101,7 @@ body {
 h1,
 h2,
 h3,
-h4,
-h5,
-h6 {
+h4 {
   font-family: var(--font-family-heading);
 }
 
@@ -195,7 +190,7 @@ main {
 }
 
 .btn-secondary:hover {
-  background-color: var(--color-emerald-subtle);
+  background-color: #eaf4f2;
 }
 
 .slider-controls-footer {

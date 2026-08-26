@@ -380,7 +380,7 @@ $htmlMessage = '
             </tr>
         </table>
         <hr style="margin: 24px 0 16px 0; border: none; border-top: 1px solid #e0e0e0;" />
-        <p style="font-size: 12px; color: #7a948e; margin: 0; text-align: center;">Сообщение отправлено автоматически с веб-сайта Абсолют-Тур</p>
+        <p style="font-size: 12px; color: #7a948e; margin: 0; text-align: center;">Сообщение отправлено с веб-сайта Абсолют-Тур</p>
     </div>
 </body>
 </html>
