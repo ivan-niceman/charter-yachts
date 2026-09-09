@@ -1,11 +1,33 @@
 ---
 ---
 
-<div id="cookie-banner" class="cookie-banner" style="display: none;" role="dialog" aria-live="polite" aria-label="Уведомление об использовании cookie">
+<div
+  id="cookie-banner"
+  class="cookie-banner"
+  style="display: none;"
+  role="dialog"
+  aria-modal="false"
+  aria-live="polite"
+  aria-labelledby="cookie-banner-title"
+>
   <div class="cookie-banner__card">
+
     <div class="cookie-banner__header">
       <div class="cookie-banner__title-row">
-        <svg class="cookie-banner__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+        <svg
+          class="cookie-banner__icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
           <path d="M8.5 8.5v.01" />
           <path d="M16 15.5v.01" />
@@ -13,49 +35,112 @@
           <path d="M11 17v.01" />
           <path d="M7 14v.01" />
         </svg>
-        <h3 class="cookie-banner__title">Файлы Cookie</h3>
-        <span class="cookie-banner__tag">152-ФЗ</span>
+
+        <h3 id="cookie-banner-title" class="cookie-banner__title">
+          Файлы Cookie
+        </h3>
       </div>
     </div>
 
     <p class="cookie-banner__text">
-      Мы используем cookie для работы сайта и аналитики согласно <a href="/privacy" class="cookie-banner__link">политике конфиденциальности</a>.
+      Мы используем cookie для работы сайта и аналитики согласно <a href="/privacy" class="cookie-banner__link" target="_blank" rel="noopener noreferrer">
+        политике конфиденциальности
+      </a>.
     </p>
 
-    <!-- Панель точечных настроек -->
-    <div id="cookie-settings-panel" class="cookie-settings" style="display: none;">
+    <!-- Настройки -->
+    <div
+      id="cookie-settings-panel"
+      class="cookie-settings"
+      style="display: none;"
+    >
+
+      <!-- Технические -->
       <div class="cookie-option">
         <label class="cookie-option__label">
-          <input type="checkbox" checked disabled class="cookie-option__input" />
+
+          <input
+            type="checkbox"
+            checked
+            disabled
+            class="cookie-option__input"
+            aria-label="Обязательные технические cookie"
+          />
+
           <span class="cookie-option__info">
             <strong>Обязательные (Технические)</strong>
-            <small>Необходимы для работы сайта, бронирования и безопасности</small>
+            <small>
+              Необходимы для работы сайта, бронирования и безопасности
+            </small>
           </span>
+
         </label>
       </div>
 
+      <!-- Аналитические -->
       <div class="cookie-option">
         <label class="cookie-option__label">
-          <input type="checkbox" id="cookie-analytics-check" checked class="cookie-option__input" />
+
+          <input
+            type="checkbox"
+            id="cookie-analytics-check"
+            class="cookie-option__input"
+          />
+
           <span class="cookie-option__info">
             <strong>Аналитические</strong>
-            <small>Яндекс.Метрика для анализа посещаемости и удобства</small>
+            <small>
+              Для анализа посещаемости и удобства
+            </small>
           </span>
+
         </label>
       </div>
+
     </div>
 
     <div class="cookie-banner__actions">
-      <button type="button" class="btn btn-primary btn-xs" id="cookie-accept-all">
-        Принять все
-      </button>
-      <button type="button" class="btn btn-secondary btn-xs" id="cookie-necessary-only">
-        Только обязательные
-      </button>
-      <button type="button" class="cookie-banner__settings-toggle" id="cookie-toggle-settings">
+
+      <div class="cookie-banner__buttons-group">
+
+        <button
+          type="button"
+          class="cookie-btn cookie-btn--accept"
+          id="cookie-accept-all"
+        >
+          Принять все
+        </button>
+
+        <button
+          type="button"
+          class="cookie-btn cookie-btn--reject"
+          id="cookie-reject-all"
+        >
+          Отклонить
+        </button>
+
+        <button
+          type="button"
+          class="cookie-btn cookie-btn--save"
+          id="cookie-save-settings"
+          style="display: none;"
+        >
+          Сохранить
+        </button>
+
+      </div>
+
+      <button
+        type="button"
+        class="cookie-banner__settings-toggle"
+        id="cookie-toggle-settings"
+        aria-expanded="false"
+      >
         Настройки
       </button>
+
     </div>
+
   </div>
 </div>
 
@@ -65,259 +150,651 @@
     bottom: 16px;
     right: 16px;
     left: auto;
-    z-index: 9999;
-    max-width: 380px;
-    width: calc(100vw - 32px);
-    font-family: var(--font-family-calibri, system-ui, sans-serif);
-    animation: cookieSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  @keyframes cookieSlideUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px) scale(0.97);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+    z-index: 99999;
+    max-width: 420px;
   }
 
   .cookie-banner__card {
-    background: #ffffff;
-    border: 1px solid var(--color-border-light, #e0f0eb);
-    border-radius: var(--radius-sm, 12px);
-    box-shadow: 0 8px 30px rgba(5, 51, 43, 0.12);
-    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--color-border-light, #e0eae7);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(5, 51, 43, 0.14);
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    color: var(--color-emerald-dark, #063c32);
+    gap: 12px;
+    color: var(--color-emerald-dark, #05332b);
   }
 
   .cookie-banner__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
   }
 
   .cookie-banner__title-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
   }
 
   .cookie-banner__icon {
-    color: var(--color-orange-main, #ff6900);
+    color: var(--color-orange, #ff6900);
     flex-shrink: 0;
   }
 
   .cookie-banner__title {
-    font-size: 0.88rem;
+    font-size: 0.95rem;
     font-weight: 700;
     margin: 0;
     line-height: 1;
-    color: var(--color-emerald-dark, #063c32);
-  }
-
-  .cookie-banner__tag {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--color-orange-main, #ff6900);
-    background: var(--color-orange-light, #fff0e6);
-    padding: 1px 6px;
-    border-radius: 4px;
-    line-height: 1.2;
+    color: var(--color-emerald-dark, #05332b);
   }
 
   .cookie-banner__text {
-    font-size: 0.78rem;
-    line-height: 1.35;
-    color: var(--color-text-muted, #4a5d59);
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--color-text-muted, #4e635f);
     margin: 0;
   }
 
   .cookie-banner__link {
-    color: var(--color-emerald-dark, #063c32);
+    color: var(--color-emerald-dark, #05332b);
     text-decoration: underline;
     font-weight: 600;
   }
 
   .cookie-banner__link:hover {
-    color: var(--color-orange-main, #ff6900);
+    color: var(--color-orange, #ff6900);
   }
 
-  /* Settings panel */
   .cookie-settings {
     margin-top: 2px;
-    padding-top: 8px;
-    border-top: 1px dashed var(--color-border-light, #e0f0eb);
+    padding-top: 12px;
+    border-top: 1px dashed var(--color-border-light, #e0eae7);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
   }
 
   .cookie-option__label {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 9px;
     cursor: pointer;
   }
 
   .cookie-option__input {
-    accent-color: var(--color-emerald-dark, #063c32);
-    width: 14px;
-    height: 14px;
+    accent-color: var(--color-emerald-dark, #05332b);
+    width: 16px;
+    height: 16px;
     margin-top: 2px;
-    cursor: pointer;
     flex-shrink: 0;
+  }
+
+  .cookie-option__input:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
   }
 
   .cookie-option__info {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
   }
 
   .cookie-option__info strong {
-    font-size: 0.76rem;
-    color: var(--color-emerald-dark, #063c32);
+    font-size: 0.78rem;
+    color: var(--color-emerald-dark, #05332b);
   }
 
   .cookie-option__info small {
-    font-size: 0.7rem;
-    color: var(--color-text-muted, #4a5d59);
-    line-height: 1.2;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    color: var(--color-text-muted, #4e635f);
   }
 
-  /* Actions */
   .cookie-banner__actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
     flex-wrap: wrap;
-    padding-top: 2px;
+    gap: 10px;
+    padding-top: 4px;
   }
 
-  .btn-xs {
-    padding: 6px 11px;
-    font-size: 0.76rem;
-    font-weight: 600;
-    border-radius: var(--radius-sm, 6px);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
+  .cookie-banner__buttons-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .cookie-btn {
+    padding: 8px 15px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: 8px;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+  }
+
+  .cookie-btn--accept {
+    background-color: #f26f00;
+    color: #fff;
+    border: 1px solid #f26f00;
+  }
+
+  .cookie-btn--accept:hover {
+    background-color: #e05d00;
+    border-color: #e05d00;
+  }
+
+  .cookie-btn--reject {
+    background-color: #fff;
+    color: #3b4859;
+    border: 1px solid #dbe2ea;
+  }
+
+  .cookie-btn--reject:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+  }
+
+  .cookie-btn--save {
+    background-color: #131a26;
+    color: #fff;
+    border: 1px solid #131a26;
+  }
+
+  .cookie-btn--save:hover {
+    background-color: #212c3d;
+    border-color: #212c3d;
   }
 
   .cookie-banner__settings-toggle {
-    background: none;
-    border: none;
-    color: var(--color-text-muted, #4a5d59);
-    font-size: 0.74rem;
+    color: #4a6375;
+    font-size: 0.82rem;
     font-weight: 600;
-    cursor: pointer;
-    padding: 4px 6px;
-    text-decoration: underline;
+    padding: 4px 2px;
     margin-left: auto;
-    transition: color 0.2s;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
   }
 
   .cookie-banner__settings-toggle:hover {
-    color: var(--color-orange-main, #ff6900);
+    color: #f26f00;
   }
 
   @media (max-width: 480px) {
     .cookie-banner {
       bottom: 10px;
-      left: 10px;
       right: 10px;
-      width: calc(100vw - 20px);
+      max-width: 350px;
     }
 
-    .cookie-banner__actions {
-      flex-direction: row;
-      justify-content: flex-start;
-    }
   }
 </style>
 
 <script is:inline>
-  (function () {
-    var CONSENT_KEY = 'cookie_consent_v1';
+  (() => {
+    const CONSENT_KEY = 'cookie_consent_v2';
+    const CONSENT_VERSION = '1.0';
 
-    function initCookieBanner() {
-      var banner = document.getElementById('cookie-banner');
-      if (!banner) return;
+    // Повторно спрашиваем согласие через 180 дней.
+    const CONSENT_MAX_AGE_MS =
+      180 * 24 * 60 * 60 * 1000;
 
-      var savedConsent = localStorage.getItem(CONSENT_KEY);
-      if (!savedConsent) {
-        banner.style.display = 'block';
-      }
+    /**
+     * Получить сохранённое согласие.
+     */
+    function getStoredConsent() {
+      try {
+        const raw = localStorage.getItem(CONSENT_KEY);
 
-      var acceptAllBtn = document.getElementById('cookie-accept-all');
-      var necessaryOnlyBtn = document.getElementById('cookie-necessary-only');
-      var saveSettingsBtn = document.getElementById('cookie-save-settings');
-      var toggleSettingsBtn = document.getElementById('cookie-toggle-settings');
-      var settingsPanel = document.getElementById('cookie-settings-panel');
-      var analyticsCheck = document.getElementById('cookie-analytics-check');
-
-      function saveChoice(analyticsAllowed) {
-        var choice = {
-          technical: true,
-          analytics: !!analyticsAllowed,
-          acceptedAt: new Date().toISOString()
-        };
-        localStorage.setItem(CONSENT_KEY, JSON.stringify(choice));
-        banner.style.display = 'none';
-
-        // Генерируем событие для аналитических систем
-        window.dispatchEvent(new CustomEvent('cookieConsentUpdated', { detail: choice }));
-      }
-
-      if (acceptAllBtn) {
-        acceptAllBtn.addEventListener('click', function () {
-          saveChoice(true);
-        });
-      }
-
-      if (necessaryOnlyBtn) {
-        necessaryOnlyBtn.addEventListener('click', function () {
-          saveChoice(false);
-        });
-      }
-
-      if (saveSettingsBtn) {
-        saveSettingsBtn.addEventListener('click', function () {
-          var isAllowed = analyticsCheck ? analyticsCheck.checked : false;
-          saveChoice(isAllowed);
-        });
-      }
-
-      if (toggleSettingsBtn && settingsPanel) {
-        toggleSettingsBtn.addEventListener('click', function () {
-          var isHidden = settingsPanel.style.display === 'none';
-          settingsPanel.style.display = isHidden ? 'flex' : 'none';
-          if (saveSettingsBtn) saveSettingsBtn.style.display = isHidden ? 'inline-block' : 'none';
-          toggleSettingsBtn.textContent = isHidden ? 'Скрыть' : 'Настройки';
-        });
-      }
-
-      document.addEventListener('click', function (e) {
-        var trigger = e.target.closest('[data-open-cookie-settings]');
-        if (trigger) {
-          e.preventDefault();
-          banner.style.display = 'block';
-          if (settingsPanel) settingsPanel.style.display = 'flex';
-          if (saveSettingsBtn) saveSettingsBtn.style.display = 'inline-block';
-          if (toggleSettingsBtn) toggleSettingsBtn.textContent = 'Скрыть';
+        if (!raw) {
+          return null;
         }
+
+        const parsed = JSON.parse(raw);
+
+        if (!parsed || typeof parsed !== 'object') {
+          return null;
+        }
+
+        return parsed;
+      } catch {
+        return null;
+      }
+    }
+
+    /**
+     * Проверить, действительно ли согласие.
+     */
+    function isConsentValid(consent) {
+      if (!consent) {
+        return false;
+      }
+
+      if (consent.version !== CONSENT_VERSION) {
+        return false;
+      }
+
+      if (
+        typeof consent.createdAt !== 'number' ||
+        Number.isNaN(consent.createdAt)
+      ) {
+        return false;
+      }
+
+      if (
+        Date.now() - consent.createdAt >
+        CONSENT_MAX_AGE_MS
+      ) {
+        return false;
+      }
+
+      return true;
+    }
+
+    /**
+     * Глобальная проверка согласия.
+     *
+     * Для будущей Яндекс Метрики:
+     *
+     * window.__hasCookieConsent('analytics')
+     */
+    window.__hasCookieConsent = function (category) {
+      const consent = getStoredConsent();
+
+      if (!isConsentValid(consent)) {
+        return false;
+      }
+
+      /**
+       * Технические cookie могут использоваться
+       * только для действительно необходимых функций.
+       */
+      if (category === 'technical') {
+        return true;
+      }
+
+      /**
+       * Аналитика только после согласия.
+       */
+      if (category === 'analytics') {
+        return consent.analytics === true;
+      }
+
+      return false;
+    };
+
+    /**
+     * Получить текущее согласие.
+     */
+    window.__getCookieConsent = function () {
+      const consent = getStoredConsent();
+
+      if (!isConsentValid(consent)) {
+        return null;
+      }
+
+      return consent;
+    };
+
+    /**
+     * Очистить аналитические cookie при отказе
+    */
+    function clearAnalyticsCookies() {
+      const cookiesToClear = ['_ga', '_gid', '_ym_uid', '_ym_d', '_ym_isad', '_ym_visorc'];
+
+      const hostname = window.location.hostname;
+      const mainDomain = hostname.replace(/^www\./, '');
+      
+      const domains = [
+        hostname,
+        '.' + hostname,
+        '.' + mainDomain
+      ];
+
+      cookiesToClear.forEach((name) => {
+        domains.forEach((domain) => {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain}`;
+        });
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
       });
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initCookieBanner);
+    /**
+     * Сохранить выбор пользователя.
+     */
+    function saveConsent(analytics, status) {
+      const isAnalyticsAllowed = Boolean(analytics);
+      const consent = {
+        version: CONSENT_VERSION,
+
+        // Технические функции сайта.
+        technical: true,
+
+        // Аналитика.
+        analytics: Boolean(analytics),
+
+        // accepted / rejected / custom
+        status,
+
+        // Для доказательства момента выбора
+        // на стороне клиента.
+        createdAt: Date.now(),
+        acceptedAt: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem(
+          CONSENT_KEY,
+          JSON.stringify(consent)
+        );
+      } catch {
+        /*
+         * Если localStorage недоступен,
+         * необязательное согласие не считаем полученным.
+         */
+      }
+      // Очищаем куки, если аналитика отключена
+        if (!isAnalyticsAllowed) {
+          clearAnalyticsCookies();
+        }
+
+      window.dispatchEvent(
+        new CustomEvent('cookieConsentUpdated', {
+          detail: consent
+        })
+      );
+    }
+
+    /**
+     * Показать баннер.
+     */
+    function showBanner(openSettings = false) {
+      const banner =
+        document.getElementById('cookie-banner');
+
+      const settingsPanel =
+        document.getElementById(
+          'cookie-settings-panel'
+        );
+
+      const saveSettingsBtn =
+        document.getElementById(
+          'cookie-save-settings'
+        );
+
+      const toggleSettingsBtn =
+        document.getElementById(
+          'cookie-toggle-settings'
+        );
+
+      if (!banner) {
+        return;
+      }
+
+      banner.style.display = 'block';
+
+      if (openSettings && settingsPanel) {
+        settingsPanel.style.display = 'flex';
+
+        if (saveSettingsBtn) {
+          saveSettingsBtn.style.display =
+            'inline-flex';
+        }
+
+        if (toggleSettingsBtn) {
+          toggleSettingsBtn.textContent = 'Скрыть';
+          toggleSettingsBtn.setAttribute(
+            'aria-expanded',
+            'true'
+          );
+        }
+      }
+    }
+
+    /**
+     * Скрыть баннер.
+     */
+    function hideBanner() {
+      const banner =
+        document.getElementById('cookie-banner');
+
+      if (banner) {
+        banner.style.display = 'none';
+      }
+    }
+
+    /**
+     * Синхронизировать checkbox с сохранённым выбором.
+     */
+    function syncSettings() {
+      const analyticsCheck =
+        document.getElementById(
+          'cookie-analytics-check'
+        );
+
+      const consent = getStoredConsent();
+
+      if (!analyticsCheck) {
+        return;
+      }
+
+      analyticsCheck.checked =
+        isConsentValid(consent) &&
+        consent.analytics === true;
+    }
+
+    /**
+     * Инициализация.
+     */
+    function initCookieBanner() {
+      const banner =
+        document.getElementById('cookie-banner');
+
+      if (!banner) {
+        return;
+      }
+
+      const settingsPanel =
+        document.getElementById(
+          'cookie-settings-panel'
+        );
+
+      const acceptAllBtn =
+        document.getElementById(
+          'cookie-accept-all'
+        );
+
+      const rejectAllBtn =
+        document.getElementById(
+          'cookie-reject-all'
+        );
+
+      const saveSettingsBtn =
+        document.getElementById(
+          'cookie-save-settings'
+        );
+
+      const toggleSettingsBtn =
+        document.getElementById(
+          'cookie-toggle-settings'
+        );
+
+      const analyticsCheck =
+        document.getElementById(
+          'cookie-analytics-check'
+        );
+
+      const savedConsent = getStoredConsent();
+
+      /**
+       * Нет согласия или срок истёк —
+       * показываем баннер.
+       */
+      if (!isConsentValid(savedConsent)) {
+        syncSettings();
+        showBanner(false);
+      } else {
+        /**
+         * Согласие ещё действительно.
+         * Передаём его остальному приложению.
+         */
+        window.dispatchEvent(
+          new CustomEvent(
+            'cookieConsentUpdated',
+            {
+              detail: savedConsent
+            }
+          )
+        );
+      }
+
+      /**
+       * Принять всё.
+       */
+      if (acceptAllBtn) {
+        acceptAllBtn.addEventListener(
+          'click',
+          () => {
+            saveConsent(
+              true,
+              'accepted'
+            );
+
+            hideBanner();
+          }
+        );
+      }
+
+      /**
+       * Отклонить аналитику.
+       */
+      if (rejectAllBtn) {
+        rejectAllBtn.addEventListener(
+          'click',
+          () => {
+            saveConsent(
+              false,
+              'rejected'
+            );
+
+            hideBanner();
+          }
+        );
+      }
+
+      /**
+       * Сохранить настройки.
+       */
+      if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener(
+          'click',
+          () => {
+            const analyticsAllowed =
+              analyticsCheck
+                ? analyticsCheck.checked
+                : false;
+
+            saveConsent(
+              analyticsAllowed,
+              'custom'
+            );
+
+            hideBanner();
+          }
+        );
+      }
+
+      /**
+       * Открыть / скрыть настройки.
+       */
+      if (
+        toggleSettingsBtn &&
+        settingsPanel
+      ) {
+        toggleSettingsBtn.addEventListener(
+          'click',
+          () => {
+            const isHidden =
+              settingsPanel.style.display ===
+              'none';
+
+            settingsPanel.style.display =
+              isHidden
+                ? 'flex'
+                : 'none';
+
+            if (saveSettingsBtn) {
+              saveSettingsBtn.style.display =
+                isHidden
+                  ? 'inline-flex'
+                  : 'none';
+            }
+
+            toggleSettingsBtn.textContent =
+              isHidden
+                ? 'Скрыть'
+                : 'Настройки';
+
+            toggleSettingsBtn.setAttribute(
+              'aria-expanded',
+              String(isHidden)
+            );
+          }
+        );
+      }
+
+      /**
+       * Настройки Cookie из footer.
+       */
+      document.addEventListener(
+        'click',
+        (event) => {
+          const target = event.target;
+
+          if (!(target instanceof Element)) {
+            return;
+          }
+
+          const trigger =
+            target.closest(
+              '[data-open-cookie-settings]'
+            );
+
+          if (!trigger) {
+            return;
+          }
+
+          event.preventDefault();
+
+          syncSettings();
+          showBanner(true);
+        }
+      );
+    }
+
+    if (
+      document.readyState ===
+      'loading'
+    ) {
+      document.addEventListener(
+        'DOMContentLoaded',
+        initCookieBanner,
+        { once: true }
+      );
     } else {
       initCookieBanner();
     }

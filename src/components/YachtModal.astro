@@ -1,5 +1,6 @@
 ---
-import type { Yacht, Country } from '../lib/sheets';
+import type { Yacht, Country, MediaItem } from '../lib/sheets';
+import { parseAllMedia } from '../lib/sheets';
 
 interface Props {
   yacht: Yacht;
@@ -17,33 +18,20 @@ const DEFAULT_FALLBACKS: string[] = [
   'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80'
 ];
 
-function cleanImageUrl(url: string): string {
-  if (!url || typeof url !== 'string') return '';
-  const trimmed = url.trim();
-  if (!trimmed) return '';
-  if (trimmed.includes('/folders/') || trimmed.includes('/drive/folders/') || trimmed.includes('disk.yandex') || trimmed.includes('.html')) {
-    return '';
-  }
-  const driveMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || 
-                     trimmed.match(/lh3\.google\.com\/u\/\d+\/d\/([a-zA-Z0-9_-]+)/) ||
-                     trimmed.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/) ||
-                     trimmed.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
-                     trimmed.match(/drive\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/);
-  if (driveMatch && driveMatch[1]) {
-    return `https://lh3.googleusercontent.com/d/${driveMatch[1]}=w1200`;
-  }
-  return trimmed;
-}
+const parsedMedia: MediaItem[] = parseAllMedia(yacht.images || []);
 
-const rawImages: string[] = (yacht.images && Array.isArray(yacht.images) ? yacht.images : [])
-  .map(cleanImageUrl)
-  .filter((img: string) => typeof img === 'string' && img.trim().length > 0);
+const modalMedia: MediaItem[] = parsedMedia.length > 0 
+  ? parsedMedia 
+  : [{
+      type: 'image',
+      url: DEFAULT_FALLBACKS[0],
+      thumbnail: DEFAULT_FALLBACKS[0],
+      isVideo: false,
+    }];
 
-let modalImages: string[] = rawImages.length > 0 ? rawImages : [DEFAULT_FALLBACKS[0]];
-
-const hasMultipleImages = modalImages.length > 1;
-const L = modalImages.length;
-const displayImages = hasMultipleImages ? [...modalImages, ...modalImages, ...modalImages] : [...modalImages];
+const hasMultipleImages = modalMedia.length > 1;
+const L = modalMedia.length;
+const displayMedia = hasMultipleImages ? [...modalMedia, ...modalMedia, ...modalMedia] : [...modalMedia];
 
 // Prepare safety fallbacks for nested stats
 const buildYear = yacht.specs?.year || '—';
@@ -70,25 +58,55 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
         <h2 class="modal-title">{yacht.name}</h2>
       </div>
   
-      <!-- Галерея со слайдером -->
+      <!-- Галерея со слайдером и видеоплеером -->
       <div class="gallery-section">
         <div class="main-photo-wrap">
           <div class="yacht-slider-container">
             <div
               class="yacht-slider-track"
               data-length={L}
-              data-count={modalImages.length}
+              data-count={modalMedia.length}
             >
-              {displayImages.map((img: string, idx: number) => (
-                <div class="yacht-slide">
-                  <img
-                    src={img}
-                    alt={`${yacht.name} ${idx + 1}`}
-                    class="modal-main-image"
-                    draggable="false"
-                    referrerpolicy="no-referrer"
-                    data-fallback-images={JSON.stringify(DEFAULT_FALLBACKS)}
-                  />
+              {displayMedia.map((item: MediaItem, idx: number) => (
+                <div
+                  class="yacht-slide"
+                  data-is-video={item.isVideo ? 'true' : 'false'}
+                  data-media-url={item.url}
+                >
+                  {item.type === 'image' && (
+                    <img
+                      src={item.url}
+                      alt={`${yacht.name} ${idx + 1}`}
+                      class="modal-main-image"
+                      data-media-url={item.url}
+                      loading={idx === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      draggable="false"
+                      referrerpolicy="no-referrer"
+                    />
+                  )}
+                  {item.type === 'video' && (
+                    <div class="modal-video-wrapper">
+                      <video
+                        src={item.url}
+                        class="modal-video-element"
+                        controls
+                        playsinline
+                        preload="metadata"
+                      ></video>
+                    </div>
+                  )}
+                  {(item.type === 'youtube' || item.type === 'rutube' || item.type === 'vimeo' || item.type === 'vk') && (
+                    <div class="modal-video-wrapper">
+                      <iframe
+                        src={item.embedUrl}
+                        class="modal-video-iframe"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        loading="lazy"
+                      ></iframe>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -122,7 +140,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
                 </svg>
               </button>
               <div class="slide-counter">
-                <span class="curr-idx">1</span> / <span class="total-count">{modalImages.length}</span>
+                <span class="curr-idx">1</span> / <span class="total-count">{modalMedia.length}</span>
               </div>
             </>
           )}
@@ -130,14 +148,35 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
   
         {hasMultipleImages && (
           <div class="modal-thumbnails">
-            {modalImages.map((img: string, idx: number) => (
+            {modalMedia.map((item: MediaItem, idx: number) => (
               <button
                 type="button"
-                class={`thumb-btn ${idx === 0 ? 'active' : ''}`}
-                data-thumb-src={img}
+                class={`thumb-btn ${idx === 0 ? 'active' : ''} ${item.isVideo ? 'thumb-video' : ''}`}
                 data-index={idx}
+                data-media-url={item.url}
+                title={item.isVideo ? `Видео: ${yacht.name}` : `Фото ${idx + 1}`}
               >
-                <img src={img} alt={`${yacht.name} ${idx + 1}`} referrerpolicy="no-referrer" />
+                {item.thumbnail ? (
+                  <img
+                    src={item.thumbnail}
+                    alt={`${yacht.name} ${idx + 1}`}
+                    data-media-url={item.url}
+                    referrerpolicy="no-referrer"
+                  />
+                ) : (
+                  <div class="thumb-video-placeholder">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                  </div>
+                )}
+                {item.isVideo && (
+                  <span class="thumb-play-icon" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -322,69 +361,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
           </div>
         )}
   
-        <!-- Карточка 5: Скачать все фото -->
-        <div class="accordion-card">
-          <button type="button" class="accordion-header">
-            <div class="acc-header-left">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="acc-icon" style="color: var(--color-orange-main, #ff6900);">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <h3>Скачать все фото яхты</h3>
-            </div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="acc-arrow">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-          <div class="accordion-body-wrapper">
-            <div class="accordion-body-inner">
-              <div class="accordion-body">
-                <div class="download-photos-banner">
-                  <div class="download-banner-content">
-                    <p class="download-description">
-                      Вы можете скачать полную подборку фотографий яхты <strong>{yacht.name}</strong>
-                    </p>
-                    
-                    {yacht.driveFolderUrl ? (
-                      <a
-                        href={yacht.driveFolderUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="download-action-btn"
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="7 10 12 15 17 10"></polyline>
-                          <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Скачать фото
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;">
-                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                          <polyline points="15 3 21 3 21 9"></polyline>
-                          <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                      </a>
-                    ) : (
-                      <button
-                        type="button"
-                        class="download-action-btn modal-book-btn-direct"
-                        data-book-yacht={yacht.name}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="7 10 12 15 17 10"></polyline>
-                          <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Запросить фото у менеджера
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+
   
       </div>
   
@@ -402,7 +379,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
   </div>
 </div>
 
-<style>
+<style is:global>
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -515,6 +492,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     overflow: hidden;
     position: relative;
     cursor: grab;
+    touch-action: pan-y;
   }
 
   .yacht-slider-container:active {
@@ -535,6 +513,10 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     height: 100%;
     box-sizing: border-box;
     overflow: hidden;
+    background-color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .modal-main-image {
@@ -545,6 +527,31 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
+  }
+
+  .modal-video-wrapper {
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .modal-video-element {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    background-color: #000000;
+  }
+
+  .modal-video-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: #000000;
   }
 
   .autoplay-btn {
@@ -661,8 +668,9 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     opacity: 0.6;
     transition: var(--transition-smooth, all 0.3s ease);
     padding: 0;
-    background: none;
+    background: #063c32;
     flex-shrink: 0;
+    position: relative;
   }
 
   .thumb-btn.active {
@@ -674,6 +682,32 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+  }
+
+  .thumb-video-placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: #063c32;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .thumb-play-icon {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 105, 0, 0.95);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   }
 
   /* Accordions */
@@ -906,20 +940,8 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     if (!container || !trackEl) return null;
 
     const track = trackEl;
-    const L = parseInt(track.getAttribute('data-length') || '1', 10);
-    const count = parseInt(track.getAttribute('data-count') || '1', 10);
-
-    if (count <= 1) {
-      track.style.transform = 'none';
-      return {
-        reset: () => {},
-        next: () => {},
-        prev: () => {},
-        goTo: (_i: number) => {},
-        stopAutoplay: () => {},
-        toggleAutoplay: () => {}
-      };
-    }
+    let L = parseInt(track.getAttribute('data-length') || '1', 10);
+    let count = parseInt(track.getAttribute('data-count') || '1', 10);
 
     let currentIndex = L;
     let isTransitioning = false;
@@ -937,6 +959,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     }
 
     function updateUI() {
+      if (count <= 1) return;
       const realIdx = ((currentIndex % count) + count) % count;
       const currIdxLabel = modal.querySelector('.curr-idx');
       if (currIdxLabel) currIdxLabel.textContent = String(realIdx + 1);
@@ -952,40 +975,49 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       });
     }
 
-    function moveSlider(animate = true) {
-      if (animate) {
-        track.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
-        isTransitioning = true;
-      } else {
-        track.style.transition = 'none';
-        isTransitioning = false;
-      }
-      track.style.transform = `translate3d(${-currentIndex * 100}%, 0, 0)`;
-      updateUI();
+    function pauseAllMedia(scope: HTMLElement) {
+      const videos = scope.querySelectorAll('video');
+      videos.forEach((v) => {
+        try {
+          if (!v.paused) v.pause();
+        } catch (err) {}
+      });
+
+      const iframes = scope.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        try {
+          iframe.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        } catch (err) {}
+      });
     }
 
-    function handleNext() {
-      if (isTransitioning) return;
-      currentIndex++;
-      moveSlider(true);
+    const TRANSITION_MS = 250;
+    let transitionTimer: number | null = null;
+    let lastNavTime = 0;
+
+    function preloadAdjacentMedia() {
+      if (count <= 1) return;
+      const slides = track.querySelectorAll('.yacht-slide');
+      // Preload current, previous, and next 2 slides
+      const offsets = [0, 1, -1, 2];
+      offsets.forEach((offset) => {
+        const targetIdx = currentIndex + offset;
+        if (targetIdx >= 0 && targetIdx < slides.length) {
+          const img = slides[targetIdx].querySelector('img.modal-main-image') as HTMLImageElement | null;
+          if (img && img.src) {
+            img.loading = 'eager';
+            if (!img.complete) {
+              const preloader = new Image();
+              preloader.referrerPolicy = 'no-referrer';
+              preloader.src = img.src;
+            }
+          }
+        }
+      });
     }
 
-    function handlePrev() {
-      if (isTransitioning) return;
-      currentIndex--;
-      moveSlider(true);
-    }
-
-    function goToRealIndex(targetRealIdx: number) {
-      if (isTransitioning) return;
-      const currentRealIdx = ((currentIndex % count) + count) % count;
-      const diff = targetRealIdx - currentRealIdx;
-      currentIndex += diff;
-      moveSlider(true);
-    }
-
-    track.addEventListener('transitionend', () => {
-      isTransitioning = false;
+    function checkLoopReset() {
+      if (count <= 1) return;
       if (currentIndex >= 2 * L) {
         currentIndex = currentIndex - L;
         track.style.transition = 'none';
@@ -994,6 +1026,75 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
         currentIndex = currentIndex + L;
         track.style.transition = 'none';
         track.style.transform = `translate3d(${-currentIndex * 100}%, 0, 0)`;
+      }
+    }
+
+    function finishTransition() {
+      if (transitionTimer !== null) {
+        clearTimeout(transitionTimer);
+        transitionTimer = null;
+      }
+      isTransitioning = false;
+      checkLoopReset();
+    }
+
+    function moveSlider(animate = true) {
+      pauseAllMedia(modal);
+      if (transitionTimer !== null) {
+        clearTimeout(transitionTimer);
+        transitionTimer = null;
+      }
+
+      if (count <= 1) {
+        track.style.transition = 'none';
+        track.style.transform = 'none';
+        isTransitioning = false;
+        return;
+      }
+
+      if (animate) {
+        track.style.transition = `transform ${TRANSITION_MS}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+        isTransitioning = true;
+        transitionTimer = window.setTimeout(finishTransition, TRANSITION_MS + 25);
+      } else {
+        track.style.transition = 'none';
+        isTransitioning = false;
+      }
+      track.style.transform = `translate3d(${-currentIndex * 100}%, 0, 0)`;
+      updateUI();
+      preloadAdjacentMedia();
+    }
+
+    function handleNext() {
+      if (count <= 1) return;
+      const now = Date.now();
+      if (now - lastNavTime < 100) return;
+      lastNavTime = now;
+      currentIndex++;
+      moveSlider(true);
+    }
+
+    function handlePrev() {
+      if (count <= 1) return;
+      const now = Date.now();
+      if (now - lastNavTime < 100) return;
+      lastNavTime = now;
+      currentIndex--;
+      moveSlider(true);
+    }
+
+    function goToRealIndex(targetRealIdx: number) {
+      if (count <= 1) return;
+      const currentRealIdx = ((currentIndex % count) + count) % count;
+      if (targetRealIdx === currentRealIdx) return;
+      const diff = targetRealIdx - currentRealIdx;
+      currentIndex += diff;
+      moveSlider(true);
+    }
+
+    track.addEventListener('transitionend', (e) => {
+      if (e.target === track) {
+        finishTransition();
       }
     });
 
@@ -1011,6 +1112,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     }
 
     function startAutoplay() {
+      if (count <= 1) return;
       stopAutoplay();
       const btn = modal.querySelector('[data-autoplay-btn]') as HTMLElement;
       if (btn) {
@@ -1030,15 +1132,34 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       }
     }
 
+    // Stop autoplay when user manually plays a video
+    const videoElements = modal.querySelectorAll('video');
+    videoElements.forEach((vid) => {
+      vid.addEventListener('play', () => {
+        stopAutoplay();
+      });
+    });
+
     // Touch & Mouse Dragging
     let startX = 0;
     let currentDragX = 0;
     let isDragging = false;
 
     function onPointerDown(e: MouseEvent | TouchEvent) {
-      if (isTransitioning) return;
+      if (count <= 1) return;
       const target = e.target as HTMLElement;
-      if (target.closest('.slider-nav') || target.closest('.slide-counter') || target.closest('[data-autoplay-btn]')) return;
+      if (
+        target.closest('.slider-nav') || 
+        target.closest('.slide-counter') || 
+        target.closest('[data-autoplay-btn]') ||
+        target.closest('video') ||
+        target.closest('iframe') ||
+        target.closest('.modal-video-wrapper')
+      ) return;
+
+      if (isTransitioning) {
+        finishTransition();
+      }
 
       isDragging = true;
       startX = 'touches' in e ? e.touches[0].clientX : e.clientX;
@@ -1047,7 +1168,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     }
 
     function onPointerMove(e: MouseEvent | TouchEvent) {
-      if (!isDragging) return;
+      if (!isDragging || count <= 1) return;
       currentDragX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const deltaX = currentDragX - startX;
       const slideW = getSlideWidth() || 1;
@@ -1057,12 +1178,12 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     }
 
     function onPointerUp() {
-      if (!isDragging) return;
+      if (!isDragging || count <= 1) return;
       isDragging = false;
       const deltaX = currentDragX - startX;
-      if (deltaX < -40) {
+      if (deltaX < -30) {
         currentIndex++;
-      } else if (deltaX > 40) {
+      } else if (deltaX > 30) {
         currentIndex--;
       }
       moveSlider(true);
@@ -1076,9 +1197,69 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     container.addEventListener('touchmove', onPointerMove, { passive: true });
     container.addEventListener('touchend', onPointerUp);
 
+    function syncMedia() {
+      const remainingThumbs = modal.querySelectorAll<HTMLElement>('.thumb-btn');
+      const remainingSlides = modal.querySelectorAll<HTMLElement>('.yacht-slide');
+
+      const newCount = remainingThumbs.length > 0 ? remainingThumbs.length : Math.max(1, remainingSlides.length);
+      count = newCount;
+      L = count;
+      track.setAttribute('data-length', String(L));
+      track.setAttribute('data-count', String(count));
+
+      // Re-index remaining thumbnails
+      remainingThumbs.forEach((thumb, idx) => {
+        thumb.setAttribute('data-index', String(idx));
+      });
+
+      const totalCountEl = modal.querySelector('.total-count');
+      if (totalCountEl) totalCountEl.textContent = String(count);
+
+      if (count <= 1) {
+        stopAutoplay();
+        modal.querySelectorAll<HTMLElement>('.slider-nav').forEach((btn) => {
+          btn.style.display = 'none';
+        });
+        const counter = modal.querySelector<HTMLElement>('.slide-counter');
+        if (counter) counter.style.display = 'none';
+        const autoBtn = modal.querySelector<HTMLElement>('[data-autoplay-btn]');
+        if (autoBtn) autoBtn.style.display = 'none';
+        const thumbsWrap = modal.querySelector<HTMLElement>('.modal-thumbnails');
+        if (thumbsWrap) thumbsWrap.style.display = 'none';
+
+        currentIndex = 0;
+        track.style.transition = 'none';
+        track.style.transform = 'none';
+        return;
+      }
+
+      // Ensure controls are visible when count > 1
+      modal.querySelectorAll<HTMLElement>('.slider-nav').forEach((btn) => {
+        btn.style.display = '';
+      });
+      const counter = modal.querySelector<HTMLElement>('.slide-counter');
+      if (counter) counter.style.display = '';
+      const autoBtn = modal.querySelector<HTMLElement>('[data-autoplay-btn]');
+      if (autoBtn) autoBtn.style.display = '';
+      const thumbsWrap = modal.querySelector<HTMLElement>('.modal-thumbnails');
+      if (thumbsWrap) thumbsWrap.style.display = '';
+
+      // Keep user on valid slide
+      const realIdx = ((currentIndex % count) + count) % count;
+      currentIndex = L + realIdx;
+      track.style.transition = 'none';
+      track.style.transform = `translate3d(${-currentIndex * 100}%, 0, 0)`;
+      updateUI();
+      preloadAdjacentMedia();
+    }
+
     // Initial positioning
-    currentIndex = L;
-    moveSlider(false);
+    if (count <= 1) {
+      syncMedia();
+    } else {
+      currentIndex = L;
+      moveSlider(false);
+    }
 
     window.addEventListener('resize', () => {
       moveSlider(false);
@@ -1087,31 +1268,133 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
     return {
       reset: () => {
         stopAutoplay();
-        currentIndex = L;
-        moveSlider(false);
+        pauseAllMedia(modal);
+        if (count > 1) {
+          currentIndex = L;
+          moveSlider(false);
+        } else {
+          track.style.transition = 'none';
+          track.style.transform = 'none';
+        }
       },
       next: handleNext,
       prev: handlePrev,
       goTo: goToRealIndex,
       stopAutoplay,
-      toggleAutoplay
+      toggleAutoplay,
+      pauseMedia: () => pauseAllMedia(modal),
+      syncMedia
     };
   }
 
   function initYachtModals() {
     const slidersMap = new Map<HTMLElement, ReturnType<typeof setupModalSlider>>();
+    const removedMediaByModal = new WeakMap<HTMLElement, Set<string>>();
+
+    function removeFailedMedia(modal: HTMLElement, failedUrl: string) {
+      if (!modal || !failedUrl) return;
+
+      let removedSet = removedMediaByModal.get(modal);
+      if (!removedSet) {
+        removedSet = new Set<string>();
+        removedMediaByModal.set(modal, removedSet);
+      }
+
+      const cleanUrl = failedUrl.trim();
+      if (removedSet.has(cleanUrl)) return;
+      removedSet.add(cleanUrl);
+
+      // If this media item is a video, only the preview thumbnail failed; keep video slide intact
+      const isVideoItem = modal.querySelector(`.yacht-slide[data-media-url="${cleanUrl}"][data-is-video="true"]`);
+      if (isVideoItem) {
+        const thumbBtn = modal.querySelector(`.thumb-btn[data-media-url="${cleanUrl}"]`);
+        if (thumbBtn) {
+          const img = thumbBtn.querySelector('img');
+          if (img) img.remove();
+          if (!thumbBtn.querySelector('.thumb-video-placeholder')) {
+            const ph = document.createElement('div');
+            ph.className = 'thumb-video-placeholder';
+            ph.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+            thumbBtn.prepend(ph);
+          }
+        }
+        return;
+      }
+
+      const isUrlMatch = (attrUrl: string | null | undefined, elSrc?: string | null) => {
+        if (!attrUrl && !elSrc) return false;
+        const candidates = [attrUrl, elSrc].filter(Boolean) as string[];
+        return candidates.some((u) => u === cleanUrl || cleanUrl.includes(u) || u.includes(cleanUrl));
+      };
+
+      // Remove all matching slides from the track
+      const slidesToRemove: HTMLElement[] = [];
+      modal.querySelectorAll<HTMLElement>('.yacht-slide').forEach((slide) => {
+        const slideUrl = slide.getAttribute('data-media-url');
+        const img = slide.querySelector<HTMLImageElement>('img.modal-main-image');
+        if (isUrlMatch(slideUrl, img?.src) || (img && isUrlMatch(img.getAttribute('data-media-url'), img.src))) {
+          slidesToRemove.push(slide);
+        }
+      });
+
+      // Remove matching thumbnail
+      const thumbsToRemove: HTMLElement[] = [];
+      modal.querySelectorAll<HTMLElement>('.thumb-btn').forEach((thumb) => {
+        const thumbUrl = thumb.getAttribute('data-media-url');
+        const img = thumb.querySelector<HTMLImageElement>('img');
+        if (isUrlMatch(thumbUrl, img?.src) || (img && isUrlMatch(img.getAttribute('data-media-url'), img.src))) {
+          thumbsToRemove.push(thumb);
+        }
+      });
+
+      slidesToRemove.forEach((s) => s.remove());
+      thumbsToRemove.forEach((t) => t.remove());
+
+      // If all slides were removed
+      const remainingSlides = modal.querySelectorAll<HTMLElement>('.yacht-slide');
+      if (remainingSlides.length === 0) {
+        const track = modal.querySelector<HTMLElement>('.yacht-slider-track');
+        if (track) {
+          track.innerHTML = `
+            <div class="yacht-slide" style="display:flex;align-items:center;justify-content:center;min-height:300px;background:#f8fafc;color:#94a3b8;font-size:14px;">
+              <span>Изображение временно недоступно</span>
+            </div>
+          `;
+        }
+      }
+
+      // Sync slider state immediately
+      const slider = slidersMap.get(modal);
+      if (slider && typeof slider.syncMedia === 'function') {
+        slider.syncMedia();
+      }
+    }
+
+    function checkAndRemoveFailedImages(modal: HTMLElement) {
+      const images = modal.querySelectorAll<HTMLImageElement>('.modal-main-image, .thumb-btn img');
+      images.forEach((img) => {
+        if (img.complete && img.naturalWidth === 0 && img.src) {
+          const mediaUrl = img.getAttribute('data-media-url') || img.closest('[data-media-url]')?.getAttribute('data-media-url') || img.src;
+          removeFailedMedia(modal, mediaUrl);
+        }
+      });
+    }
 
     // Initialize all modals on page
     const modals = document.querySelectorAll('.modal-overlay');
     modals.forEach((m) => {
       const modal = m as HTMLElement;
+      checkAndRemoveFailedImages(modal);
       const slider = setupModalSlider(modal);
       if (slider) slidersMap.set(modal, slider);
     });
 
     function closeModal(modal: HTMLElement) {
       const slider = slidersMap.get(modal);
-      if (slider) slider.stopAutoplay();
+      if (slider) {
+        slider.stopAutoplay();
+        slider.pauseMedia();
+      }
 
       modal.style.display = 'none';
       modal.classList.remove('is-active');
@@ -1137,13 +1420,31 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
 
       const modal = document.getElementById(`yacht-modal-${yachtId}`) as HTMLElement;
       if (modal) {
+        checkAndRemoveFailedImages(modal);
         modal.style.display = 'flex';
         modal.classList.add('is-active');
         document.body.style.overflow = 'hidden';
 
-        const slider = slidersMap.get(modal);
+        let slider = slidersMap.get(modal);
+        if (!slider) {
+          slider = setupModalSlider(modal);
+          if (slider) slidersMap.set(modal, slider);
+        }
         if (slider) {
+          slider.syncMedia();
           slider.reset();
+        }
+      }
+    });
+
+    window.addEventListener('initDynamicModal', (e: any) => {
+      const modalId = e.detail?.modalId;
+      if (modalId) {
+        const modal = document.getElementById(modalId) as HTMLElement;
+        if (modal && !slidersMap.has(modal)) {
+          checkAndRemoveFailedImages(modal);
+          const slider = setupModalSlider(modal);
+          if (slider) slidersMap.set(modal, slider);
         }
       }
     });
@@ -1277,21 +1578,23 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
       }
     });
 
-    // Image fallback recovery
+    // Image error handling: try Google Drive format conversion if applicable; otherwise completely remove failed media item
     document.addEventListener('error', (e) => {
       const target = e.target as HTMLImageElement;
       if (!target || target.tagName !== 'IMG') return;
 
       const currentSrc = target.src || '';
 
-      if (currentSrc.includes('lh3.googleusercontent.com/d/')) {
+      if (currentSrc.includes('lh3.googleusercontent.com/d/') && !target.dataset.triedThumbnail) {
+        target.dataset.triedThumbnail = 'true';
         const fileId = currentSrc.split('lh3.googleusercontent.com/d/')[1]?.split('=')[0];
         if (fileId) {
           target.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`;
           return;
         }
       }
-      if (currentSrc.includes('drive.google.com/thumbnail')) {
+      if (currentSrc.includes('drive.google.com/thumbnail') && !target.dataset.triedUc) {
+        target.dataset.triedUc = 'true';
         const match = currentSrc.match(/id=([a-zA-Z0-9_-]+)/);
         if (match && match[1]) {
           target.src = `https://drive.google.com/uc?export=view&id=${match[1]}`;
@@ -1299,16 +1602,11 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
         }
       }
 
-      if (target.classList.contains('modal-main-image')) {
-        const fallbacksAttr = target.getAttribute('data-fallback-images');
-        if (fallbacksAttr) {
-          try {
-            const fallbacks = JSON.parse(fallbacksAttr);
-            target.src = fallbacks[0];
-          } catch (err) {
-            target.src = 'https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1200&q=80';
-          }
-        }
+      // If still failing, completely remove this broken media item from the modal gallery!
+      const modal = target.closest('.modal-overlay') as HTMLElement;
+      if (modal) {
+        const mediaUrl = target.getAttribute('data-media-url') || target.closest('[data-media-url]')?.getAttribute('data-media-url') || currentSrc;
+        removeFailedMedia(modal, mediaUrl);
       }
     }, true);
   }

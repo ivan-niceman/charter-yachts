@@ -9,6 +9,6 @@ Disallow: /
 # Disallow: /private/
 
 # Указываем расположение sitemap (Astro генерирует его автоматически при использовании @astrojs/sitemap)
-# Sitemap: https://ваш-домен.com/sitemap-index.xml
+# Sitemap: https://charter-yachts.ru/sitemap-index.xml
 # Sitemap: https://xn----7sbd4boodkbk1j.xn--p1ai/sitemap-index.xml
 # абсолют-тур.рф

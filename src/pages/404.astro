@@ -2,15 +2,12 @@
 export const prerender = true;
 
 import Layout from '../layouts/Layout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
 ---
 
 <Layout 
   title="404 — Страница не найдена | Абсолют-тур" 
   description="Запрошенная страница не найдена на сайте Абсолют-тур. Перейдите на главную страницу или изучите каталог яхт."
 >
-  <Header />
   <main class="page-404">
     <section class="not-found">
       <div class="container not-found__container">
@@ -68,7 +65,6 @@ import Footer from '../components/Footer.astro';
       </div>
     </section>
   </main>
-  <Footer />
 </Layout>
 
 <style>

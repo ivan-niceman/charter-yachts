@@ -2,7 +2,6 @@
 export const prerender = true;
 
 import Layout from '../layouts/Layout.astro';
-import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
 import Destinations from '../components/Destinations.astro';
 import YachtCatalog from '../components/YachtCatalog.astro';
@@ -11,25 +10,25 @@ import Reviews from '../components/Reviews.astro';
 import FAQ from '../components/FAQ.astro';
 import Contacts from '../components/Contacts.astro';
 import BookingForm from '../components/BookingForm.astro';
-import Footer from '../components/Footer.astro';
 
 import { fetchInitialDataServerSide } from '../lib/sheets';
 
-const { countries, yachts, reviews } = await fetchInitialDataServerSide();
-
+const data = await fetchInitialDataServerSide();
+const countries = data.countries;
+const yachts = data.yachts;
+const reviews = data.reviews;
+const heroSlides = data.heroSlides;
 ---
 
 <Layout title="Абсолют-тур — Премиальные Дайвинг-Туры и Фрахт Яхт" description="Агентство ООО «Абсолют-тур» по организации премиальных путешествий на яхтах и дайвинг-сафари по всему миру.">
-  <Header />
   <main>
-    <Hero />
+    <Hero slides={heroSlides} />
     <Destinations countries={countries} />
     <YachtCatalog yachts={yachts} countries={countries} />
     <AboutUs />
     <Reviews reviews={reviews} />
     <FAQ />
-    <BookingForm />
     <Contacts />
+    <BookingForm />
   </main>
-  <Footer />
 </Layout>

@@ -74,6 +74,136 @@ const { yachts, countries } = Astro.props;
       })}
     </div>
 
+    <script is:inline>
+      (function() {
+        try {
+          var cachedTabs = localStorage.getItem('yacht_active_tabs_cache');
+          if (cachedTabs) {
+            var payload = JSON.parse(cachedTabs);
+            if (payload && payload.activeNames && payload.activeNames.length > 0) {
+              var allowed = {};
+              payload.activeNames.forEach(function(n) {
+                var clean = (n || '').toLowerCase().replace(/[\u{1F300}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]+/gu, '').replace(/[^a-zа-яё0-9]/gi, '').trim();
+                allowed[n.toLowerCase().trim()] = true;
+                allowed[clean] = true;
+              });
+
+              var grid = document.getElementById('yachts-grid');
+              if (grid) {
+                var ycards = Array.from(grid.querySelectorAll('.yacht-card'));
+                ycards.forEach(function(card) {
+                  var cId = (card.getAttribute('data-country-id') || '').toLowerCase().trim();
+                  var cName = (card.getAttribute('data-country-name') || '').toLowerCase().trim();
+                  var cleanCName = (cName || '').replace(/[^a-zа-яё0-9]/gi, '').trim();
+                  var cleanCId = (cId || '').replace(/[^a-zа-яё0-9]/gi, '').trim();
+                  if (!allowed[cId] && !allowed[cName] && !allowed[cleanCName] && !allowed[cleanCId]) {
+                    card.style.display = 'none';
+                  }
+                });
+
+                if (payload.activeTabs && Array.isArray(payload.activeTabs) && payload.activeTabs.length > 0) {
+                  var INLINE_FLAG_MAP = {
+                    turkey: 'tr', turtsiya: 'tr', 'турция': 'tr',
+                    maldives: 'mv', maldivy: 'mv', 'мальдивы': 'mv',
+                    indonesia: 'id', indoneziya: 'id', 'индонезия': 'id',
+                    seychelles: 'sc', seyshely: 'sc', 'сейшелы': 'sc',
+                    galapagos: 'ec', ecuador: 'ec', galapagosy: 'ec', 'галапагосы': 'ec',
+                    oman: 'om', 'оман': 'om', palau: 'pw', 'палау': 'pw',
+                    egypt: 'eg', egipet: 'eg', 'египет': 'eg',
+                    'costa-rica': 'cr', costarica: 'cr', 'коста-рика': 'cr', 'kosta-rika': 'cr',
+                    russia: 'ru', rossiya: 'ru', 'россия': 'ru',
+                    thailand: 'th', 'таиланд': 'th', 'тайланд': 'th',
+                    greece: 'gr', gretsiya: 'gr', 'греция': 'gr',
+                    italy: 'it', italiya: 'it', 'италия': 'it',
+                    spain: 'es', ispaniya: 'es', 'испания': 'es',
+                    croatia: 'hr', khorvatiya: 'hr', 'хорватия': 'hr',
+                    norway: 'no', norvegiya: 'no', 'норвегия': 'no',
+                    france: 'fr', frantsiya: 'fr', 'франция': 'fr',
+                    montenegro: 'me', chernogoriya: 'me', 'черногория': 'me'
+                  };
+                  var getRank = function(card) {
+                    var cName = (card.getAttribute('data-country-name') || '').toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').trim();
+                    var cId = (card.getAttribute('data-country-id') || '').toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').trim();
+                    var badge = (card.querySelector('.country-badge') ? card.querySelector('.country-badge').textContent : '').toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').trim();
+                    var cIso = INLINE_FLAG_MAP[cName] || INLINE_FLAG_MAP[cId] || INLINE_FLAG_MAP[badge] || '';
+                    for (var i = 0; i < payload.activeTabs.length; i++) {
+                      var tRaw = (payload.activeTabs[i].name || '');
+                      var tCleanName = tRaw.replace(/[\u{1F300}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]+/gu, '').trim();
+                      var tClean = tCleanName.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').trim();
+                      var tRawClean = tRaw.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').trim();
+                      var tIso = INLINE_FLAG_MAP[tClean] || INLINE_FLAG_MAP[tRawClean] || '';
+                      if (cName === tClean || cName === tRawClean || cId === tClean || badge === tClean || badge === tRawClean || (cIso && tIso && cIso === tIso)) return i;
+                    }
+                    return 9999;
+                  };
+                  var origIndices = new Map();
+                  ycards.forEach(function(c, idx) { origIndices.set(c, idx); });
+                  ycards.sort(function(a, b) {
+                    var diff = getRank(a) - getRank(b);
+                    if (diff !== 0) return diff;
+                    return (origIndices.get(a) || 0) - (origIndices.get(b) || 0);
+                  });
+                  ycards.forEach(function(card) { grid.appendChild(card); });
+                }
+              }
+
+              var menu = document.getElementById('dropdown-menu');
+              if (menu) {
+                if (payload.activeTabs && Array.isArray(payload.activeTabs) && payload.activeTabs.length > 0) {
+                  var allItem = menu.querySelector('.dropdown-item[data-country-id="all"]');
+                  var divider = menu.querySelector('.dropdown-divider');
+                  if (allItem) menu.appendChild(allItem);
+                  if (divider) menu.appendChild(divider);
+
+                  var items = Array.from(menu.querySelectorAll('.dropdown-item:not([data-country-id="all"])'));
+                  var used = {};
+                  payload.activeTabs.forEach(function(tab) {
+                    var rawName = tab.name || '';
+                    var cleanName = rawName.replace(/[\u{1F300}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]+/gu, '').trim();
+                    var clean = cleanName.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').trim();
+                    var found = items.find(function(it) {
+                      if (used[it]) return false;
+                      var iId = (it.getAttribute('data-country-id') || '').toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').trim();
+                      var iName = (it.querySelector('.item-name') ? it.querySelector('.item-name').textContent : '').toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').trim();
+                      return iId === clean || iName === clean;
+                    });
+                    if (found) {
+                      found.style.display = 'flex';
+                      menu.appendChild(found);
+                      used[found] = true;
+                    } else {
+                      var newItem = document.createElement('div');
+                      newItem.className = 'dropdown-item';
+                      newItem.setAttribute('data-country-id', clean);
+                      newItem.innerHTML = '<div class="item-content"><span class="item-name">' + cleanName + '</span></div>';
+                      menu.appendChild(newItem);
+                    }
+                  });
+                  items.forEach(function(it) {
+                    if (!used[it]) {
+                      it.style.display = 'none';
+                      menu.appendChild(it);
+                    }
+                  });
+                } else {
+                  var items = menu.querySelectorAll('.dropdown-item');
+                  items.forEach(function(item) {
+                    var itemId = (item.getAttribute('data-country-id') || '').toLowerCase().trim();
+                    if (itemId !== 'all') {
+                      var cleanItemId = itemId.replace(/[^a-zа-яё0-9]/gi, '').trim();
+                      if (!allowed[itemId] && !allowed[cleanItemId]) {
+                        item.style.display = 'none';
+                      }
+                    }
+                  });
+                }
+              }
+            }
+          }
+        } catch(e) {}
+      })();
+    </script>
+
     <!-- Show More Button -->
     <div class="show-more-container" id="show-more-container" style="display: none;">
       <button type="button" class="show-more-btn" id="show-more-btn">
@@ -85,10 +215,12 @@ const { yachts, countries } = Astro.props;
     </div>
 
     <!-- Yacht Modals -->
-    {yachts.map((yacht: Yacht) => {
-      const country = countries.find((c: Country) => c.id === yacht.countryId);
-      return <YachtModal yacht={yacht} country={country} />;
-    })}
+    <div id="yacht-modals-container">
+      {yachts.map((yacht: Yacht) => {
+        const country = countries.find((c: Country) => c.id === yacht.countryId);
+        return <YachtModal yacht={yacht} country={country} />;
+      })}
+    </div>
 
     <!-- Empty State -->
     <div class="empty-state" id="yachts-empty-state" style="display: none;">
@@ -107,6 +239,18 @@ const { yachts, countries } = Astro.props;
 </section>
 
 <script>
+  import {
+    parseFullCSV,
+    extractFlag,
+    transliterate,
+    extractUrls,
+    formatUniversalImageUrl,
+    formatGoogleDriveImageUrl,
+    resolveYandexDiskResource,
+    parseAllMedia,
+    DEFAULT_PUBLISHED_SHEET_KEY
+  } from '../lib/sheets';
+
   document.addEventListener('DOMContentLoaded', () => {
     const dropdown = document.getElementById('destinations-dropdown');
     const trigger = document.getElementById('dropdown-trigger');
@@ -114,12 +258,162 @@ const { yachts, countries } = Astro.props;
     const triggerTitle = document.getElementById('trigger-title');
     const arrow = document.getElementById('trigger-arrow');
 
-    const dropdownItems = document.querySelectorAll('.dropdown-item');
-    const yachtCards = document.querySelectorAll('.yacht-card');
     const emptyState = document.getElementById('yachts-empty-state');
     const resetBtn = document.getElementById('reset-filter-btn');
+    const grid = document.getElementById('yachts-grid');
+    const modalsContainer = document.getElementById('yacht-modals-container');
 
     let currentCountry = 'all';
+    let currentCountryDisplayName = 'Все направления';
+    let isExpanded = false;
+    let allowedCountries: Set<string> | null = null;
+    const loadedGids = new Set<string>();
+
+    const CLIENT_FLAGS_MAP: Record<string, string> = {
+      maldives: 'mv', indonesia: 'id', seychelles: 'sc', galapagos: 'ec', ecuador: 'ec',
+      oman: 'om', palau: 'pw', egypt: 'eg', 'costa-rica': 'cr', costarica: 'cr',
+      russia: 'ru', thailand: 'th', turkey: 'tr', greece: 'gr', italy: 'it', spain: 'es',
+      croatia: 'hr', norway: 'no', france: 'fr', montenegro: 'me',
+      мальдивы: 'mv', индонезия: 'id', сейшелы: 'sc', галапагосы: 'ec',
+      оман: 'om', палау: 'pw', египет: 'eg', 'коста-рика': 'cr', костарика: 'cr',
+      россия: 'ru', таиланд: 'th', тайланд: 'th', турция: 'tr', греция: 'gr',
+      италия: 'it', испания: 'es', хорватия: 'hr', норвегия: 'no', франция: 'fr', черногория: 'me',
+      turtsiya: 'tr', maldivy: 'mv', indoneziya: 'id', seyshely: 'sc', galapagosy: 'ec'
+    };
+
+    function cleanStr(s: string): string {
+      return (s || '')
+        .toLowerCase()
+        .replace(/[\u{1F300}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]+/gu, '')
+        .replace(/[^a-zа-яё0-9]/gi, '')
+        .trim();
+    }
+
+    function getCardTabIndex(card: HTMLElement, activeTabs: { name: string; gid: string }[]): number {
+      const cName = cleanStr(card.getAttribute('data-country-name') || '');
+      const cId = cleanStr(card.getAttribute('data-country-id') || '');
+      const badge = cleanStr(card.querySelector('.country-badge')?.textContent || '');
+      const cNameTrans = cleanStr(transliterate(cName));
+      const badgeTrans = cleanStr(transliterate(badge));
+      const cIso = CLIENT_FLAGS_MAP[cName] || CLIENT_FLAGS_MAP[cId] || CLIENT_FLAGS_MAP[badge] || CLIENT_FLAGS_MAP[cNameTrans] || '';
+
+      for (let i = 0; i < activeTabs.length; i++) {
+        const { cleanName } = extractFlag(activeTabs[i].name);
+        const tabClean = cleanStr(cleanName);
+        const tabSlug = cleanStr(transliterate(cleanName));
+        const rawClean = cleanStr(activeTabs[i].name);
+        const tabIso = CLIENT_FLAGS_MAP[tabClean] || CLIENT_FLAGS_MAP[tabSlug] || '';
+
+        if (
+          cName === tabClean ||
+          cName === rawClean ||
+          cId === tabClean ||
+          cId === tabSlug ||
+          badge === tabClean ||
+          badge === rawClean ||
+          (cNameTrans && (cNameTrans === tabSlug || cNameTrans === tabClean)) ||
+          (badgeTrans && (badgeTrans === tabSlug || badgeTrans === tabClean)) ||
+          (cIso && tabIso && cIso === tabIso)
+        ) {
+          return i;
+        }
+      }
+      return 9999;
+    }
+
+    function reorderGridCards(activeTabs: { name: string; gid: string }[]) {
+      if (!grid || !activeTabs || !Array.isArray(activeTabs) || activeTabs.length === 0) return;
+      const cards = Array.from(grid.querySelectorAll<HTMLElement>('.yacht-card'));
+      if (cards.length === 0) return;
+
+      const initialIndices = new Map<HTMLElement, number>();
+      cards.forEach((card, idx) => initialIndices.set(card, idx));
+
+      cards.sort((a, b) => {
+        const rankA = getCardTabIndex(a, activeTabs);
+        const rankB = getCardTabIndex(b, activeTabs);
+        if (rankA !== rankB) return rankA - rankB;
+        return (initialIndices.get(a) || 0) - (initialIndices.get(b) || 0);
+      });
+
+      cards.forEach(card => grid.appendChild(card));
+      updateYachtVisibility();
+    }
+
+    function reorderDropdownItems(activeTabs: { name: string; gid: string }[]) {
+      if (!menu || !activeTabs || !Array.isArray(activeTabs) || activeTabs.length === 0) return;
+
+      const allItem = menu.querySelector<HTMLElement>('.dropdown-item[data-country-id="all"]');
+      const divider = menu.querySelector<HTMLElement>('.dropdown-divider');
+
+      const existingItems = Array.from(menu.querySelectorAll<HTMLElement>('.dropdown-item:not([data-country-id="all"])'));
+      const usedElements = new Set<HTMLElement>();
+
+      menu.innerHTML = '';
+      if (allItem) menu.appendChild(allItem);
+      if (divider) menu.appendChild(divider);
+
+      activeTabs.forEach((tab) => {
+        const { cleanName } = extractFlag(tab.name);
+        const tabClean = cleanStr(cleanName);
+        const tabSlug = transliterate(cleanName) || tabClean;
+        const tabLower = cleanName.toLowerCase().trim();
+        const tabIso = CLIENT_FLAGS_MAP[tabClean] || CLIENT_FLAGS_MAP[tabSlug] || '';
+
+        let matched = existingItems.find(item => {
+          if (usedElements.has(item)) return false;
+          const itemId = (item.getAttribute('data-country-id') || '').toLowerCase().trim();
+          const itemName = (item.querySelector('.item-name')?.textContent || '').toLowerCase().trim();
+          const itemClean = cleanStr(itemName);
+          const itemIdClean = cleanStr(itemId);
+          const itemIso = CLIENT_FLAGS_MAP[itemClean] || CLIENT_FLAGS_MAP[itemIdClean] || '';
+          return (
+            cleanStr(itemId) === tabClean ||
+            cleanStr(itemName) === tabClean ||
+            itemId === tabSlug ||
+            itemId === tabLower ||
+            (tabIso && itemIso && tabIso === itemIso)
+          );
+        });
+
+        if (!matched) {
+          matched = document.createElement('div');
+          matched.className = 'dropdown-item';
+          matched.setAttribute('data-country-id', tabSlug);
+          matched.innerHTML = `<div class="item-content"><span class="item-name">${cleanName}</span></div>`;
+        } else {
+          matched.setAttribute('data-country-id', tabSlug);
+          const nameSpan = matched.querySelector('.item-name');
+          if (nameSpan) nameSpan.textContent = cleanName;
+        }
+
+        matched.style.display = 'flex';
+        menu.appendChild(matched);
+        usedElements.add(matched);
+      });
+
+      // Полностью удаляем элементы направлений, которых больше нет в активных вкладках Google Таблицы
+      existingItems.forEach((item) => {
+        if (!usedElements.has(item)) {
+          item.remove();
+        }
+      });
+    }
+
+    // Instant local cache hydration to prevent flicker of deleted or reordered regions on reload
+    try {
+      const cachedTabs = localStorage.getItem('yacht_active_tabs_cache');
+      if (cachedTabs) {
+        const payload = JSON.parse(cachedTabs);
+        if (payload && payload.activeNames && payload.activeNames.length > 0) {
+          allowedCountries = new Set<string>(payload.activeNames.map((s: string) => s.toLowerCase().trim()));
+        }
+        if (payload && payload.activeTabs && Array.isArray(payload.activeTabs) && payload.activeTabs.length > 0) {
+          reorderDropdownItems(payload.activeTabs);
+          reorderGridCards(payload.activeTabs);
+        }
+      }
+    } catch (e) {}
 
     function toggleDropdown(show?: boolean) {
       if (!menu || !trigger || !arrow) return;
@@ -149,22 +443,9 @@ const { yachts, countries } = Astro.props;
       }
     });
 
-    let isExpanded = false;
-
-    let allowedCountries: Set<string> | null = null;
-
-    function cleanStr(s: string): string {
-      return (s || '')
-        .toLowerCase()
-        .replace(/[\u{1F300}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]+/gu, '')
-        .replace(/[^a-zа-яё0-9]/gi, '')
-        .trim();
-    }
-
     function updateYachtVisibility() {
-      const grid = document.getElementById('yachts-grid');
-      const showMoreBtnContainer = document.getElementById('show-more-container');
       if (!grid) return;
+      const showMoreBtnContainer = document.getElementById('show-more-container');
 
       const gridStyle = window.getComputedStyle(grid);
       const gridColumnsStr = gridStyle.getPropertyValue('grid-template-columns');
@@ -176,38 +457,45 @@ const { yachts, countries } = Astro.props;
       
       const maxVisible = columnsCount * 2;
 
+      // Always re-query all yacht cards dynamically
+      const yachtCards = Array.from(grid.querySelectorAll<HTMLElement>('.yacht-card'));
       const matchingCards: HTMLElement[] = [];
+
+      const filterLower = currentCountry.toLowerCase().trim();
+      const filterClean = cleanStr(currentCountry);
+      const filterTrans = transliterate(currentCountry);
+
       yachtCards.forEach((card) => {
         const cardCountryId = (card.getAttribute('data-country-id') || '').toLowerCase().trim();
         const cardCountryName = (card.getAttribute('data-country-name') || '').toLowerCase().trim();
         const cleanCardName = cleanStr(cardCountryName);
+        const cleanCardId = cleanStr(cardCountryId);
 
         // Если получены активные страны и страна этой яхты удалена/пустая в Google Таблице — скрываем яхту
         if (allowedCountries && allowedCountries.size > 0) {
           const isAllowed = allowedCountries.has(cardCountryId) ||
                             allowedCountries.has(cardCountryName) ||
                             allowedCountries.has(cleanCardName) ||
-                            allowedCountries.has(cleanStr(cardCountryId));
+                            allowedCountries.has(cleanCardId);
           if (!isAllowed) {
-            (card as HTMLElement).style.display = 'none';
+            card.style.display = 'none';
             return;
           }
         }
-
-        const filterLower = currentCountry.toLowerCase().trim();
-        const filterClean = cleanStr(currentCountry);
 
         const matchesFilter = filterLower === 'all' ||
                               cardCountryId === filterLower ||
                               cardCountryName === filterLower ||
                               cleanCardName === filterLower ||
-                              cleanStr(cardCountryId) === filterClean ||
-                              cleanCardName === filterClean;
+                              cleanCardId === filterLower ||
+                              cleanCardId === filterClean ||
+                              cleanCardName === filterClean ||
+                              (filterTrans && (cardCountryId === filterTrans || cleanCardId === cleanStr(filterTrans)));
 
         if (matchesFilter) {
-          matchingCards.push(card as HTMLElement);
+          matchingCards.push(card);
         } else {
-          (card as HTMLElement).style.display = 'none';
+          card.style.display = 'none';
         }
       });
 
@@ -232,21 +520,62 @@ const { yachts, countries } = Astro.props;
       }
     }
 
-    function setFilter(countryId: string) {
-      currentCountry = countryId;
+    function setFilter(countryId: string, customName?: string) {
+      if (!countryId || countryId.toLowerCase().trim() === 'all') {
+        currentCountry = 'all';
+        currentCountryDisplayName = 'Все направления';
+      } else {
+        currentCountry = countryId;
+        if (customName) {
+          currentCountryDisplayName = customName;
+        }
+      }
       isExpanded = false;
 
-      updateYachtVisibility();
+      const filterLower = currentCountry.toLowerCase().trim();
+      const filterClean = cleanStr(currentCountry);
+      const filterTrans = transliterate(currentCountry);
 
-      dropdownItems.forEach((item) => {
-        const itemId = item.getAttribute('data-country-id');
-        if (itemId === countryId) {
-          item.classList.add('item-selected');
-          if (triggerTitle) triggerTitle.textContent = item.querySelector('.item-name')?.textContent || 'Все направления';
-        } else {
-          item.classList.remove('item-selected');
+      if (menu) {
+        const dropdownItems = menu.querySelectorAll<HTMLElement>('.dropdown-item');
+        let matchedText = '';
+
+        dropdownItems.forEach((item) => {
+          const itemId = (item.getAttribute('data-country-id') || '').toLowerCase().trim();
+          const itemName = (item.querySelector('.item-name')?.textContent || '').toLowerCase().trim();
+          const cleanItemId = cleanStr(itemId);
+          const cleanItemName = cleanStr(itemName);
+
+          const isMatch = filterLower === 'all'
+            ? itemId === 'all'
+            : (
+                itemId === filterLower ||
+                itemName === filterLower ||
+                cleanItemId === filterClean ||
+                cleanItemName === filterClean ||
+                (filterTrans && (itemId === filterTrans || cleanItemId === cleanStr(filterTrans)))
+              );
+
+          if (isMatch) {
+            item.classList.add('item-selected');
+            matchedText = item.querySelector('.item-name')?.textContent?.trim() || '';
+          } else {
+            item.classList.remove('item-selected');
+          }
+        });
+
+        if (triggerTitle) {
+          if (filterLower === 'all') {
+            triggerTitle.textContent = 'Все направления';
+          } else if (matchedText) {
+            triggerTitle.textContent = matchedText;
+          } else {
+            triggerTitle.textContent = currentCountryDisplayName || countryId;
+          }
         }
-      });
+      }
+
+      updateYachtVisibility();
     }
 
     const showMoreBtn = document.getElementById('show-more-btn');
@@ -267,13 +596,27 @@ const { yachts, countries } = Astro.props;
 
     updateYachtVisibility();
 
-    dropdownItems.forEach((item) => {
-      item.addEventListener('click', () => {
+    if (menu) {
+      if (allowedCountries && allowedCountries.size > 0) {
+        menu.querySelectorAll('.dropdown-item').forEach((item) => {
+          const itemId = (item.getAttribute('data-country-id') || '').toLowerCase().trim();
+          if (itemId !== 'all') {
+            const isAllowed = allowedCountries!.has(itemId) ||
+                              allowedCountries!.has(cleanStr(itemId));
+            (item as HTMLElement).style.display = isAllowed ? 'flex' : 'none';
+          }
+        });
+      }
+
+      menu.addEventListener('click', (e) => {
+        const item = (e.target as HTMLElement).closest('.dropdown-item') as HTMLElement | null;
+        if (!item) return;
         const countryId = item.getAttribute('data-country-id') || 'all';
-        setFilter(countryId);
+        const displayName = item.querySelector('.item-name')?.textContent?.trim();
+        setFilter(countryId, displayName);
         toggleDropdown(false);
       });
-    });
+    }
 
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
@@ -281,33 +624,544 @@ const { yachts, countries } = Astro.props;
       });
     }
 
+    // Dynamic creation of YachtCard DOM
+    function createDynamicYachtCard(yacht: any, countryName: string): HTMLElement {
+      const card = document.createElement('div');
+      card.className = 'yacht-card';
+      card.setAttribute('data-yacht-id', yacht.id);
+      card.setAttribute('data-country-id', yacht.countryId);
+      card.setAttribute('data-country-name', countryName);
+
+      const mediaItems = parseAllMedia(yacht.images || []);
+      const hasVideo = mediaItems.some(m => m.isVideo);
+      const firstImg = mediaItems.find(m => !m.isVideo)?.url;
+      const firstThumb = mediaItems.find(m => m.thumbnail)?.thumbnail;
+      const displayImage = firstImg || firstThumb || (yacht.images && yacht.images[0]) || '';
+
+      card.innerHTML = `
+        <div class="yacht-image-wrap">
+          <img
+            src="${displayImage}"
+            alt="${yacht.name}"
+            class="yacht-image"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            draggable="false"
+          />
+          <div class="yacht-badges">
+            <span class="badge country-badge">${countryName}</span>
+            ${hasVideo ? `
+              <span class="badge video-badge" title="Есть видео яхты">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                Видео
+              </span>
+            ` : ''}
+          </div>
+        </div>
+        <div class="yacht-body">
+          <h3 class="yacht-title">${yacht.name}</h3>
+          <div class="yacht-actions">
+            <button
+              type="button"
+              class="btn btn-secondary action-details"
+              data-details-id="${yacht.id}"
+            >
+              Подробнее
+            </button>
+            <a
+              href="#booking"
+              class="btn btn-primary action-book"
+              data-book-yacht="${yacht.name}"
+            >
+              Забронировать
+            </a>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    // Dynamic creation of YachtModal DOM
+    function createDynamicYachtModal(yacht: any, countryName: string): HTMLElement {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = `yacht-modal-${yacht.id}`;
+      modal.setAttribute('data-yacht-modal', '');
+      modal.style.display = 'none';
+
+      const mediaItems = parseAllMedia(yacht.images || []);
+      const hasMultiple = mediaItems.length > 1;
+      const L = mediaItems.length;
+      const displayMedia = hasMultiple ? [...mediaItems, ...mediaItems, ...mediaItems] : [...mediaItems];
+
+      let slidesHtml = '';
+      displayMedia.forEach((item, idx) => {
+        slidesHtml += `
+          <div class="yacht-slide" data-is-video="${item.isVideo ? 'true' : 'false'}" data-media-url="${item.url}">
+            ${item.type === 'image' ? `
+              <img
+                src="${item.url}"
+                alt="${yacht.name} ${idx + 1}"
+                class="modal-main-image"
+                data-media-url="${item.url}"
+                loading="${idx === 0 ? 'eager' : 'lazy'}"
+                decoding="async"
+                draggable="false"
+                referrerpolicy="no-referrer"
+              />
+            ` : item.type === 'video' ? `
+              <div class="modal-video-wrapper">
+                <video src="${item.url}" class="modal-video-element" controls playsinline preload="metadata"></video>
+              </div>
+            ` : `
+              <div class="modal-video-wrapper">
+                <iframe src="${item.embedUrl || item.url}" class="modal-video-iframe" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+              </div>
+            `}
+          </div>
+        `;
+      });
+
+      let thumbsHtml = '';
+      if (hasMultiple) {
+        thumbsHtml = `<div class="modal-thumbnails">`;
+        mediaItems.forEach((item, idx) => {
+          thumbsHtml += `
+            <button
+              type="button"
+              class="thumb-btn ${idx === 0 ? 'active' : ''} ${item.isVideo ? 'thumb-video' : ''}"
+              data-index="${idx}"
+              data-media-url="${item.url}"
+              title="${item.isVideo ? 'Видео' : 'Фото ' + (idx + 1)}"
+            >
+              ${item.thumbnail ? `
+                <img
+                  src="${item.thumbnail}"
+                  alt="${yacht.name} ${idx + 1}"
+                  data-media-url="${item.url}"
+                  referrerpolicy="no-referrer"
+                />
+              ` : `
+                <div class="thumb-video-placeholder">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                </div>
+              `}
+              ${item.isVideo ? `
+                <span class="thumb-play-icon" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                </span>
+              ` : ''}
+            </button>
+          `;
+        });
+        thumbsHtml += `</div>`;
+      }
+
+      const buildYear = yacht.specs?.year || '—';
+      const yachtAccommodation = yacht.accommodation ||
+        `Вместимость ${yacht.capacity || '—'} в ${yacht.cabins || '—'}. Все каюты оснащены кондиционером, собственным санузлом, душевой кабиной и сейфом.`;
+      const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment.length > 0
+        ? yacht.toysAndEntertainment
+        : ['Дайвинг', 'Сноркелинг', 'Водные развлечения'];
+
+      let toysChipsHtml = '';
+      toysAndFeatures.forEach((t: string) => {
+        toysChipsHtml += `<span class="chip">${t}</span>`;
+      });
+
+      modal.innerHTML = `
+        <div class="modal-wrapper">
+          <div class="modal-container">
+            <button type="button" class="close-btn" data-close-modal aria-label="Закрыть">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            <div class="modal-header">
+              <div class="header-eyebrow">
+                <span class="country-badge">${countryName}</span>
+              </div>
+              <h2 class="modal-title">${yacht.name}</h2>
+            </div>
+
+            <div class="gallery-section">
+              <div class="main-photo-wrap">
+                <div class="yacht-slider-container">
+                  <div class="yacht-slider-track" data-length="${L}" data-count="${mediaItems.length}">
+                    ${slidesHtml}
+                  </div>
+                </div>
+
+                ${hasMultiple ? `
+                  <button type="button" class="autoplay-btn" title="Запустить автопрокрутку" data-autoplay-btn>
+                    <svg class="icon-play" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <svg class="icon-pause" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                      <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+                      <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+                    </svg>
+                    <span class="autoplay-label">Авто</span>
+                  </button>
+
+                  <button type="button" class="slider-nav nav-prev" title="Предыдущее фото">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                  </button>
+                  <button type="button" class="slider-nav nav-next" title="Следующее фото">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+
+                  <div class="slide-counter">
+                    <span class="curr-idx">1</span> / <span class="total-count">${mediaItems.length}</span>
+                  </div>
+                ` : ''}
+              </div>
+
+              ${thumbsHtml}
+            </div>
+
+            <div class="accordions-container">
+              <div class="accordion-card">
+                <button type="button" class="accordion-header">
+                  <div class="acc-header-left">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="acc-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <h3>Описание яхты</h3>
+                  </div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="acc-arrow">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div class="accordion-body-wrapper">
+                  <div class="accordion-body-inner">
+                    <div class="accordion-body">
+                      <p class="full-description">${yacht.description || "Прекрасная яхта для вашего комфортного отдыха."}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-card">
+                <button type="button" class="accordion-header">
+                  <div class="acc-header-left">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="acc-icon">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                    </svg>
+                    <h3>Характеристики судна</h3>
+                  </div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="acc-arrow">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div class="accordion-body-wrapper">
+                  <div class="accordion-body-inner">
+                    <div class="accordion-body">
+                      <div class="specs-grid">
+                        <div class="spec-box"><span class="spec-label">Длина</span><strong class="spec-val">${yacht.length || '—'}</strong></div>
+                        <div class="spec-box"><span class="spec-label">Пассажиры</span><strong class="spec-val">${yacht.capacity || '—'}</strong></div>
+                        <div class="spec-box"><span class="spec-label">Каюты</span><strong class="spec-val">${yacht.cabins || '—'}</strong></div>
+                        <div class="spec-box"><span class="spec-label">Экипаж</span><strong class="spec-val">${yacht.crew || '—'}</strong></div>
+                        <div class="spec-box"><span class="spec-label">Скорость</span><strong class="spec-val">${yacht.speed || '—'}</strong></div>
+                        <div class="spec-box"><span class="spec-label">Год постройки</span><strong class="spec-val">${buildYear}</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-card">
+                <button type="button" class="accordion-header">
+                  <div class="acc-header-left">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="acc-icon">
+                      <path d="M2 4v16"></path><path d="M2 8h18a2 2 0 0 1 2 2v10"></path><path d="M2 17h20"></path><path d="M6 8v9"></path>
+                    </svg>
+                    <h3>Размещение и каюты</h3>
+                  </div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="acc-arrow">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div class="accordion-body-wrapper">
+                  <div class="accordion-body-inner">
+                    <div class="accordion-body">
+                      <p class="full-description">${yachtAccommodation}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              ${toysAndFeatures.length > 0 ? `
+                <div class="accordion-card">
+                  <button type="button" class="accordion-header">
+                    <div class="acc-header-left">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="acc-icon">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                      </svg>
+                      <h3>Развлечения и услуги на борту</h3>
+                    </div>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="acc-arrow">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  <div class="accordion-body-wrapper">
+                    <div class="accordion-body-inner">
+                      <div class="accordion-body">
+                        <div class="features-chips">${toysChipsHtml}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="modal-footer-action">
+              <button type="button" class="btn btn-primary modal-book-btn" data-book-yacht="${yacht.name}">
+                Забронировать яхту ${yacht.name}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      return modal;
+    }
+
+    const knownFeatures = [
+      'дайвинг', 'снорклинг', 'вечерние', 'барбекю', 'высадки', 'фридайвинг',
+      'пляжные', 'баре', 'массажные', 'работа', 'мультимедийная', 'серфинг',
+      'бар', 'интерет', 'фото', 'наблюдение', 'экскурсии', 'отдых', 'пользование',
+      'тренажерный', 'спа', 'два бара', 'водные', 'активный', 'сандек', 'зона',
+      'панорамный', 'элегантный', 'кемпинг', 'знакомство', 'настольные', 'посещение',
+      'пешие', 'купание', 'йога', 'расслабляющие', 'исследование', 'прогулки',
+      'катание', 'купальная'
+    ];
+
+    // Auto-synchronize tabs from live Google Sheet
+    async function syncYachtsForTabs(activeTabs: Array<{ name: string; gid: string }>) {
+      if (!grid || !activeTabs || activeTabs.length === 0) return;
+
+      const pubKey = DEFAULT_PUBLISHED_SHEET_KEY || '2PACX-1vQeRQ5VAaQfGuBuOl1AKIktnCubBKhDAcGlQD5-1PyqIJ8P5VR6HKjRxkYBQZrWzeHs1QD5XlA54GGl';
+
+      for (const tab of activeTabs) {
+        const { cleanName } = extractFlag(tab.name);
+        const tabSlug = transliterate(cleanName) || cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const cleanTab = cleanStr(cleanName);
+
+        // Check if cards already exist for this country in the DOM
+        const existingCards = Array.from(grid.querySelectorAll<HTMLElement>('.yacht-card'));
+        const hasCard = existingCards.some(card => {
+          const cId = (card.getAttribute('data-country-id') || '').toLowerCase().trim();
+          const cName = (card.getAttribute('data-country-name') || '').toLowerCase().trim();
+          const cleanCard = cleanStr(cName);
+          return cId === tabSlug || cId === cleanTab || cleanCard === cleanTab || cName === cleanName.toLowerCase().trim();
+        });
+
+        if (hasCard) {
+          loadedGids.add(tab.gid);
+          continue;
+        }
+
+        if (loadedGids.has(tab.gid)) continue;
+        loadedGids.add(tab.gid);
+
+        try {
+          const csvUrl = `https://docs.google.com/spreadsheets/d/e/${pubKey}/pub?gid=${tab.gid}&single=true&output=csv&t=${Date.now()}`;
+          const res = await fetch(csvUrl, { cache: 'no-store' });
+          if (!res.ok) continue;
+          const csvText = await res.text();
+          const rows = parseFullCSV(csvText);
+          if (!rows || rows.length <= 1) continue;
+
+          let flagColIdx = -1;
+          let mapColIdx = -1;
+          const headerRow = rows[0].map(c => (c || '').toLowerCase().trim());
+          headerRow.forEach((col, idx) => {
+            if (col === 'флаг' || col.includes('flag')) flagColIdx = idx;
+            else if (col === 'карта' || col.includes('map')) mapColIdx = idx;
+          });
+          if (flagColIdx === -1) flagColIdx = 8;
+          if (mapColIdx === -1) mapColIdx = 9;
+
+          const tabYachts: any[] = [];
+          let currentYacht: any = null;
+
+          for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            let rawName = row[0]?.trim() || '';
+            const descCell = row[1]?.trim() || '';
+            const specName = row[2]?.trim() || '';
+            const specVal = row[3]?.trim() || '';
+            const accCell = row[4]?.trim() || '';
+            const entCell = row[5]?.trim() || '';
+
+            const urlsInRow: string[] = [];
+            for (let colIdx = 0; colIdx < row.length; colIdx++) {
+              if (colIdx === flagColIdx || colIdx === mapColIdx) continue;
+              extractUrls(row[colIdx]).forEach((u: string) => {
+                if (!urlsInRow.includes(u)) urlsInRow.push(u);
+              });
+            }
+
+            rawName = rawName.replace(/^[,;\"'\s]+/, '').trim();
+            const isFeature = knownFeatures.some(f => rawName.toLowerCase().startsWith(f));
+            const isNewYachtHeader = rawName.length > 1 &&
+              !rawName.startsWith('http') &&
+              !rawName.startsWith('-') &&
+              !isFeature &&
+              (descCell.length > 20 || specName.toLowerCase() === 'длина' || !currentYacht);
+
+            if (isNewYachtHeader) {
+              if (currentYacht && currentYacht.name) {
+                tabYachts.push(currentYacht);
+              }
+              currentYacht = {
+                id: `${rawName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${tabSlug}`,
+                name: rawName,
+                countryId: tabSlug,
+                countryName: cleanName,
+                type: 'Премиум суперяхта',
+                length: specName.toLowerCase() === 'длина' && specVal ? specVal : '50 м',
+                capacity: '20 гостей',
+                cabins: '10 кают',
+                speed: '12 узлов',
+                crew: 'Экипаж',
+                images: [],
+                description: descCell,
+                accommodation: accCell,
+                toysAndEntertainment: entCell ? [entCell] : [],
+                specs: { year: '2026', engines: 'MAN', nitrox: 'Да', tender: 'Катер' }
+              };
+            }
+
+            if (currentYacht) {
+              if (specName && specVal) {
+                const sLower = specName.toLowerCase();
+                if (sLower.includes('длина')) currentYacht.length = specVal;
+                else if (sLower.includes('ширина')) currentYacht.specs.tender = specVal;
+                else if (sLower.includes('год')) currentYacht.specs.year = specVal;
+                else if (sLower.includes('двигател')) currentYacht.specs.engines = specVal;
+                else if (sLower.includes('скорост')) currentYacht.speed = specVal;
+                else if (sLower.includes('кают')) currentYacht.cabins = `${specVal} кают`;
+                else if (sLower.includes('вместимост')) currentYacht.capacity = `${specVal}`;
+              }
+              urlsInRow.forEach(u => {
+                if (currentYacht) {
+                  const isSpecificFile = /\.(jpe?g|png|webp|gif|svg|mp4|webm|mov|m4v)(\?.*)?$/i.test(u) ||
+                                         u.includes('youtube.com/') || u.includes('youtu.be/') ||
+                                         u.includes('rutube.ru/') || u.includes('vimeo.com/') || u.includes('vk.com/video') ||
+                                         u.includes('charterindex.com') || u.includes('yacht.link') ||
+                                         u.includes('yachtmaldives.com') || u.includes('drive.google.com/file') ||
+                                         u.includes('lh3.googleusercontent.com');
+                  const isFolder = !isSpecificFile && (
+                    u.includes('/folders/') ||
+                    u.includes('/drive/folders/') ||
+                    (u.includes('disk.yandex.ru/d/') && !u.match(/\/[^\/]+\.[a-zA-Z0-9]+$/))
+                  );
+                  if (isFolder) {
+                    currentYacht.driveFolderUrl = u;
+                  } else {
+                    const formatted = formatUniversalImageUrl(u);
+                    if (formatted && !currentYacht.images.includes(formatted)) {
+                      currentYacht.images.push(formatted);
+                    }
+                  }
+                }
+              });
+              if (accCell && !currentYacht.accommodation?.includes(accCell) && !accCell.startsWith('http')) {
+                currentYacht.accommodation = (currentYacht.accommodation ? currentYacht.accommodation + '\n' : '') + accCell;
+              }
+              if (entCell && !currentYacht.toysAndEntertainment?.includes(entCell) && !entCell.startsWith('http')) {
+                if (!currentYacht.toysAndEntertainment) currentYacht.toysAndEntertainment = [];
+                currentYacht.toysAndEntertainment.push(entCell);
+              }
+              if (descCell && !currentYacht.description.includes(descCell) && !descCell.startsWith('http')) {
+                currentYacht.description += (currentYacht.description ? '\n' : '') + descCell;
+              }
+            }
+          }
+
+          if (currentYacht && currentYacht.name) {
+            tabYachts.push(currentYacht);
+          }
+
+          // Resolve Yandex Disk URLs into direct CDN URLs
+          for (const y of tabYachts) {
+            if (y.images && y.images.length > 0) {
+              const resolved: string[] = [];
+              for (const img of y.images) {
+                if (img.includes('disk.yandex.ru')) {
+                  const direct = await resolveYandexDiskResource(img);
+                  resolved.push(direct);
+                } else {
+                  resolved.push(img);
+                }
+              }
+              y.images = resolved;
+            }
+
+            // Create and append dynamic YachtCard
+            const cardEl = createDynamicYachtCard(y, cleanName);
+            grid.appendChild(cardEl);
+
+            // Create and append dynamic YachtModal
+            if (modalsContainer) {
+              const modalEl = createDynamicYachtModal(y, cleanName);
+              modalsContainer.appendChild(modalEl);
+              window.dispatchEvent(new CustomEvent('initDynamicModal', {
+                detail: { modalId: `yacht-modal-${y.id}` }
+              }));
+            }
+          }
+
+          updateYachtVisibility();
+        } catch (e) {
+          console.error(`Failed to dynamically sync tab ${tab.name}:`, e);
+        }
+      }
+    }
+
     window.addEventListener('syncActiveCountries', (e: any) => {
       if (e.detail && e.detail.activeNames && e.detail.activeNames.length > 0) {
         const activeNames: string[] = e.detail.activeNames.map((s: string) => s.toLowerCase().trim());
         allowedCountries = new Set<string>(activeNames);
 
-        if (menu) {
-          const items = menu.querySelectorAll<HTMLElement>('.dropdown-item:not([data-country-id="all"])');
-          items.forEach((item) => {
-            const cId = (item.getAttribute('data-country-id') || '').toLowerCase().trim();
-            const cName = (item.querySelector('.item-name')?.textContent || '').toLowerCase().trim();
-            const cleanCName = cleanStr(cName);
-            const isActive = activeNames.includes(cId) || 
-                             activeNames.includes(cName) || 
-                             activeNames.includes(cleanCName) || 
-                             activeNames.includes(cleanStr(cId));
-            item.style.display = isActive ? 'flex' : 'none';
-          });
+        if (e.detail.activeTabs && Array.isArray(e.detail.activeTabs) && e.detail.activeTabs.length > 0) {
+          if (menu) {
+            reorderDropdownItems(e.detail.activeTabs);
+          }
+          reorderGridCards(e.detail.activeTabs);
+
+          syncYachtsForTabs(e.detail.activeTabs).then(() => {
+            reorderGridCards(e.detail.activeTabs);
+          }).catch(() => {});
         }
 
         if (currentCountry !== 'all') {
-          const curLower = currentCountry.toLowerCase().trim();
-          const curClean = cleanStr(currentCountry);
-          const isCurrentAllowed = allowedCountries.has(curLower) || allowedCountries.has(curClean);
-          if (!isCurrentAllowed) {
+          const currLower = currentCountry.toLowerCase().trim();
+          const currClean = cleanStr(currentCountry);
+          const currTrans = transliterate(currentCountry);
+          const isAllowed = allowedCountries.has(currLower) ||
+                            allowedCountries.has(currClean) ||
+                            (currTrans && allowedCountries.has(currTrans));
+          if (!isAllowed) {
             setFilter('all');
           } else {
-            updateYachtVisibility();
+            setFilter(currentCountry, currentCountryDisplayName);
           }
         } else {
           updateYachtVisibility();
@@ -315,9 +1169,19 @@ const { yachts, countries } = Astro.props;
       }
     });
 
+    // If active tabs were already discovered before this component initialized
+    if ((window as any).__ACTIVE_TABS_DATA__) {
+      const data = (window as any).__ACTIVE_TABS_DATA__;
+      window.dispatchEvent(new CustomEvent('syncActiveCountries', { detail: data }));
+    }
+
     window.addEventListener('selectCountryFilter', (e: any) => {
-      if (e.detail && e.detail.countryId) {
-        setFilter(e.detail.countryId);
+      if (e.detail) {
+        const targetId = e.detail.countryId || e.detail.countryName;
+        const targetName = e.detail.countryName || e.detail.countryId;
+        if (targetId) {
+          setFilter(targetId, targetName);
+        }
       }
     });
 
@@ -351,7 +1215,7 @@ const { yachts, countries } = Astro.props;
   });
 </script>
 
-<style>
+<style is:global>
   .yachts-section {
     background-color: #ffffff;
   }

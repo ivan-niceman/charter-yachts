@@ -1,6 +1,6 @@
 ---
 import type { Yacht, Country } from '../lib/sheets';
-import ImagePreloader from './ImagePreloader.astro';
+import { parseAllMedia } from '../lib/sheets';
 
 interface Props {
   yacht: Yacht;
@@ -9,47 +9,40 @@ interface Props {
 
 const { yacht, country } = Astro.props;
 
-const cleanImageUrl = (url: string) => {
-  if (!url || typeof url !== 'string') return '';
-  const trimmed = url.trim();
-  if (!trimmed) return '';
-  if (trimmed.includes('/folders/') || trimmed.includes('/drive/folders/') || trimmed.includes('disk.yandex') || trimmed.includes('.html')) {
-    return '';
-  }
-  const driveMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || 
-                     trimmed.match(/lh3\.google\.com\/u\/\d+\/d\/([a-zA-Z0-9_-]+)/) ||
-                     trimmed.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/) ||
-                     trimmed.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
-                     trimmed.match(/drive\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/);
-  if (driveMatch && driveMatch[1]) {
-    return `https://lh3.googleusercontent.com/d/${driveMatch[1]}=w1200`;
-  }
-  return trimmed;
-};
+const mediaItems = parseAllMedia(yacht.images || []);
+const hasVideo = mediaItems.some(m => m.isVideo);
 
-const rawImages = (yacht.images && Array.isArray(yacht.images) ? yacht.images : [])
-  .map(cleanImageUrl)
-  .filter((img: string) => typeof img === 'string' && img.trim().length > 0);
-
-const displayImage = rawImages.length > 0 
-  ? rawImages[0] 
-  : '';
+// Find first good image or thumbnail for card cover
+const firstImage = mediaItems.find(m => !m.isVideo)?.url;
+const firstThumb = mediaItems.find(m => m.thumbnail)?.thumbnail;
+const displayImage = firstImage || firstThumb || '';
 ---
 
 <div class="yacht-card" data-yacht-id={yacht.id} data-country-id={yacht.countryId} data-country-name={yacht.countryName || country?.name || ''}>
   <div class="yacht-image-wrap">
-    <ImagePreloader
+    <img
       src={displayImage}
       alt={yacht.name}
       class="yacht-image"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+      draggable="false"
     />
-    {country && (
-      <div class="yacht-badges">
+    <div class="yacht-badges">
+      {country && (
         <span class="badge country-badge">
           {country.name}
         </span>
-      </div>
-    )}
+      )}
+      {hasVideo && (
+        <span class="badge video-badge" title="Есть видео яхты">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          Видео
+        </span>
+      )}
+    </div>
   </div>
 
   <div class="yacht-body">
@@ -74,7 +67,7 @@ const displayImage = rawImages.length > 0
   </div>
 </div>
 
-<style>
+<style is:global>
   .yacht-card {
     background-color: #ffffff;
     border-radius: 16px;
@@ -97,17 +90,17 @@ const displayImage = rawImages.length > 0
     height: 240px;
     overflow: hidden;
     background-color: var(--color-bg-light);
-    transition: transform 0.9s;
   }
 
-  .yacht-image img {
+  .yacht-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.6s ease;
   }
 
-  .yacht-image-wrap:hover :global(.yacht-image img) {
-    transform: scale(1.1);
+  .yacht-image-wrap:hover .yacht-image {
+    transform: scale(1.06);
   }
 
   .yacht-badges {
@@ -130,6 +123,14 @@ const displayImage = rawImages.length > 0
   .country-badge {
     background: rgba(255, 255, 255, 0.95);
     color: #0a5246;
+  }
+
+  .video-badge {
+    background: rgba(255, 105, 0, 0.92);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .yacht-body {

@@ -19,6 +19,7 @@ const navColumns = [
     links: [
       { label: 'FAQ', href: '/#faq' },
       { label: 'Политика конфиденциальности', href: '/privacy' },
+      { label: 'Согласие на обработку данных', href: '/consent' },
       { label: 'Настройки Cookie', href: '#', dataAttr: 'data-open-cookie-settings' },
     ],
   },
@@ -30,6 +31,7 @@ const navColumns = [
     <div class="footer__brand">
       <a href="/" class="footer__logo" aria-label="Абсолют-тур — На главную">
         <Image src={logo} alt="Абсолют-тур" class="footer__logo-img" />
+        <p class="footer__logo-name"><span>А</span>БСОЛЮТ-ТУР</p>
       </a>
     </div>
 
@@ -125,6 +127,17 @@ const navColumns = [
     width: 120px;
     height: auto;
     object-fit: contain;
+  }
+
+  .footer__logo-name {
+    font-weight: 800;
+    font-size: 16px;
+    color: #000;
+    white-space: nowrap;
+  }
+
+  .footer__logo-name>span {
+    color: var(--color-orange);
   }
 
   .footer__bottom {
