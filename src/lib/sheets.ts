@@ -1,8 +1,3 @@
-interface YandexImageSize {
-  name?: string;
-  url?: string;
-}
-
 export interface Country {
   id: string;
   name: string;
@@ -72,6 +67,11 @@ export interface SheetDataResponse {
   heroSlides?: HeroSlide[];
   reviews: Review[];
   faqs: FAQItem[];
+}
+
+interface YandexImageSize {
+  name?: string;
+  url?: string;
 }
 
 export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
@@ -1002,9 +1002,7 @@ export async function resolveYandexDiskResource(
 
       if (res.ok) {
         const data = await res.json();
-        const sizes: YandexImageSize[] = Array.isArray(data.sizes)
-          ? data.sizes
-          : [];
+        const sizes = data.sizes;
         const sizePriority = [
           'ORIGINAL',
           'XXXL',
@@ -1017,7 +1015,9 @@ export async function resolveYandexDiskResource(
         let bestUrl = data.file;
         if (!bestUrl && sizes && sizes.length > 0) {
           for (const sName of sizePriority) {
-            const found = sizes.find((s) => s.name === sName && s.url);
+            const found = sizes.find(
+              (s: YandexImageSize) => s.name === sName && s.url,
+            );
             if (found && found.url) {
               bestUrl = found.url;
               break;
@@ -1025,7 +1025,9 @@ export async function resolveYandexDiskResource(
           }
         }
         if (!bestUrl) {
-          bestUrl = sizes?.find((size) => size.url)?.url || data.preview;
+          bestUrl =
+            sizes?.find((size: YandexImageSize) => size.url)?.url ||
+            data.preview;
         }
 
         if (bestUrl) {
@@ -1102,9 +1104,7 @@ export async function resolveYandexDiskResource(
         data.media_type === 'image' ||
         data.media_type === 'video'
       ) {
-        const sizes: YandexImageSize[] = Array.isArray(data.sizes)
-          ? data.sizes
-          : [];
+        const sizes = data.sizes;
         const sizePriority = [
           'ORIGINAL',
           'XXXL',
@@ -1119,14 +1119,17 @@ export async function resolveYandexDiskResource(
         let bestSize;
         if (sizes && sizes.length > 0) {
           for (const sName of sizePriority) {
-            const found = sizes.find((s) => s.name === sName && s.url);
+            const found = sizes.find(
+              (s: YandexImageSize) => s.name === sName && s.url,
+            );
             if (found) {
               bestSize = found;
               break;
             }
           }
         }
-        const anySizeUrl = sizes?.find((size) => size.url)?.url || '';
+        const anySizeUrl =
+          sizes?.find((size: YandexImageSize) => size.url)?.url || '';
         const resolved =
           data.file || bestSize?.url || anySizeUrl || data.preview || rawUrl;
         yandexCache.set(rawUrl, {
@@ -1155,24 +1158,16 @@ export function parseHeroSlidesFromRows(rows: string[][]): HeroSlide[] {
       // Match "Слайд 1", "Слайд 2", etc.
       const slideMatch = cell.match(/^Слайд\s*(\d+)/i);
       if (slideMatch) {
-        // Хватаем ссылку из строки 3 google таблицы
-        let foundImage = '';
-        const immediateUrls = extractUrls(row[c + 1] || row[2] || '')
-          .concat(r + 1 < rows.length ? extractUrls(rows[r + 1][2] || rows[r + 1][c + 1] || '') : []);
-        if (immediateUrls.length > 0) {
-          foundImage = formatUniversalImageUrl(immediateUrls[0]);
-        }
-
         // Case 1: Title and text are in the SAME cell after "Слайд X"
         const cellLines = cell
           .split(/\r?\n/)
-          .map((l: string) => l.trim())
+          .map((l) => l.trim())
           .filter(Boolean);
         if (cellLines.length >= 2) {
           const title = cellLines[1];
           const text = cellLines.slice(2).join(' ') || '';
           if (title) {
-            slides.push({ title, text, image: foundImage });
+            slides.push({ title, text, image: '' });
             continue;
           }
         }
@@ -1182,65 +1177,58 @@ export function parseHeroSlidesFromRows(rows: string[][]): HeroSlide[] {
         let text = '';
         let nextRowIdx = r + 1;
 
-        while (nextRowIdx < rows.length) {
-          const rowData = rows[nextRowIdx];
+        while (
+          nextRowIdx < rows.length &&
+          rows[nextRowIdx].every((col) => !col || !col.trim())
+        ) {
+          nextRowIdx++;
+        }
+
+        if (nextRowIdx < rows.length) {
           const contentCell = (
-            rowData[c] ||
-            rowData[1] ||
-            rowData[0] ||
+            rows[nextRowIdx][c] ||
+            rows[nextRowIdx][1] ||
+            rows[nextRowIdx][0] ||
             ''
           ).trim();
-
-          if (!foundImage) {
-            const currentUrls = extractUrls(rowData[2] || rowData[c + 1] || '');
-            if (currentUrls.length > 0) {
-              foundImage = formatUniversalImageUrl(currentUrls[0]);
-            }
-          }
-
           if (contentCell && !/^Слайд\s*\d+/i.test(contentCell)) {
             const contentLines = contentCell
               .split(/\r?\n/)
-              .map((l: string) => l.trim())
+              .map((l) => l.trim())
               .filter(Boolean);
             if (contentLines.length >= 2) {
               title = contentLines[0];
               text = contentLines.slice(1).join(' ');
-              break;
             } else if (contentLines.length === 1) {
               title = contentLines[0];
               let descRowIdx = nextRowIdx + 1;
-              while (descRowIdx < rows.length) {
+              while (
+                descRowIdx < rows.length &&
+                rows[descRowIdx].every((col) => !col || !col.trim())
+              ) {
+                descRowIdx++;
+              }
+              if (descRowIdx < rows.length) {
                 const descCell = (
                   rows[descRowIdx][c] ||
                   rows[descRowIdx][1] ||
                   rows[descRowIdx][0] ||
                   ''
                 ).trim();
-                if (!foundImage) {
-                  const descUrls = extractUrls(rows[descRowIdx][2] || rows[descRowIdx][c + 1] || '');
-                  if (descUrls.length > 0) {
-                    foundImage = formatUniversalImageUrl(descUrls[0]);
-                  }
-                }
                 if (
                   descCell &&
                   !/^Слайд\s*\d+/i.test(descCell) &&
                   !descCell.toLowerCase().includes('короткие')
                 ) {
                   text = descCell;
-                  break;
                 }
-                descRowIdx++;
               }
-              break;
             }
           }
-          nextRowIdx++;
         }
 
         if (title) {
-          slides.push({ title, text, image: foundImage });
+          slides.push({ title, text, image: '' });
         }
       }
     }
@@ -1469,25 +1457,25 @@ export const DEFAULT_PUBLISHED_SHEET_KEY =
   (typeof import.meta !== 'undefined' &&
     import.meta.env &&
     import.meta.env.PUBLIC_GOOGLE_PUBLISHED_KEY) ||
-  '';
+  '2PACX-1vQeRQ5VAaQfGuBuOl1AKIktnCubBKhDAcGlQD5-1PyqIJ8P5VR6HKjRxkYBQZrWzeHs1QD5XlA54GGl';
 
 export const DEFAULT_REGIONS_GID =
   (typeof import.meta !== 'undefined' &&
     import.meta.env &&
     import.meta.env.PUBLIC_GOOGLE_REGIONS_GID) ||
-  '0';
+  '995502228';
 
 export const DEFAULT_GENERAL_GID =
   (typeof import.meta !== 'undefined' &&
     import.meta.env &&
     import.meta.env.PUBLIC_GOOGLE_GENERAL_GID) ||
-  '';
+  '41819776';
 
 export const DEFAULT_REVIEWS_GID =
   (typeof import.meta !== 'undefined' &&
     import.meta.env &&
     import.meta.env.PUBLIC_GOOGLE_REVIEWS_GID) ||
-  '';
+  '572753176';
 
 export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
   const now = Date.now();
