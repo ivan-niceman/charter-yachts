@@ -1462,7 +1462,7 @@ export const DEFAULT_PUBLISHED_SHEET_KEY =
   (typeof import.meta !== 'undefined' &&
     import.meta.env &&
     import.meta.env.PUBLIC_GOOGLE_PUBLISHED_KEY) ||
-  '2PACX-1vQeRQ5VAaQfGuBuOl1AKIktnCubBKhDAcGlQD5-1PyqIJ8P5VR6HKjRxkYBQZrWzeHs1QD5XlA54GGl';
+  '2PACX-1vSW4Ubcu_fhI-s6-lXxQaSVVBWBDP3dU3uIyRLipvCegLAaBOZvq_jfaAIcUDGLlPTqk8zGx0qyrhQA';
 
 export const DEFAULT_REGIONS_GID =
   (typeof import.meta !== 'undefined' &&
