@@ -959,12 +959,24 @@ export async function resolveYandexDiskResource(
         fs.mkdirSync(outDir, { recursive: true });
       }
 
+      const rawBase =
+        (typeof import.meta !== 'undefined' &&
+          import.meta.env &&
+          import.meta.env.BASE_URL) ||
+        '';
+      const basePrefix =
+        rawBase && rawBase !== '/'
+          ? rawBase.endsWith('/')
+            ? rawBase.slice(0, -1)
+            : rawBase
+          : '';
+
       // Check if already downloaded
       const existing = fs.readdirSync(outDir).find((f) => f.startsWith(hash));
       if (existing) {
         const fullPath = path.join(outDir, existing);
         if (fs.statSync(fullPath).size > 0) {
-          return '/images/yandex/' + existing;
+          return basePrefix + '/images/yandex/' + existing;
         }
       }
 
@@ -1002,7 +1014,7 @@ export async function resolveYandexDiskResource(
 
       if (res.ok) {
         const data = await res.json();
-        const sizes = data.sizes;
+        const sizes = data.sizes as YandexImageSize[] | undefined;
         const sizePriority = [
           'ORIGINAL',
           'XXXL',
@@ -1015,9 +1027,7 @@ export async function resolveYandexDiskResource(
         let bestUrl = data.file;
         if (!bestUrl && sizes && sizes.length > 0) {
           for (const sName of sizePriority) {
-            const found = sizes.find(
-              (s: YandexImageSize) => s.name === sName && s.url,
-            );
+            const found = sizes.find((s) => s.name === sName && s.url);
             if (found && found.url) {
               bestUrl = found.url;
               break;
@@ -1025,9 +1035,7 @@ export async function resolveYandexDiskResource(
           }
         }
         if (!bestUrl) {
-          bestUrl =
-            sizes?.find((size: YandexImageSize) => size.url)?.url ||
-            data.preview;
+          bestUrl = sizes?.find((size) => size.url)?.url || data.preview;
         }
 
         if (bestUrl) {
@@ -1048,7 +1056,7 @@ export async function resolveYandexDiskResource(
             const buffer = Buffer.from(await imgRes.arrayBuffer());
             if (buffer.length > 0) {
               fs.writeFileSync(filePath, buffer);
-              return '/images/yandex/' + filename;
+              return basePrefix + '/images/yandex/' + filename;
             }
           }
           return bestUrl;
@@ -1104,7 +1112,7 @@ export async function resolveYandexDiskResource(
         data.media_type === 'image' ||
         data.media_type === 'video'
       ) {
-        const sizes = data.sizes;
+        const sizes = data.sizes as YandexImageSize[] | undefined;
         const sizePriority = [
           'ORIGINAL',
           'XXXL',
@@ -1119,17 +1127,14 @@ export async function resolveYandexDiskResource(
         let bestSize;
         if (sizes && sizes.length > 0) {
           for (const sName of sizePriority) {
-            const found = sizes.find(
-              (s: YandexImageSize) => s.name === sName && s.url,
-            );
+            const found = sizes.find((s) => s.name === sName && s.url);
             if (found) {
               bestSize = found;
               break;
             }
           }
         }
-        const anySizeUrl =
-          sizes?.find((size: YandexImageSize) => size.url)?.url || '';
+        const anySizeUrl = sizes?.find((size) => size.url)?.url || '';
         const resolved =
           data.file || bestSize?.url || anySizeUrl || data.preview || rawUrl;
         yandexCache.set(rawUrl, {
