@@ -1,3 +1,8 @@
+interface YandexImageSize {
+  name?: string;
+  url?: string;
+}
+
 export interface Country {
   id: string;
   name: string;
@@ -936,6 +941,122 @@ export async function resolveYandexDiskResource(
   )
     return rawUrl;
 
+  const isServer =
+    typeof window === 'undefined' &&
+    typeof process !== 'undefined' &&
+    Boolean(process.versions?.node);
+
+  // In Node.js (during build time), download and cache to public/images/yandex/ so images are local and permanent
+  if (isServer) {
+    try {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const crypto = await import('node:crypto');
+
+      const hash = crypto.createHash('md5').update(rawUrl).digest('hex');
+      const outDir = path.join(process.cwd(), 'public', 'images', 'yandex');
+      if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
+      }
+
+      // Check if already downloaded
+      const existing = fs.readdirSync(outDir).find((f) => f.startsWith(hash));
+      if (existing) {
+        const fullPath = path.join(outDir, existing);
+        if (fs.statSync(fullPath).size > 0) {
+          return '/images/yandex/' + existing;
+        }
+      }
+
+      // Resolve direct download URL from Yandex API
+      let apiUrl = '';
+      const match = rawUrl.match(/disk\.yandex\.ru\/d\/([^\/]+)(?:\/(.+))?/);
+      if (match) {
+        const folderKey = 'https://disk.yandex.ru/d/' + match[1];
+        const subPath = match[2] ? '/' + decodeURIComponent(match[2]) : '';
+        if (subPath) {
+          apiUrl =
+            'https://cloud-api.yandex.net/v1/disk/public/resources?public_key=' +
+            encodeURIComponent(folderKey) +
+            '&path=' +
+            encodeURIComponent(subPath);
+        } else {
+          apiUrl =
+            'https://cloud-api.yandex.net/v1/disk/public/resources?public_key=' +
+            encodeURIComponent(folderKey);
+        }
+      } else {
+        apiUrl =
+          'https://cloud-api.yandex.net/v1/disk/public/resources?public_key=' +
+          encodeURIComponent(rawUrl);
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
+      const res = await fetch(apiUrl, {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+      });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const data = await res.json();
+        const sizes: YandexImageSize[] = Array.isArray(data.sizes)
+          ? data.sizes
+          : [];
+        const sizePriority = [
+          'ORIGINAL',
+          'XXXL',
+          'XXL',
+          'XL',
+          'L',
+          'DEFAULT',
+          'M',
+        ];
+        let bestUrl = data.file;
+        if (!bestUrl && sizes && sizes.length > 0) {
+          for (const sName of sizePriority) {
+            const found = sizes.find((s) => s.name === sName && s.url);
+            if (found && found.url) {
+              bestUrl = found.url;
+              break;
+            }
+          }
+        }
+        if (!bestUrl) {
+          bestUrl = sizes?.find((size) => size.url)?.url || data.preview;
+        }
+
+        if (bestUrl) {
+          const extMatch = (data.name || rawUrl).match(
+            /\.(jpe?g|png|webp|gif|svg|avif)/i,
+          );
+          const ext = extMatch
+            ? extMatch[1].toLowerCase().replace('jpeg', 'jpg')
+            : 'jpg';
+          const filename = hash + '.' + ext;
+          const filePath = path.join(outDir, filename);
+
+          // Download image file
+          const imgRes = await fetch(bestUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+          });
+          if (imgRes.ok) {
+            const buffer = Buffer.from(await imgRes.arrayBuffer());
+            if (buffer.length > 0) {
+              fs.writeFileSync(filePath, buffer);
+              return '/images/yandex/' + filename;
+            }
+          }
+          return bestUrl;
+        }
+      }
+    } catch (err) {
+      console.warn('Yandex image server-side download fallback:', err);
+    }
+  }
+
   const now = Date.now();
   const cached = yandexCache.get(rawUrl);
   if (cached && cached.expiresAt > now) {
@@ -946,15 +1067,23 @@ export async function resolveYandexDiskResource(
     let apiUrl = '';
     const match = rawUrl.match(/disk\.yandex\.ru\/d\/([^\/]+)(?:\/(.+))?/);
     if (match) {
-      const folderKey = `https://disk.yandex.ru/d/${match[1]}`;
+      const folderKey = 'https://disk.yandex.ru/d/' + match[1];
       const subPath = match[2] ? '/' + decodeURIComponent(match[2]) : '';
       if (subPath) {
-        apiUrl = `https://cloud-api.yandex.net/v1/disk/public/resources?public_key=${encodeURIComponent(folderKey)}&path=${encodeURIComponent(subPath)}`;
+        apiUrl =
+          'https://cloud-api.yandex.net/v1/disk/public/resources?public_key=' +
+          encodeURIComponent(folderKey) +
+          '&path=' +
+          encodeURIComponent(subPath);
       } else {
-        apiUrl = `https://cloud-api.yandex.net/v1/disk/public/resources?public_key=${encodeURIComponent(folderKey)}`;
+        apiUrl =
+          'https://cloud-api.yandex.net/v1/disk/public/resources?public_key=' +
+          encodeURIComponent(folderKey);
       }
     } else {
-      apiUrl = `https://cloud-api.yandex.net/v1/disk/public/resources?public_key=${encodeURIComponent(rawUrl)}`;
+      apiUrl =
+        'https://cloud-api.yandex.net/v1/disk/public/resources?public_key=' +
+        encodeURIComponent(rawUrl);
     }
 
     const controller = new AbortController();
@@ -973,10 +1102,11 @@ export async function resolveYandexDiskResource(
         data.media_type === 'image' ||
         data.media_type === 'video'
       ) {
-        const sizes = data.sizes as
-          Array<{ name?: string; url?: string }> | undefined;
-        // Prefer the largest web-optimized image. `preview` is often a small thumbnail.
+        const sizes: YandexImageSize[] = Array.isArray(data.sizes)
+          ? data.sizes
+          : [];
         const sizePriority = [
+          'ORIGINAL',
           'XXXL',
           'XXL',
           'XL',
@@ -985,9 +1115,8 @@ export async function resolveYandexDiskResource(
           'S',
           'XS',
           'DEFAULT',
-          'ORIGINAL',
         ];
-        let bestSize: { name?: string; url?: string } | undefined;
+        let bestSize;
         if (sizes && sizes.length > 0) {
           for (const sName of sizePriority) {
             const found = sizes.find((s) => s.name === sName && s.url);
@@ -1000,7 +1129,6 @@ export async function resolveYandexDiskResource(
         const anySizeUrl = sizes?.find((size) => size.url)?.url || '';
         const resolved =
           data.file || bestSize?.url || anySizeUrl || data.preview || rawUrl;
-        // Yandex temporary download links typically expire in 3-4 hours; cache for 90 minutes
         yandexCache.set(rawUrl, {
           url: resolved,
           expiresAt: now + 90 * 60 * 1000,
@@ -1012,7 +1140,6 @@ export async function resolveYandexDiskResource(
     // ignore
   }
 
-  // On failure do not cache indefinitely - retry after 30 seconds
   yandexCache.set(rawUrl, { url: rawUrl, expiresAt: now + 30 * 1000 });
   return rawUrl;
 }
@@ -1028,16 +1155,24 @@ export function parseHeroSlidesFromRows(rows: string[][]): HeroSlide[] {
       // Match "Слайд 1", "Слайд 2", etc.
       const slideMatch = cell.match(/^Слайд\s*(\d+)/i);
       if (slideMatch) {
+        // Хватаем ссылку из строки 3 google таблицы
+        let foundImage = '';
+        const immediateUrls = extractUrls(row[c + 1] || row[2] || '')
+          .concat(r + 1 < rows.length ? extractUrls(rows[r + 1][2] || rows[r + 1][c + 1] || '') : []);
+        if (immediateUrls.length > 0) {
+          foundImage = formatUniversalImageUrl(immediateUrls[0]);
+        }
+
         // Case 1: Title and text are in the SAME cell after "Слайд X"
         const cellLines = cell
           .split(/\r?\n/)
-          .map((l) => l.trim())
+          .map((l: string) => l.trim())
           .filter(Boolean);
         if (cellLines.length >= 2) {
           const title = cellLines[1];
           const text = cellLines.slice(2).join(' ') || '';
           if (title) {
-            slides.push({ title, text, image: '' });
+            slides.push({ title, text, image: foundImage });
             continue;
           }
         }
@@ -1047,58 +1182,65 @@ export function parseHeroSlidesFromRows(rows: string[][]): HeroSlide[] {
         let text = '';
         let nextRowIdx = r + 1;
 
-        while (
-          nextRowIdx < rows.length &&
-          rows[nextRowIdx].every((col) => !col || !col.trim())
-        ) {
-          nextRowIdx++;
-        }
-
-        if (nextRowIdx < rows.length) {
+        while (nextRowIdx < rows.length) {
+          const rowData = rows[nextRowIdx];
           const contentCell = (
-            rows[nextRowIdx][c] ||
-            rows[nextRowIdx][1] ||
-            rows[nextRowIdx][0] ||
+            rowData[c] ||
+            rowData[1] ||
+            rowData[0] ||
             ''
           ).trim();
+
+          if (!foundImage) {
+            const currentUrls = extractUrls(rowData[2] || rowData[c + 1] || '');
+            if (currentUrls.length > 0) {
+              foundImage = formatUniversalImageUrl(currentUrls[0]);
+            }
+          }
+
           if (contentCell && !/^Слайд\s*\d+/i.test(contentCell)) {
             const contentLines = contentCell
               .split(/\r?\n/)
-              .map((l) => l.trim())
+              .map((l: string) => l.trim())
               .filter(Boolean);
             if (contentLines.length >= 2) {
               title = contentLines[0];
               text = contentLines.slice(1).join(' ');
+              break;
             } else if (contentLines.length === 1) {
               title = contentLines[0];
               let descRowIdx = nextRowIdx + 1;
-              while (
-                descRowIdx < rows.length &&
-                rows[descRowIdx].every((col) => !col || !col.trim())
-              ) {
-                descRowIdx++;
-              }
-              if (descRowIdx < rows.length) {
+              while (descRowIdx < rows.length) {
                 const descCell = (
                   rows[descRowIdx][c] ||
                   rows[descRowIdx][1] ||
                   rows[descRowIdx][0] ||
                   ''
                 ).trim();
+                if (!foundImage) {
+                  const descUrls = extractUrls(rows[descRowIdx][2] || rows[descRowIdx][c + 1] || '');
+                  if (descUrls.length > 0) {
+                    foundImage = formatUniversalImageUrl(descUrls[0]);
+                  }
+                }
                 if (
                   descCell &&
                   !/^Слайд\s*\d+/i.test(descCell) &&
                   !descCell.toLowerCase().includes('короткие')
                 ) {
                   text = descCell;
+                  break;
                 }
+                descRowIdx++;
               }
+              break;
             }
           }
+          nextRowIdx++;
         }
 
         if (title) {
-          slides.push({ title, text, image: '' });
+          slides.push({ title, text, image: foundImage });
         }
       }
     }
@@ -1293,23 +1435,9 @@ export async function fetchRegionData(
               )
             : '';
 
-        // 2. Извлекаем карту (Колонка C / индекс 2)
-        const mapCell = String(row[2] || '').trim();
-        const mapUrls = extractUrls(mapCell);
-        const mapUrl =
-          mapUrls.length > 0
-            ? await resolveYandexDiskResource(
-                formatGoogleDriveImageUrl(mapUrls[0]),
-              )
-            : '';
-
-        // 3. Карта: если в Столбце C есть ссылка — используем её. Если ссылки на карту нет — загружаем вместо карты флаг!
-        const cardImage = mapUrl || flagUrl || undefined;
-
         result[key] = {
           description: desc,
           flag: flagUrl || extractedEmoji || undefined,
-          image: cardImage,
           order: r,
         };
       }
@@ -1535,7 +1663,10 @@ export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
               } else if (
                 col === 'карта' ||
                 col.includes('карта') ||
-                col.includes('map')
+                col.includes('map') ||
+                col.includes('фон') ||
+                col.includes('фоновое') ||
+                col.includes('background')
               ) {
                 mapColIdx = idx;
               }
@@ -1546,7 +1677,7 @@ export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
             if (mapColIdx === -1) mapColIdx = 9;
 
             // Извлекаем флаг и карту из строк этой вкладки
-            for (let r = 1; r < rows.length; r++) {
+            for (let r = 0; r < rows.length; r++) {
               const rRow = rows[r];
               if (!rRow) continue;
 
@@ -1796,15 +1927,9 @@ export async function fetchInitialDataServerSide(): Promise<SheetDataResponse> {
           '';
         const flag = formatGoogleDriveImageUrl(rawFlag) || rawFlag || '';
 
-        // Карта берется с текущей вкладки страны из колонки "Карта" (J).
-        // "Регионы" используется только если на вкладке страны карта не указана.
+        // Карта/фон берется ИСКЛЮЧИТЕЛЬНО с текущей вкладки страны из колонки "Карта" (J)
         const countrySheetMap = tabData?.image || '';
-        const rawImage =
-          countrySheetMap ||
-          regInfo?.image ||
-          flag ||
-          defaultCountry?.image ||
-          '';
+        const rawImage = countrySheetMap || defaultCountry?.image || '';
         const image = formatGoogleDriveImageUrl(rawImage) || rawImage || '';
 
         const season =

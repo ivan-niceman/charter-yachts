@@ -102,7 +102,7 @@ const { prefillYacht = '' } = Astro.props;
             </div>
           </div>
 
-          <div class="floating-group">
+          <div class="floating-group" id="group-comment">
             <textarea
               id="input-comment"
               name="comment"
@@ -114,15 +114,16 @@ const { prefillYacht = '' } = Astro.props;
               <svg class="label-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
               </svg>
-              Комментарий (даты, количество гостей или пожелания)
+              Комментарий (даты, количество гостей или пожелания) *
             </label>
+            <span class="field-error-msg" id="error-comment" style="display: none;"></span>
           </div>
 
           <div class="checkbox-wrap" id="group-consent">
             <label class="checkbox-label">
               <input type="checkbox" id="input-consent" name="consent" checked />
               <span class="checkbox-text">
-                Соглашаюсь на <a href="/consent" target="_blank" rel="noopener noreferrer">обработку персональных данных</a> в соответствии с ФЗ № 152-ФЗ и <a href="/privacy" target="_blank" rel="noopener noreferrer">политикой конфиденциальности</a>.
+                Соглашаюсь на обработку персональных данных в соответствии с ФЗ № 152-ФЗ и <a href="/privacy" target="_blank" rel="noopener noreferrer">политикой конфиденциальности</a>.
               </span>
             </label>
             <span class="field-error-msg checkbox-error" id="error-consent" style="display: none;"></span>
@@ -281,6 +282,12 @@ const { prefillYacht = '' } = Astro.props;
         }
       }
 
+      if (fieldName === 'comment') {
+        const val = commentInput?.value.trim() || '';
+        if (!val) error = 'Пожалуйста, укажите комментарий';
+        else if (val.length < 3) error = 'Комментарий должен содержать не менее 3 символов';
+      }
+
       if (fieldName === 'consent') {
         if (!consentInput?.checked) {
           error = 'Необходимо подтвердить согласие на обработку данных';
@@ -310,13 +317,14 @@ const { prefillYacht = '' } = Astro.props;
       const vName = validateField('name');
       const vPhone = validateField('phone');
       const vEmail = validateField('email');
+      const vComment = validateField('comment');
       const vConsent = validateField('consent');
 
-      return vName && vPhone && vEmail && vConsent;
+      return vName && vPhone && vEmail && vComment && vConsent;
     }
 
     // Динамическое обновление ошибок во время ввода ТОЛЬКО ЕСЛИ была попытка отправки
-    [nameInput, phoneInput, emailInput, consentInput].forEach((input) => {
+    [nameInput, phoneInput, emailInput, commentInput, consentInput].forEach((input) => {
       if (!input) return;
       if (input.type === 'checkbox') {
 
@@ -459,7 +467,7 @@ const { prefillYacht = '' } = Astro.props;
             if (badgeName) badgeName.textContent = '';
 
             // Очищаем ошибки
-            ['name', 'phone', 'email', 'consent'].forEach((fieldName) => {
+            ['name', 'phone', 'email', 'comment', 'consent'].forEach((fieldName) => {
               const groupElem = document.getElementById(`group-${fieldName}`);
               const errElem = document.getElementById(`error-${fieldName}`);
               if (groupElem) groupElem.classList.remove('has-error');

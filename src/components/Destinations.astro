@@ -65,8 +65,8 @@ function emojiToCountryCode(emoji: string): string | null {
 }
 
 function getCountryFlagUrl(country: Country): string {
-  // 1. Если есть ссылка на флаг (из Google Таблицы / Google Drive / URL) - ВСЕГДА используем именно её!
-  if (country.flag && (country.flag.startsWith('http://') || country.flag.startsWith('https://'))) {
+  // 1. Если есть ссылка на флаг (из Google Таблицы / Google Drive / URL / локальный кэш)
+  if (country.flag && (country.flag.startsWith('http://') || country.flag.startsWith('https://') || country.flag.startsWith('/'))) {
     return country.flag;
   }
   // 2. Если есть emoji флага
@@ -87,16 +87,12 @@ function getCountryFlagUrl(country: Country): string {
 }
 
 function getCountryCardBgUrl(country: Country): string {
-  // 1. Если есть прямая ссылка на карту (из Google Таблицы / Google Drive / URL)
-  if (country.image && (country.image.startsWith('http://') || country.image.startsWith('https://'))) {
+  // 1. Если есть прямая ссылка на карту (из Google Таблицы / Google Drive / URL / локальный кэш)
+  if (country.image && (country.image.startsWith('http://') || country.image.startsWith('https://') || country.image.startsWith('/'))) {
     return country.image;
   }
   return '';
 }
-
-// Тройное клонирование списка для бесшовной бесконечной прокрутки
-const displayItems = countries.length > 1 ? [...countries, ...countries, ...countries] : [...countries];
-const L = countries.length;
 ---
 
 <section id="destinations" class="section destinations-section">
@@ -107,25 +103,12 @@ const L = countries.length;
         <span class="title">НАПРАВЛЕНИЯ</span>
         <h2 class="section-title">Популярные направления</h2>
       </div>
-
-      <button
-        type="button"
-        class="view-all-destinations-btn"
-        id="open-all-destinations-btn"
-        title="Смотреть все направления"
-        aria-label="Смотреть все направления"
-      >
-        <span>Все направления</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-      </button>
     </div>
 
-    <div class="slider-wrapper">
-      <div class="slider-track" id="destinations-slider-track" data-length={L} data-count={countries.length}>
-        {displayItems.map((country: Country) => {
+    <!-- Destinations Grid -->
+    <div class="destinations-grid-wrapper">
+      <div class="destinations-grid" id="destinations-grid">
+        {countries.map((country: Country) => {
           const flagUrl = getCountryFlagUrl(country);
           const bgUrl = getCountryCardBgUrl(country);
           return (
@@ -139,10 +122,12 @@ const L = countries.length;
                 <div class="card-bg-img">
                   <img
                     src={bgUrl}
+                    data-raw-src={country.image || bgUrl}
                     alt={`Карта ${country.name}`}
                     loading="lazy"
                     referrerpolicy="no-referrer"
                     draggable="false"
+                    onerror="if(window.repairYandexImage){window.repairYandexImage(this);}"
                   />
                 </div>
               )}
@@ -209,9 +194,9 @@ const L = countries.length;
                   allowed[n.toLowerCase().trim()] = true;
                   allowed[clean] = true;
                 });
-                var track = document.getElementById('destinations-slider-track');
-                if (track) {
-                  var cards = track.querySelectorAll('.compact-card');
+                var grid = document.getElementById('destinations-grid');
+                if (grid) {
+                  var cards = grid.querySelectorAll('.compact-card');
                   cards.forEach(function(card) {
                     var cId = (card.getAttribute('data-country-id') || '').toLowerCase().trim();
                     var cName = (card.getAttribute('data-country-name') || '').toLowerCase().trim();
@@ -229,22 +214,14 @@ const L = countries.length;
       </script>
     </div>
 
-    <div class="slider-controls-footer" id="destinations-slider-controls">
-      <div class="pagination-dots" id="destinations-dots">
-      </div>
-
-      <div class="nav-arrows">
-        <button type="button" class="nav-arrow-btn" id="destinations-prev" aria-label="Предыдущие направления">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <button type="button" class="nav-arrow-btn" id="destinations-next" aria-label="Следующие направления">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-      </div>
+    <!-- Show More / All Destinations Button (как в каталоге яхт) -->
+    <div class="dest-show-more-container" id="dest-show-more-container" style="display: none;">
+      <button type="button" class="dest-show-more-btn" id="dest-show-more-btn">
+        <span>Все направления</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -263,138 +240,13 @@ const L = countries.length;
       <p class="info-modal-text" id="destinations-modal-text"></p>
     </div>
   </div>
-
-  <!-- All Destinations Modal (Вариант 1) -->
-  <div class="all-destinations-modal-backdrop" id="all-destinations-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="all-destinations-title">
-    <div class="all-destinations-modal-card">
-      <!-- Modal Header -->
-      <div class="all-destinations-header">
-        <div class="all-destinations-title-wrap">
-          <h3 class="all-destinations-title" id="all-destinations-title">Все направления</h3>
-          <span class="all-destinations-count-pill" id="all-destinations-count-pill">{countries.length} стран</span>
-        </div>
-        <button type="button" class="all-destinations-close" id="all-destinations-close" aria-label="Закрыть модальное окно">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Search Bar -->
-      <div class="all-destinations-search-wrap">
-        <div class="search-input-box">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input
-            type="text"
-            id="all-destinations-search-input"
-            class="all-destinations-search-input"
-            placeholder="Поиск страны или региона (Мальдивы, Сейшелы, Турция...)"
-            autocomplete="off"
-          />
-          <button type="button" id="all-destinations-search-clear" class="search-clear-btn" style="display: none;" aria-label="Очистить поиск">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Destinations Grid -->
-      <div class="all-destinations-body">
-        <div class="all-destinations-grid" id="all-destinations-grid">
-          {countries.map((country: Country) => {
-            const flagUrl = getCountryFlagUrl(country);
-            const bgUrl = getCountryCardBgUrl(country);
-            return (
-              <div
-                class="all-dest-card"
-                data-country-id={country.id}
-                data-country-name={country.name}
-                data-country-desc={country.description}
-                role="button"
-                tabindex="0"
-              >
-                {bgUrl && (
-                  <div class="all-dest-card-bg">
-                    <img
-                      src={bgUrl}
-                      alt={`Карта ${country.name}`}
-                      loading="lazy"
-                      referrerpolicy="no-referrer"
-                      onerror="this.parentElement.style.display='none'"
-                    />
-                  </div>
-                )}
-                <div class="all-dest-card-top">
-                  <div class="all-dest-flag-wrap" title={`Флаг: ${country.name}`}>
-                    {flagUrl ? (
-                      <img
-                        src={flagUrl}
-                        alt={`Флаг ${country.name}`}
-                        class="all-dest-flag-img"
-                        loading="lazy"
-                        onerror={`this.onerror=null; const code='${COUNTRY_FLAGS_MAP[(country.id || '').toLowerCase()] || COUNTRY_FLAGS_MAP[(country.name || '').toLowerCase()] || ''}'; if(code){ this.src='https://flagcdn.com/'+code+'.svg'; } else { this.style.display='none'; }`}
-                      />
-                    ) : (
-                      <span class="all-dest-flag-emoji">{country.flag || '🏝️'}</span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    class="compact-info-btn all-dest-info-btn"
-                    title="Информация о направлении"
-                    aria-label={`Информация о направлении ${country.name}`}
-                    data-info-btn
-                    style={country.description ? 'display: flex;' : 'display: none;'}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="16" x2="12" y2="12"></line>
-                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                  </button>
-                </div>
-
-                <div class="all-dest-card-content">
-                  <h4 class="all-dest-card-name">{country.name}</h4>
-                  <span class="all-dest-action-link">
-                    <span>Смотреть яхты</span>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <!-- No search results -->
-        <div class="all-dest-empty-state" id="all-dest-empty" style="display: none;">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <p>Ничего не найдено по вашему запросу</p>
-          <button type="button" class="all-dest-reset-search" id="all-dest-reset-btn">
-            Показать все страны
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // Shared state and lookup tables
     const dynamicRegionDesc: Record<string, string> = {};
+    let isDestExpanded = false;
 
     function cleanStr(s: string): string {
       return (s || '')
@@ -453,9 +305,7 @@ const L = countries.length;
       if (modal) {
         modal.style.display = 'none';
       }
-      if (!allModal || allModal.style.display === 'none') {
-        document.body.style.overflow = '';
-      }
+      document.body.style.overflow = '';
     }
 
     modalClose?.addEventListener('click', closeDestinationsModal);
@@ -465,422 +315,63 @@ const L = countries.length;
       }
     });
 
-    // --- All Destinations Modal (Вариант 1) with Real-Time Search ---
-    const allModal = document.getElementById('all-destinations-modal') as HTMLDivElement | null;
-    const openAllBtn = document.getElementById('open-all-destinations-btn') as HTMLButtonElement | null;
-    const allCloseBtn = document.getElementById('all-destinations-close') as HTMLButtonElement | null;
-    const searchInput = document.getElementById('all-destinations-search-input') as HTMLInputElement | null;
-    const searchClearBtn = document.getElementById('all-destinations-search-clear') as HTMLButtonElement | null;
-    const allGrid = document.getElementById('all-destinations-grid') as HTMLDivElement | null;
-    const allEmptyState = document.getElementById('all-dest-empty') as HTMLDivElement | null;
-    const allResetBtn = document.getElementById('all-dest-reset-btn') as HTMLButtonElement | null;
-    const countPill = document.getElementById('all-destinations-count-pill') as HTMLSpanElement | null;
-
-    function openAllDestinationsModal() {
-      if (!allModal) return;
-      allModal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      if (searchInput) {
-        searchInput.value = '';
-        performFilter('');
-        setTimeout(() => searchInput.focus(), 80);
-      }
-    }
-
-    function closeAllDestinationsModal() {
-      if (!allModal) return;
-      allModal.style.display = 'none';
-      document.body.style.overflow = '';
-    }
-
-    // Single unified Escape handler with correct stacking order
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (modal && modal.style.display !== 'none') {
-          closeDestinationsModal();
-          return;
-        }
-        if (allModal && allModal.style.display !== 'none') {
-          closeAllDestinationsModal();
-        }
+      if (e.key === 'Escape' && modal && modal.style.display !== 'none') {
+        closeDestinationsModal();
       }
     });
 
-    function performFilter(rawQuery: string) {
-      const q = rawQuery.trim().toLowerCase();
-      if (searchClearBtn) {
-        searchClearBtn.style.display = q ? 'flex' : 'none';
-      }
-
-      const cards = allGrid?.querySelectorAll<HTMLElement>('.all-dest-card') || [];
-      let visibleCount = 0;
-
-      cards.forEach((card) => {
-        const name = (card.getAttribute('data-country-name') || '').toLowerCase();
-        const id = (card.getAttribute('data-country-id') || '').toLowerCase();
-        const trans = transliterate(name);
-        const matches = !q || name.includes(q) || id.includes(q) || trans.includes(q);
-
-        if (matches) {
-          card.style.display = '';
-          visibleCount++;
-        } else {
-          card.style.display = 'none';
-        }
-      });
-
-      if (allEmptyState) {
-        allEmptyState.style.display = visibleCount === 0 ? 'flex' : 'none';
-      }
-    }
-
-    function bindAllDestCard(card: HTMLElement) {
-      const countryId = card.getAttribute('data-country-id') || '';
-      const countryName = card.getAttribute('data-country-name') || '';
-      const infoBtn = card.querySelector<HTMLElement>('[data-info-btn]');
-
-      if (infoBtn) {
-        infoBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const cleanKey = cleanStr(countryName);
-          const dynamicDesc = cleanKey ? dynamicRegionDesc[cleanKey] : null;
-          const fallbackDesc = card.getAttribute('data-country-desc');
-          const finalDesc = dynamicDesc || fallbackDesc || '';
-
-          if (!finalDesc) return;
-          openDestinationsModal(countryName, finalDesc);
-        });
-      }
-
-      const handleSelect = () => {
-        closeAllDestinationsModal();
-        window.dispatchEvent(new CustomEvent('selectCountryFilter', { detail: { countryId } }));
-        const yachtsElem = document.getElementById('yachts');
-        if (yachtsElem) {
-          yachtsElem.scrollIntoView({ behavior: 'smooth' });
-        }
-      };
-
-      card.addEventListener('click', handleSelect);
-      card.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleSelect();
-        }
-      });
-    }
-
-    openAllBtn?.addEventListener('click', openAllDestinationsModal);
-    allCloseBtn?.addEventListener('click', closeAllDestinationsModal);
-    allModal?.addEventListener('click', (e) => {
-      if (e.target === allModal) {
-        closeAllDestinationsModal();
-      }
-    });
-
-    searchInput?.addEventListener('input', () => {
-      performFilter(searchInput.value);
-    });
-
-    searchClearBtn?.addEventListener('click', () => {
-      if (searchInput) {
-        searchInput.value = '';
-        searchInput.focus();
-        performFilter('');
-      }
-    });
-
-    allResetBtn?.addEventListener('click', () => {
-      if (searchInput) {
-        searchInput.value = '';
-        searchInput.focus();
-        performFilter('');
-      }
-    });
-
-    // Bind SSR-rendered cards in the modal
-    allGrid?.querySelectorAll<HTMLElement>('.all-dest-card').forEach(bindAllDestCard);
-
-    function createModalDestCard(item: { name: string; id: string; desc: string; flagUrl?: string; bgUrl?: string }): HTMLElement {
-      const card = document.createElement('div');
-      card.className = 'all-dest-card';
-      card.setAttribute('data-country-id', item.id);
-      card.setAttribute('data-country-name', item.name);
-      card.setAttribute('data-country-desc', item.desc);
-      card.setAttribute('role', 'button');
-      card.setAttribute('tabindex', '0');
-
-      const hasDesc = Boolean(item.desc);
-      const cleanKey = cleanStr(item.name) || cleanStr(item.id);
-      const flagCode = CLIENT_FLAGS_MAP[cleanKey] || CLIENT_FLAGS_MAP[item.id.toLowerCase()] || CLIENT_FLAGS_MAP[item.name.toLowerCase()] || '';
-      const flagUrl = item.flagUrl || (flagCode ? `https://flagcdn.com/${flagCode}.svg` : '');
-      const bgUrl = item.bgUrl || '';
-
-      card.innerHTML = `
-        ${bgUrl ? `
-          <div class="all-dest-card-bg">
-            <img
-              src="${bgUrl}"
-              alt="Карта ${item.name}"
-              loading="lazy"
-              referrerpolicy="no-referrer"
-              onerror="this.parentElement.style.display='none'"
-            />
-          </div>
-        ` : ''}
-        <div class="all-dest-card-top">
-          <div class="all-dest-flag-wrap" title="Флаг: ${item.name}">
-            ${flagUrl ? `<img src="${flagUrl}" alt="Флаг ${item.name}" class="all-dest-flag-img" loading="lazy" onerror="this.style.display='none'" />` : '<span class="all-dest-flag-emoji">🏝️</span>'}
-          </div>
-          <button
-            type="button"
-            class="compact-info-btn all-dest-info-btn"
-            title="Информация о направлении"
-            aria-label="Информация о направлении ${item.name}"
-            data-info-btn
-            style="${hasDesc ? 'display: flex;' : 'display: none;'}"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
-          </button>
-        </div>
-        <div class="all-dest-card-content">
-          <h4 class="all-dest-card-name">${item.name}</h4>
-          <span class="all-dest-action-link">
-            <span>Смотреть яхты</span>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </span>
-        </div>
-      `;
-
-      bindAllDestCard(card);
-      return card;
-    }
-
-    function updateAllDestCards(list: { name: string; id: string; desc: string; flagUrl?: string; bgUrl?: string; html?: HTMLElement }[]) {
-      if (!allGrid) return;
-      const existingBackgrounds = new Map<string, string>();
-      allGrid.querySelectorAll<HTMLElement>('.all-dest-card').forEach((card) => {
-        const key = cleanStr(card.getAttribute('data-country-name') || '');
-        const background = card.querySelector<HTMLImageElement>('.all-dest-card-bg img')?.src || '';
-        if (key && background) existingBackgrounds.set(key, background);
-      });
-      allGrid.innerHTML = '';
-      list.forEach((item) => {
-        const bgUrl = item.bgUrl || existingBackgrounds.get(cleanStr(item.name)) || '';
-        const card = createModalDestCard({ ...item, bgUrl });
-        allGrid.appendChild(card);
-      });
-
-      const countStr = getCountriesCountText(list.length);
-      if (countPill) countPill.textContent = countStr;
-
-      if (searchInput) {
-        performFilter(searchInput.value);
-      }
-    }
-
-    // --- Slider track logic ---
-    const track = document.getElementById('destinations-slider-track') as HTMLDivElement | null;
-    const dotsContainer = document.getElementById('destinations-dots') as HTMLDivElement | null;
-    const prevBtn = document.getElementById('destinations-prev') as HTMLButtonElement | null;
-    const nextBtn = document.getElementById('destinations-next') as HTMLButtonElement | null;
-
-    if (!track) return;
-
-    const trackEl = track;
-    const containerEl = trackEl.parentElement as HTMLElement;
-
-    let count = parseInt(trackEl.getAttribute('data-count') || '1', 10);
-    const sliderControls = document.querySelector('.slider-controls-footer') as HTMLElement | null;
-
-    if (count <= 1) {
-      if (sliderControls) sliderControls.style.display = 'none';
-    }
-
-    // Стартуем со среднего блока если карточек > 1
-    let currentIndex = count > 1 ? count : 0;
-    let isTransitioning = false;
-
-    function renderDots() {
-      if (!dotsContainer) return;
-      dotsContainer.innerHTML = '';
-      if (count <= 1) return;
-      for (let i = 0; i < count; i++) {
-        const dot = document.createElement('button');
-        dot.type = 'button';
-        dot.className = `dot ${i === 0 ? 'active' : ''}`;
-        dot.setAttribute('aria-label', `Перейти к направлению ${i + 1}`);
-        dot.addEventListener('click', () => {
-          const currentReal = ((currentIndex % count) + count) % count;
-          const diff = i - currentReal;
-          currentIndex += diff;
-          moveSlider(true);
-        });
-        dotsContainer.appendChild(dot);
-      }
-    }
-
-    function updatePagination() {
-      if (!dotsContainer || count <= 1) return;
-      const currentReal = ((currentIndex % count) + count) % count;
-      const dots = dotsContainer.querySelectorAll('.dot');
-      dots.forEach((dot, idx) => {
-        if (idx === currentReal) {
-          dot.classList.add('active');
-        } else {
-          dot.classList.remove('active');
-        }
-      });
-    }
-
-    // Ровно 5 карточек на десктопе, 3 на планшете, 2 на мобильных устройствах
-    function getVisibleCount() {
+    // --- Grid Visibility & Columns Logic (5 на десктопе, 3 на планшете, 2 на мобиле) ---
+    function getDestColumnsCount(): number {
       if (window.innerWidth <= 640) return 2;
       if (window.innerWidth <= 1024) return 3;
       return 5;
     }
 
-    function getGap() {
-      return window.innerWidth < 640 ? 12 : 20;
-    }
+    function updateDestinationsVisibility() {
+      const grid = document.getElementById('destinations-grid');
+      if (!grid) return;
+      const showMoreContainer = document.getElementById('dest-show-more-container');
+      const cards = Array.from(grid.querySelectorAll<HTMLElement>('.compact-card'));
+      const maxVisible = getDestColumnsCount();
 
-    function updateCardWidth() {
-      const containerWidth = containerEl.clientWidth;
-      const visibleCount = getVisibleCount();
-      const gap = getGap();
-      
-      const cardWidth = (containerWidth - (visibleCount - 1) * gap) / visibleCount;
+      cards.forEach((card, index) => {
+        if (isDestExpanded || index < maxVisible) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
 
-      containerEl.style.setProperty('--card-width', `${cardWidth}px`);
-      containerEl.style.setProperty('--gap-width', `${gap}px`);
-      return cardWidth + gap;
-    }
-
-    function moveSlider(animate = true) {
-      if (count <= 1) {
-        trackEl.style.transition = 'none';
-        trackEl.style.transform = 'translate3d(0, 0, 0)';
-        return;
+      if (showMoreContainer) {
+        if (cards.length > maxVisible && !isDestExpanded) {
+          showMoreContainer.style.display = 'flex';
+        } else {
+          showMoreContainer.style.display = 'none';
+        }
       }
-      const step = updateCardWidth();
-      if (animate) {
-        trackEl.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
-        isTransitioning = true;
-      } else {
-        trackEl.style.transition = 'none';
-        isTransitioning = false;
-      }
-      const offset = -currentIndex * step;
-      trackEl.style.transform = `translate3d(${offset}px, 0, 0)`;
-      updatePagination();
     }
 
-    function handleNext() {
-      if (isTransitioning || count <= 1) return;
-      currentIndex++;
-      moveSlider(true);
+    const destShowMoreBtn = document.getElementById('dest-show-more-btn');
+    if (destShowMoreBtn) {
+      destShowMoreBtn.addEventListener('click', () => {
+        isDestExpanded = true;
+        updateDestinationsVisibility();
+      });
     }
 
-    function handlePrev() {
-      if (isTransitioning || count <= 1) return;
-      currentIndex--;
-      moveSlider(true);
-    }
-
-    trackEl.addEventListener('transitionend', () => {
-      if (count <= 1) return;
-      isTransitioning = false;
-      const step = updateCardWidth();
-      if (currentIndex >= 2 * count) {
-        currentIndex = currentIndex - count;
-        trackEl.style.transition = 'none';
-        trackEl.style.transform = `translate3d(${-currentIndex * step}px, 0, 0)`;
-      } else if (currentIndex < count) {
-        currentIndex = currentIndex + count;
-        trackEl.style.transition = 'none';
-        trackEl.style.transform = `translate3d(${-currentIndex * step}px, 0, 0)`;
-      }
-    });
-
-    prevBtn?.addEventListener('click', handlePrev);
-    nextBtn?.addEventListener('click', handleNext);
-
-    // --- Драг мышью и тачем ---
-    let startX = 0;
-    let currentDragX = 0;
-    let isDragging = false;
-    let movedDistance = 0;
-
-    trackEl.addEventListener('dragstart', (e) => e.preventDefault());
-
-    function onPointerDown(e: MouseEvent | TouchEvent) {
-      if (isTransitioning) return;
-      isDragging = true;
-      movedDistance = 0;
-      startX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      currentDragX = startX;
-      trackEl.style.transition = 'none';
-    }
-
-    function onPointerMove(e: MouseEvent | TouchEvent) {
-      if (!isDragging) return;
-      currentDragX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const deltaX = currentDragX - startX;
-      movedDistance = Math.abs(deltaX);
-      const step = updateCardWidth();
-      const currentOffset = -currentIndex * step + deltaX;
-      trackEl.style.transform = `translate3d(${currentOffset}px, 0, 0)`;
-    }
-
-    function onPointerUp() {
-      if (!isDragging) return;
-      isDragging = false;
-      const deltaX = currentDragX - startX;
-      if (deltaX < -40) {
-        currentIndex++;
-      } else if (deltaX > 40) {
-        currentIndex--;
-      }
-      moveSlider(true);
-    }
-
-    containerEl.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('mouseup', onPointerUp);
-
-    containerEl.addEventListener('touchstart', onPointerDown, { passive: true });
-    containerEl.addEventListener('touchmove', onPointerMove, { passive: true });
-    containerEl.addEventListener('touchend', onPointerUp);
-
-    trackEl.addEventListener('click', (e) => {
-      if (movedDistance > 5) {
-        e.preventDefault();
-        e.stopPropagation();
-        movedDistance = 0;
-      }
-    }, true);
-
-    // Инициализация при старте
-    renderDots();
-    updateCardWidth();
-    moveSlider(false);
-
+    let resizeTimer: any;
     window.addEventListener('resize', () => {
-      updateCardWidth();
-      moveSlider(false);
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        updateDestinationsVisibility();
+      }, 100);
     });
 
-    // --- Фоновая динамическая синхронизация из Google Таблицы ---
-    const PUBLISHED_KEY =
+    // --- Dynamic Background Sync from Google Sheets ---
+    let PUBLISHED_KEY =
       (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PUBLIC_GOOGLE_PUBLISHED_KEY) || '';
-    const REGIONS_GID =
+    let REGIONS_GID =
       (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PUBLIC_GOOGLE_REGIONS_GID) || '0';
 
     function parseSimpleCSV(text: string): string[][] {
@@ -937,7 +428,6 @@ const L = countries.length;
       const trimmed = url.trim();
       if (!trimmed) return '';
 
-      // yacht.link with #UUID -> CharterIndex CDN direct JPG
       const yachtLinkMatch =
         trimmed.match(/yacht\.link\/[^\/]+\/gallery\.html#([a-zA-Z0-9_-]+)/i) ||
         trimmed.match(/yacht\.link\/.*#([a-zA-Z0-9_-]+)/i);
@@ -1007,11 +497,19 @@ const L = countries.length;
       const flagCode = CLIENT_FLAGS_MAP[cleanKey] || CLIENT_FLAGS_MAP[item.id.toLowerCase()] || CLIENT_FLAGS_MAP[item.name.toLowerCase()] || '';
       const flagUrl = item.flagUrl || (flagCode ? `https://flagcdn.com/${flagCode}.svg` : '');
       const bgUrl = item.bgUrl || '';
+      const directBg = (window as any).__yandexDirectCache?.[bgUrl] || (bgUrl.includes('disk.yandex.ru') ? '' : bgUrl);
 
       card.innerHTML = `
         ${bgUrl ? `
           <div class="card-bg-img">
-            <img src="${bgUrl}" alt="Фон ${item.name}" loading="lazy" />
+            <img
+              src="${directBg}"
+              data-raw-src="${bgUrl}"
+              alt="Фон ${item.name}"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              onerror="if(window.repairYandexImage){window.repairYandexImage(this);}"
+            />
           </div>
         ` : ''}
         <div class="card-top-row">
@@ -1045,13 +543,21 @@ const L = countries.length;
         </div>
       `;
 
+      if (bgUrl && !directBg && (bgUrl.includes('disk.yandex.ru') || bgUrl.includes('downloader.disk.yandex.ru'))) {
+        const bgImg = card.querySelector<HTMLImageElement>('.card-bg-img img');
+        if (bgImg && (window as any).repairYandexImage) {
+          (window as any).repairYandexImage(bgImg);
+        }
+      }
+
       bindCardEvents(card);
       return card;
     }
 
     function reorderDestinations(activeTabs: { name: string; gid: string }[]) {
-      if (!trackEl || !activeTabs || !Array.isArray(activeTabs) || activeTabs.length === 0) return;
-      const existingDOMCards = Array.from(trackEl.querySelectorAll<HTMLElement>('.compact-card'));
+      const gridEl = document.getElementById('destinations-grid');
+      if (!gridEl || !activeTabs || !Array.isArray(activeTabs) || activeTabs.length === 0) return;
+      const existingDOMCards = Array.from(gridEl.querySelectorAll<HTMLElement>('.compact-card'));
       if (existingDOMCards.length === 0) return;
 
       const uniqueCards = new Map<string, HTMLElement>();
@@ -1101,25 +607,12 @@ const L = countries.length;
       });
 
       if (orderedCards.length > 0) {
-        trackEl.innerHTML = '';
-        const trippled = orderedCards.length > 1
-          ? [...orderedCards, ...orderedCards, ...orderedCards]
-          : orderedCards;
-
-        trippled.forEach((item) => {
-          const clone = item.cloneNode(true) as HTMLElement;
-          bindCardEvents(clone);
-          trackEl.appendChild(clone);
+        gridEl.innerHTML = '';
+        orderedCards.forEach((card) => {
+          bindCardEvents(card);
+          gridEl.appendChild(card);
         });
-
-        count = orderedCards.length;
-        currentIndex = count > 1 ? count : 0;
-        if (count <= 1 && sliderControls) sliderControls.style.display = 'none';
-        else if (sliderControls) sliderControls.style.display = 'flex';
-        renderDots();
-        updateCardWidth();
-        moveSlider(false);
-        updateAllDestCards(orderedMeta);
+        updateDestinationsVisibility();
       }
     }
 
@@ -1127,32 +620,19 @@ const L = countries.length;
     try {
       const cached = localStorage.getItem('yacht_destinations_cache');
       const cachedTabs = localStorage.getItem('yacht_active_tabs_cache');
-      if (cached) {
+      const gridEl = document.getElementById('destinations-grid');
+
+      if (cached && gridEl) {
         const list = JSON.parse(cached);
         const hasUnresolvedYandexMaps = Array.isArray(list) && list.some((item: any) => isPublicYandexDiskLink(item?.bgUrl));
-        const hasServerRenderedCards = Boolean(trackEl.querySelector('.compact-card'));
+        const hasServerRenderedCards = Boolean(gridEl.querySelector('.compact-card'));
         if (Array.isArray(list) && list.length > 0 && !hasUnresolvedYandexMaps && !hasServerRenderedCards) {
-          const existingDOMCards = Array.from(trackEl.querySelectorAll('.compact-card'));
-          const isChanged = list.length !== count || list.some((item: any, i: number) => {
-            const currentKey = cleanStr(existingDOMCards[i]?.getAttribute('data-country-name') || '');
-            return currentKey !== cleanStr(item.name);
+          gridEl.innerHTML = '';
+          list.forEach((item: any) => {
+            const newCard = createSingleCard(item);
+            gridEl.appendChild(newCard);
           });
-          if (isChanged) {
-            trackEl.innerHTML = '';
-            const trippled = list.length > 1 ? [...list, ...list, ...list] : list;
-            trippled.forEach((item: any) => {
-              const newCard = createSingleCard(item);
-              trackEl.appendChild(newCard);
-            });
-            count = list.length;
-            currentIndex = count > 1 ? count : 0;
-            if (count <= 1 && sliderControls) sliderControls.style.display = 'none';
-            else if (sliderControls) sliderControls.style.display = 'flex';
-            renderDots();
-            updateCardWidth();
-            moveSlider(false);
-            updateAllDestCards(list);
-          }
+          updateDestinationsVisibility();
         }
       }
       if (cachedTabs) {
@@ -1165,12 +645,29 @@ const L = countries.length;
       }
     } catch (e) {}
 
-    Promise.all([
-      fetch(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_KEY}/pubhtml?t=${Date.now()}`, { cache: 'no-store' })
-        .then(r => r.ok ? r.text() : '').catch(() => ''),
-      fetch(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_KEY}/pub?gid=${REGIONS_GID}&single=true&output=csv&t=${Date.now()}`, { cache: 'no-store' })
-        .then(r => r.ok ? r.text() : '').catch(() => '')
-    ]).then(async ([pubHtml, csvText]) => {
+    // Initialize initial visibility
+    updateDestinationsVisibility();
+
+    // Fetch dynamic config.json first (allowing updates without build), then Google Sheets
+    async function loadLiveData() {
+      try {
+        const cfgRes = await fetch(`/config.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (cfgRes.ok) {
+          const cfg = await cfgRes.json();
+          if (cfg.PUBLIC_GOOGLE_PUBLISHED_KEY) PUBLISHED_KEY = cfg.PUBLIC_GOOGLE_PUBLISHED_KEY;
+          if (cfg.PUBLIC_GOOGLE_REGIONS_GID) REGIONS_GID = String(cfg.PUBLIC_GOOGLE_REGIONS_GID);
+        }
+      } catch (e) {}
+
+      if (!PUBLISHED_KEY) return;
+
+      const [pubHtml, csvText] = await Promise.all([
+        fetch(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_KEY}/pubhtml?t=${Date.now()}`, { cache: 'no-store' })
+          .then(r => r.ok ? r.text() : '').catch(() => ''),
+        fetch(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_KEY}/pub?gid=${REGIONS_GID}&single=true&output=csv&t=${Date.now()}`, { cache: 'no-store' })
+          .then(r => r.ok ? r.text() : '').catch(() => '')
+      ]);
+
       const detectedTabs: { name: string; gid: string }[] = [];
 
       if (pubHtml) {
@@ -1205,9 +702,6 @@ const L = countries.length;
         }
       }
 
-      // Проверяем каждую вкладку на наличие реальных данных (яхт).
-      // Если данных нет (вкладка пустая / 0 яхт), она НЕ считается активным направлением
-      // и не попадает ни в слайдер направлений, ни в модальное окно, ни в фильтр яхт!
       const tabDataPromises = detectedTabs.map(async (tab) => {
         try {
           const res = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_KEY}/pub?gid=${tab.gid}&single=true&output=csv&t=${Date.now()}`, { cache: 'no-store' });
@@ -1233,14 +727,11 @@ const L = countries.length;
             if (mapCell && !tabMap) {
               const urls = extractUrls(mapCell);
               if (urls.length > 0) {
-                const candidate = formatGoogleDriveImageUrl(urls[0]);
-                // Не заменяем серверную прямую ссылку публичной ссылкой Яндекс Диска.
-                if (!isPublicYandexDiskLink(candidate)) tabMap = candidate;
+                tabMap = formatGoogleDriveImageUrl(urls[0]);
               }
             }
           }
 
-          // Если в таблице 0 яхт — данных нет, страна пустая или данные удалены
           if (yachtCount === 0) {
             return null;
           }
@@ -1259,9 +750,10 @@ const L = countries.length;
       const tabResults = await Promise.all(tabDataPromises);
       const validTabs = tabResults.filter((r): r is NonNullable<typeof r> => r !== null);
       const activeTabsList = validTabs.map(r => r.tab);
+      const gridEl = document.getElementById('destinations-grid');
 
-      if (validTabs.length > 0) {
-        const existingDOMCards = Array.from(trackEl.querySelectorAll('.compact-card'));
+      if (validTabs.length > 0 && gridEl) {
+        const existingDOMCards = Array.from(gridEl.querySelectorAll<HTMLElement>('.compact-card'));
         const uniqueDOMCountries = new Map<string, { name: string; id: string; desc: string; flagUrl?: string; bgUrl?: string; html?: HTMLElement }>();
 
         existingDOMCards.forEach((c) => {
@@ -1291,6 +783,8 @@ const L = countries.length;
           const desc = dynamicRegionDesc[key] || '';
           const existing = uniqueDOMCountries.get(key) || uniqueDOMCountries.get(trans) || (iso ? uniqueDOMCountries.get('iso:' + iso) : undefined);
 
+          const finalBg = (existing && existing.bgUrl) ? existing.bgUrl : (bgUrl || '');
+
           if (existing) {
             finalList.push({
               ...existing,
@@ -1298,7 +792,7 @@ const L = countries.length;
               id: existing.id || trans || key,
               desc: desc || existing.desc,
               flagUrl: flagUrl || existing.flagUrl,
-              bgUrl: bgUrl || existing.bgUrl
+              bgUrl: finalBg
             });
           } else {
             finalList.push({
@@ -1306,42 +800,24 @@ const L = countries.length;
               id: trans || key,
               desc,
               flagUrl,
-              bgUrl
+              bgUrl: finalBg
             });
           }
         });
 
-        // Всегда обновляем слайдер направлениями, где есть реальные яхты
-        trackEl.innerHTML = '';
-        const trippled = finalList.length > 1 ? [...finalList, ...finalList, ...finalList] : finalList;
-
-        trippled.forEach((item) => {
+        gridEl.innerHTML = '';
+        finalList.forEach((item) => {
           if (item.html && !item.flagUrl && !item.bgUrl) {
             const clone = item.html.cloneNode(true) as HTMLElement;
             bindCardEvents(clone);
-            trackEl.appendChild(clone);
+            gridEl.appendChild(clone);
           } else {
             const newCard = createSingleCard(item);
-            trackEl.appendChild(newCard);
+            gridEl.appendChild(newCard);
           }
         });
 
-        count = finalList.length;
-        currentIndex = count > 1 ? count : 0;
-
-        if (count <= 1 && sliderControls) {
-          sliderControls.style.display = 'none';
-        } else if (sliderControls) {
-          sliderControls.style.display = 'flex';
-        }
-
-        renderDots();
-        updateCardWidth();
-        moveSlider(false);
-
-        if (finalList.length > 0) {
-          updateAllDestCards(finalList);
-        }
+        updateDestinationsVisibility();
 
         const allActiveKeys = new Set<string>();
         validTabs.forEach(r => {
@@ -1370,28 +846,24 @@ const L = countries.length;
         }));
       }
 
-      trackEl.querySelectorAll('.compact-card').forEach((card) => {
-        const cName = cleanStr(card.getAttribute('data-country-name') || '');
-        const infoBtn = card.querySelector<HTMLElement>('[data-info-btn]');
-        const hasDesc = Boolean(cName && dynamicRegionDesc[cName]);
-        if (infoBtn) {
-          infoBtn.style.display = hasDesc ? 'flex' : 'none';
-        }
-      });
+      if (gridEl) {
+        gridEl.querySelectorAll('.compact-card').forEach((card) => {
+          const cName = cleanStr(card.getAttribute('data-country-name') || '');
+          const infoBtn = card.querySelector<HTMLElement>('[data-info-btn]');
+          const hasDesc = Boolean(cName && dynamicRegionDesc[cName]);
+          if (infoBtn) {
+            infoBtn.style.display = hasDesc ? 'flex' : 'none';
+          }
+        });
+      }
+    }
 
-      allGrid?.querySelectorAll('.all-dest-card').forEach((card) => {
-        const cName = cleanStr(card.getAttribute('data-country-name') || '');
-        const infoBtn = card.querySelector<HTMLElement>('[data-info-btn]');
-        const hasDesc = Boolean(cName && dynamicRegionDesc[cName]);
-        if (infoBtn) {
-          infoBtn.style.display = hasDesc ? 'flex' : 'none';
-        }
-      });
-    }).catch((err) => {
+    loadLiveData().catch((err) => {
       console.error('Destinations dynamic sync error:', err);
     });
 
-    trackEl.querySelectorAll<HTMLElement>('.compact-card').forEach(bindCardEvents);
+    const initGrid = document.getElementById('destinations-grid');
+    initGrid?.querySelectorAll<HTMLElement>('.compact-card').forEach(bindCardEvents);
   });
 </script>
 
@@ -1449,47 +921,62 @@ const L = countries.length;
     transition: transform 0.25s ease;
   }
 
-  .slider-wrapper {
-    position: relative;
+  /* Grid wrapper */
+  .destinations-grid-wrapper {
     width: 100%;
-    overflow: hidden;
+    margin-top: 24px;
   }
 
-  .slider-track {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: var(--gap-width, 20px);
-    will-change: transform;
-    padding: 8px 0 16px 0;
+  /* Destinations Grid: 5 на десктопе, 3 на планшете, 2 на мобиле */
+  .destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    width: 100%;
   }
 
-  .destinations-section .compact-card,
-  .slider-track .compact-card {
-    flex-shrink: 0 !important;
-    width: var(--card-width, 220px) !important;
-    max-width: var(--card-width, 220px) !important;
-    min-width: var(--card-width, 220px) !important;
-    height: 300px !important;
+  @media (max-width: 1024px) {
+    .destinations-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .destinations-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+  }
+
+  /* Compact card styling */
+  .destinations-section .compact-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: 280px !important;
     border-radius: 14px !important;
     position: relative !important;
     overflow: hidden !important;
     cursor: pointer;
     user-select: none;
-    -webkit-user-drag: none;
     background-color: #e8f4f2;
     border: 1px solid rgba(5, 51, 43, 0.08);
     box-shadow: 0 4px 14px rgba(5, 51, 43, 0.06);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     box-sizing: border-box !important;
+    display: flex;
+    flex-direction: column;
   }
 
-  .destinations-section .compact-card:active,
-  .slider-track .compact-card:active {
-    cursor: grabbing;
+  .destinations-section .compact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(5, 51, 43, 0.12);
+    border-color: rgba(235, 114, 45, 0.35);
   }
 
-  .destinations-section .card-bg-img,
-  .slider-track .card-bg-img {
+  .destinations-section .card-bg-img {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
@@ -1499,10 +986,7 @@ const L = countries.length;
     pointer-events: none;
   }
 
-  .destinations-section .card-bg-img img,
-  .slider-track .card-bg-img img,
-  .destinations-section img.card-bg-img,
-  .slider-track img.card-bg-img {
+  .destinations-section .card-bg-img img {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
@@ -1512,18 +996,15 @@ const L = countries.length;
     object-fit: cover !important;
     object-position: center !important;
     user-select: none;
-    -webkit-user-drag: none;
     transition: transform 0.6s ease;
     display: block !important;
   }
 
-  .destinations-section .compact-card:hover .card-bg-img img,
-  .slider-track .compact-card:hover .card-bg-img img {
+  .destinations-section .compact-card:hover .card-bg-img img {
     transform: scale(1.08);
   }
 
-  .destinations-section .card-top-row,
-  .slider-track .card-top-row {
+  .destinations-section .card-top-row {
     position: absolute;
     top: 12px;
     left: 12px;
@@ -1534,8 +1015,7 @@ const L = countries.length;
     z-index: 3;
   }
 
-  .destinations-section .compact-flag-wrap,
-  .slider-track .compact-flag-wrap {
+  .destinations-section .compact-flag-wrap {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1547,24 +1027,21 @@ const L = countries.length;
     line-height: 0;
   }
 
-  .destinations-section .compact-flag-img,
-  .slider-track .compact-flag-img {
+  .destinations-section .compact-flag-img {
     width: 30px;
     height: 20px;
     object-fit: cover;
     display: block;
   }
 
-  .destinations-section .compact-flag-emoji,
-  .slider-track .compact-flag-emoji {
+  .destinations-section .compact-flag-emoji {
     font-size: 20px;
     line-height: 1;
     display: block;
     padding: 2px 4px;
   }
 
-  .destinations-section .compact-info-btn,
-  .slider-track .compact-info-btn {
+  .destinations-section .compact-info-btn {
     color: var(--color-navy, #05332b);
     padding: 0;
     display: flex;
@@ -1581,15 +1058,13 @@ const L = countries.length;
     z-index: 4;
   }
 
-  .destinations-section .compact-info-btn:hover,
-  .slider-track .compact-info-btn:hover {
+  .destinations-section .compact-info-btn:hover {
     transform: scale(1.1);
     background-color: #ffffff;
     color: var(--color-orange, #ff6900);
   }
 
-  .destinations-section .card-bottom-content,
-  .slider-track .card-bottom-content {
+  .destinations-section .card-bottom-content {
     position: absolute;
     bottom: 12px;
     left: 14px;
@@ -1600,8 +1075,7 @@ const L = countries.length;
     gap: 3px;
   }
 
-  .destinations-section .compact-country-name,
-  .slider-track .compact-country-name {
+  .destinations-section .compact-country-name {
     font-size: 19px;
     font-weight: 700;
     color: var(--color-navy, #05332b);
@@ -1610,8 +1084,7 @@ const L = countries.length;
     letter-spacing: -0.01em;
   }
 
-  .destinations-section .compact-action-hint,
-  .slider-track .compact-action-hint {
+  .destinations-section .compact-action-hint {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1621,11 +1094,55 @@ const L = countries.length;
     transition: all 0.25s ease;
   }
 
-  .destinations-section .compact-action-hint svg,
-  .slider-track .compact-action-hint svg {
+  .destinations-section .compact-action-hint svg {
     transition: transform 0.25s ease;
   }
 
+  .destinations-section .compact-card:hover .compact-action-hint svg {
+    transform: translateX(3px);
+  }
+
+  /* Show More Button Container (как в яхтах) */
+  .dest-show-more-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+  }
+
+  .dest-show-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #ffffff;
+    color: var(--color-navy);
+    border: 1.5px solid rgba(5, 51, 43, 0.12);
+    border-radius: 9999px;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 14px rgba(5, 51, 43, 0.05);
+    user-select: none;
+  }
+
+  .dest-show-more-btn:hover {
+    background-color: var(--color-navy);
+    color: #ffffff;
+    border-color: var(--color-navy);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(5, 51, 43, 0.12);
+  }
+
+  .dest-show-more-btn:hover .btn-arrow {
+    transform: translateY(2px);
+  }
+
+  .dest-show-more-btn .btn-arrow {
+    transition: transform 0.25s ease;
+  }
+
+  /* Info Modal Popover */
   .info-modal-backdrop {
     position: fixed;
     inset: 0;
@@ -1730,7 +1247,7 @@ const L = countries.length;
     to { opacity: 1; transform: scale(1); }
   }
 
-  /* All Destinations Modal (Вариант 1) */
+  /* All Destinations Modal */
   .all-destinations-modal-backdrop {
     position: fixed;
     top: 0;
@@ -2070,9 +1587,19 @@ const L = countries.length;
     .section-title {
       font-size: 24px;
     }
-    .destinations-section .compact-card,
-    .slider-track .compact-card {
-      height: 160px !important;
+    .destinations-section .compact-card {
+      height: 180px !important;
+      border-radius: 12px !important;
+    }
+    .destinations-section .compact-country-name {
+      font-size: 15px;
+    }
+    .destinations-section .compact-action-hint {
+      font-size: 11px;
+    }
+    .dest-show-more-btn {
+      padding: 10px 22px;
+      font-size: 14px;
     }
     .all-destinations-modal-backdrop {
       padding: 10px;

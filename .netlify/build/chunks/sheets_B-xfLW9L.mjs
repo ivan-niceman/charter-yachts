@@ -765,7 +765,7 @@ var CACHE_TTL_MS = 30 * 1e3;
 async function fetchInitialDataServerSide() {
 	const now = Date.now();
 	if (serverCacheData && now - serverCacheTimestamp < CACHE_TTL_MS) return serverCacheData;
-	const PUBLISHED_SHEET_KEY = "2PACX-1vQeRQ5VAaQfGuBuOl1AKIktnCubBKhDAcGlQD5-1PyqIJ8P5VR6HKjRxkYBQZrWzeHs1QD5XlA54GGl";
+	const PUBLISHED_SHEET_KEY = "2PACX-1vSW4Ubcu_fhI-s6-lXxQaSVVBWBDP3dU3uIyRLipvCegLAaBOZvq_jfaAIcUDGLlPTqk8zGx0qyrhQA";
 	try {
 		const defaultGids = [
 			{

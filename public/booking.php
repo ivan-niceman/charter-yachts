@@ -245,7 +245,7 @@ $name    = isset($input['name']) ? trim($input['name']) : '';
 $phone   = isset($input['phone']) ? trim($input['phone']) : '';
 $email   = isset($input['email']) ? trim($input['email']) : '';
 $yacht   = isset($input['yacht']) ? trim($input['yacht']) : 'Общий подбор тура / Консультация';
-$comment = isset($input['comment']) ? trim($input['comment']) : 'Без комментария';
+$comment = isset($input['comment']) ? trim($input['comment']) : '';
 $consent = isset($input['consent']) ? (bool)$input['consent'] : false;
 
 if (!empty($input['website'])) {
@@ -254,9 +254,15 @@ if (!empty($input['website'])) {
   exit();
 }
 
-if (empty($name) || empty($phone) || empty($email) || !$consent) {
+if (empty($name) || empty($phone) || empty($email) || empty($comment) || !$consent) {
   http_response_code(400);
-  echo json_encode(['error' => 'Пожалуйста, заполните все обязательные поля и подтвердите согласие 152-ФЗ'], JSON_UNESCAPED_UNICODE);
+  echo json_encode(['error' => 'Пожалуйста, заполните все обязательные поля (включая комментарий) и подтвердите согласие 152-ФЗ'], JSON_UNESCAPED_UNICODE);
+  exit();
+}
+
+if (mb_strlen($comment, 'UTF-8') < 3) {
+  http_response_code(400);
+  echo json_encode(['error' => 'Комментарий должен содержать не менее 3 символов'], JSON_UNESCAPED_UNICODE);
   exit();
 }
 
@@ -380,7 +386,7 @@ $htmlMessage = '
             </tr>
         </table>
         <hr style="margin: 24px 0 16px 0; border: none; border-top: 1px solid #e0e0e0;" />
-        <p style="font-size: 12px; color: #7a948e; margin: 0; text-align: center;">Сообщение отправлено с веб-сайта Абсолют-Тур</p>
+        <p style="font-size: 12px; color: #7a948e; margin: 0; text-align: center;">Сообщение отправлено автоматически с веб-сайта Абсолют-Тур</p>
     </div>
 </body>
 </html>

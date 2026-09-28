@@ -6,8 +6,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node scripts/sync-config.js && astro dev",
+    "sync-config": "node scripts/sync-config.js",
+    "build": "node scripts/sync-config.js && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },

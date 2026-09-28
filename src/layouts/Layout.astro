@@ -7,26 +7,133 @@ import CookieBanner from "../components/CookieBanner.astro";
 interface Props {
   title: string;
   description?: string;
+  image?: string;
 }
 
-const { title, description} = Astro.props;
+const { 
+  title, 
+  description = "Агентство ООО «Абсолют-тур» по организации премиальных путешествий на яхтах и дайвинг-сафари по всему миру.",
+  image = "https://charter-yachts.ru/destinations/Maldives.jpg"
+} = Astro.props;
 
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://charter-yachts.ru');
 ---
 
 <!doctype html>
 <html lang="ru">
 	<head>
 		<meta charset="utf-8" />
+		<script is:inline>
+			(function() {
+				try {
+					var origFetch = window.fetch;
+					if (origFetch) {
+						var currentFetch = origFetch.bind(window);
+						Object.defineProperty(window, 'fetch', {
+							configurable: true,
+							enumerable: true,
+							get: function() {
+								return currentFetch;
+							},
+							set: function(fn) {
+								currentFetch = fn;
+							}
+						});
+					}
+				} catch (e) {}
+
+				window.repairYandexImage = function(img) {
+					if (!img || img.dataset.recovering === 'true') return;
+					img.dataset.recovering = 'true';
+					
+					var raw = img.getAttribute('data-raw-src') || img.getAttribute('data-src') || img.src || '';
+					if (!raw) return;
+					
+					if (raw.indexOf('disk.yandex.ru') !== -1 || raw.indexOf('downloader.disk.yandex.ru') !== -1) {
+						var match = raw.match(/disk\.yandex\.ru\/d\/([^\/]+)(?:\/(.+))?/);
+						var apiUrl = '';
+						if (match) {
+							var folderKey = 'https://disk.yandex.ru/d/' + match[1];
+							var subPath = match[2] ? '/' + decodeURIComponent(match[2]) : '';
+							apiUrl = 'https://cloud-api.yandex.net/v1/disk/public/resources?public_key=' + encodeURIComponent(folderKey) + (subPath ? '&path=' + encodeURIComponent(subPath) : '');
+						} else {
+							apiUrl = 'https://cloud-api.yandex.net/v1/disk/public/resources?public_key=' + encodeURIComponent(raw);
+						}
+						
+						fetch(apiUrl)
+							.then(function(res) { return res.ok ? res.json() : null; })
+							.then(function(data) {
+								if (!data) return;
+								var sizes = data.sizes || [];
+								var sizePriority = ['ORIGINAL', 'XXXL', 'XXL', 'XL', 'L', 'M', 'S'];
+								var bestUrl = data.file;
+								if (!bestUrl && sizes.length > 0) {
+									for (var i = 0; i < sizePriority.length; i++) {
+										var found = sizes.find(function(s) { return s.name === sizePriority[i] && s.url; });
+										if (found) { bestUrl = found.url; break; }
+									}
+								}
+								if (!bestUrl) bestUrl = (sizes[0] && sizes[0].url) || data.preview;
+								if (bestUrl) {
+									img.src = bestUrl;
+								}
+							})
+							.catch(function() {});
+					}
+				};
+
+				window.addEventListener('error', function(e) {
+					var target = e.target;
+					if (target && target.tagName === 'IMG') {
+						window.repairYandexImage(target);
+					}
+				}, true);
+			})();
+		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="robots" content="index, follow" />
 		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalURL.href} />
 		<meta name="mobile-web-app-capable" content="yes" />
 
+		<!-- Open Graph / VK / Telegram -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalURL.href} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
-		<meta property="og:type" content="website" />
+		<meta property="og:image" content={image} />
 		<meta property="og:locale" content="ru_RU" />
-		<meta property="og:site_name" content="Абсолют-тур" />
+		<meta property="og:site_name" content="Абсолют-тур — Charter Yachts" />
+
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:url" content={canonicalURL.href} />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={image} />
+
+		<!-- Schema.org JSON-LD Structured Data -->
+		<script type="application/ld+json" is:inline>
+		{
+			"@context": "https://schema.org",
+			"@type": "TravelAgency",
+			"name": "Абсолют-тур — Фрахт яхт и дайвинг-сафари",
+			"alternateName": "Charter Yachts Russia",
+			"url": "https://charter-yachts.ru",
+			"logo": "https://charter-yachts.ru/favicon/favicon-96x96.png",
+			"image": "https://charter-yachts.ru/destinations/Maldives.jpg",
+			"description": "Организация премиальных путешествий на яхтах, аренда катамаранов и дайвинг-сафари по всему миру.",
+			"telephone": "+7-931-397-71-03",
+			"email": "reservations@absolute-tour.com",
+			"address": {
+				"@type": "PostalAddress",
+				"streetAddress": "ул. Решетникова 15",
+				"addressLocality": "Санкт-Петербург",
+				"addressCountry": "RU"
+			},
+			"priceRange": "$$$$"
+		}
+		</script>
 
 		<link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
 		<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
@@ -40,6 +147,7 @@ const { title, description} = Astro.props;
 
 		<title>{title}</title>
 
+		<script is:inline src="/site-config.js"></script>
 		<script is:inline>
 			(function() {
 				try {

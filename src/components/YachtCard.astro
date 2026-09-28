@@ -22,11 +22,13 @@ const displayImage = firstImage || firstThumb || '';
   <div class="yacht-image-wrap">
     <img
       src={displayImage}
+      data-raw-src={displayImage}
       alt={yacht.name}
       class="yacht-image"
       loading="lazy"
       referrerpolicy="no-referrer"
       draggable="false"
+      onerror="if(window.repairYandexImage){window.repairYandexImage(this);}"
     />
     <div class="yacht-badges">
       {country && (

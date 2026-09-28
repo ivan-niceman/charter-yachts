@@ -76,6 +76,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
                   {item.type === 'image' && (
                     <img
                       src={item.url}
+                      data-raw-src={item.url}
                       alt={`${yacht.name} ${idx + 1}`}
                       class="modal-main-image"
                       data-media-url={item.url}
@@ -83,6 +84,7 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
                       decoding="async"
                       draggable="false"
                       referrerpolicy="no-referrer"
+                      onerror="if(window.repairYandexImage){window.repairYandexImage(this);}"
                     />
                   )}
                   {item.type === 'video' && (
@@ -159,9 +161,11 @@ const toysAndFeatures = yacht.toysAndEntertainment && yacht.toysAndEntertainment
                 {item.thumbnail ? (
                   <img
                     src={item.thumbnail}
+                    data-raw-src={item.thumbnail}
                     alt={`${yacht.name} ${idx + 1}`}
                     data-media-url={item.url}
                     referrerpolicy="no-referrer"
+                    onerror="if(window.repairYandexImage){window.repairYandexImage(this);}"
                   />
                 ) : (
                   <div class="thumb-video-placeholder">

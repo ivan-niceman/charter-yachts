@@ -642,11 +642,13 @@ const { yachts, countries } = Astro.props;
         <div class="yacht-image-wrap">
           <img
             src="${displayImage}"
+            data-raw-src="${displayImage}"
             alt="${yacht.name}"
             class="yacht-image"
             loading="lazy"
             referrerpolicy="no-referrer"
             draggable="false"
+            onerror="if(window.repairYandexImage){window.repairYandexImage(this);}"
           />
           <div class="yacht-badges">
             <span class="badge country-badge">${countryName}</span>
@@ -703,6 +705,7 @@ const { yachts, countries } = Astro.props;
             ${item.type === 'image' ? `
               <img
                 src="${item.url}"
+                data-raw-src="${item.url}"
                 alt="${yacht.name} ${idx + 1}"
                 class="modal-main-image"
                 data-media-url="${item.url}"
@@ -710,6 +713,7 @@ const { yachts, countries } = Astro.props;
                 decoding="async"
                 draggable="false"
                 referrerpolicy="no-referrer"
+                onerror="if(window.repairYandexImage){window.repairYandexImage(this);}"
               />
             ` : item.type === 'video' ? `
               <div class="modal-video-wrapper">
@@ -739,9 +743,11 @@ const { yachts, countries } = Astro.props;
               ${item.thumbnail ? `
                 <img
                   src="${item.thumbnail}"
+                  data-raw-src="${item.thumbnail}"
                   alt="${yacht.name} ${idx + 1}"
                   data-media-url="${item.url}"
                   referrerpolicy="no-referrer"
+                  onerror="if(window.repairYandexImage){window.repairYandexImage(this);}"
                 />
               ` : `
                 <div class="thumb-video-placeholder">
@@ -955,7 +961,17 @@ const { yachts, countries } = Astro.props;
     async function syncYachtsForTabs(activeTabs: Array<{ name: string; gid: string }>) {
       if (!grid || !activeTabs || activeTabs.length === 0) return;
 
-      const pubKey = DEFAULT_PUBLISHED_SHEET_KEY || '2PACX-1vQeRQ5VAaQfGuBuOl1AKIktnCubBKhDAcGlQD5-1PyqIJ8P5VR6HKjRxkYBQZrWzeHs1QD5XlA54GGl';
+      let pubKey = (typeof (window as any).getGooglePublishedKey === 'function')
+        ? (window as any).getGooglePublishedKey()
+        : ((window as any).__APP_CONFIG__?.PUBLIC_GOOGLE_PUBLISHED_KEY || '');
+
+      try {
+        const cfgRes = await fetch(`/config.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (cfgRes.ok) {
+          const cfg = await cfgRes.json();
+          if (cfg.PUBLIC_GOOGLE_PUBLISHED_KEY) pubKey = cfg.PUBLIC_GOOGLE_PUBLISHED_KEY;
+        }
+      } catch (e) {}
 
       for (const tab of activeTabs) {
         const { cleanName } = extractFlag(tab.name);
