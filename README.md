@@ -239,3 +239,6 @@ _Built with Astro.js • Powered by premium maritime experiences_
      "PUBLIC_BOOKING_ENDPOINT": "/booking.php"
    }
    ```
+---
+
+### page: https://ivan-niceman.github.io/charter-yachts/
